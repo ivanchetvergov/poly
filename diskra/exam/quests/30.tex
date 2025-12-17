@@ -1,0 +1,23 @@
+\section{Дифференцирование булевых функций.}
+
+\paragraph{Определение производной}
+\textbf{Производной} булевой функции $f(x_1, \dots, x_n)$ по переменной $x_i$ называется функция, которая показывает, меняет ли исходная функция свое значение при изменении только переменной $x_i$:
+$$\frac{\partial f}{\partial x_i} \stackrel{\text{def}}{=} f(x_1, \dots, x_i, \dots, x_n) \oplus f(x_1, \dots, \neg x_i, \dots, x_n).$$
+Эквивалентная форма через разложение Шеннона:
+$$\frac{\partial f}{\partial x_i} = f(x_1, \dots, 0, \dots, x_n) \oplus f(x_1, \dots, 1, \dots, x_n).$$
+
+\paragraph{Свойства дифференцирования}
+Операция дифференцирования в булевой алгебре обладает свойствами, похожими на классический анализ:
+\begin{enumerate}
+    \item \textbf{Линейность:} $\frac{\partial (f \oplus g)}{\partial x} = \frac{\partial f}{\partial x} \oplus \frac{\partial g}{\partial x}$.
+    \item \textbf{Производная константы:} $\frac{\partial C}{\partial x} = 0$.
+    \item \textbf{Производная отрицания:} $\frac{\partial (\neg f)}{\partial x} = \frac{\partial f}{\partial x}$.
+    \item \textbf{Правило произведения (аналог Лейбница):} 
+    $\frac{\partial (f \land g)}{\partial x} = \left( \frac{\partial f}{\partial x} \land g \right) \oplus \left( f \land \frac{\partial g}{\partial x} \right) \oplus \left( \frac{\partial f}{\partial x} \land \frac{\partial g}{\partial x} \right)$.
+\end{enumerate}
+
+\paragraph{Связь с существенными переменными}
+Переменная $x_i$ является \textbf{существенной} для функции $f$ тогда и только тогда, когда производная $\frac{\partial f}{\partial x_i}$ не является константой $0$. Если производная тождественно равна нулю, переменная фиктивна.
+
+\paragraph{Формула Тейлора}
+Любую булеву функцию можно представить через значения её производных в точке (аналог разложения в ряд Тейлора), что используется в задачах синтеза и диагностики цифровых схем.
