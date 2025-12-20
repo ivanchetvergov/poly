@@ -1,0 +1,66 @@
+\section{Алгебры. Носители и сигнатура. Замыкания и подалгебры. Система образующих. Свойства операций. Примеры.}
+
+\subsection*{Алгебры, Носители и Сигнатура}
+
+\paragraph{Определение Операции}
+\textbf{$n$-арная ($n$-местная) операция} $\varphi$ на множестве $M$ --- это всюду определённая (тотальная) функция $\varphi: M^n \to M$.
+\begin{itemize}
+    \item Для бинарных операций ($\varphi: M \times M \to M$) используется инфиксная форма записи, например, $a \ast b$.
+\end{itemize}
+
+\paragraph{Алгебраическая структура (Универсальная алгебра)}
+\textbf{Алгебра} $\mathcal{A}$ --- это множество $M$ вместе с набором операций $\Sigma = \{\varphi_1, \ldots, \varphi_m\}$, где $\varphi_i: M^{n_i} \to M$.
+$$\mathcal{A} = (M; \Sigma) = (M; \varphi_1, \ldots, \varphi_m).$$
+\begin{itemize}
+    \item \textbf{Носитель (Основа)} $M$: Основное множество, на котором определены операции.
+    \item \textbf{Сигнатура} $\Sigma$: Множество всех операций $\{\varphi_1, \ldots, \varphi_m\}$.
+    \item \textbf{Тип:} Вектор арностей $(n_1, \ldots, n_m)$.
+\end{itemize}
+
+\subsection*{Замыкания и Подалгебры}
+
+\paragraph{Замкнутое подмножество}
+Подмножество носителя $X \subset M$ называется \textbf{замкнутым} относительно операции $\varphi$ (с арностью $n$), если:
+$$\forall x_1, \ldots, x_n \in X \implies \varphi(x_1, \ldots, x_n) \in X.$$
+Множество $X$ замкнуто относительно сигнатуры $\Sigma$, если оно замкнуто относительно всех $\varphi \in \Sigma$.
+
+\paragraph{Подалгебра}
+Алгебра $\mathcal{X} = (X; \Sigma_X)$ называется \textbf{подалгеброй} алгебры $\mathcal{A} = (M; \Sigma)$, если:
+\begin{enumerate}
+    \item $X \subset M$.
+    \item $X$ \textbf{замкнуто} относительно всех операций $\varphi_i \in \Sigma$.
+    \item $\Sigma_X$ --- это ограничения операций $\Sigma$ на $X$.
+\end{enumerate}
+
+\paragraph{Примеры Подалгебр}
+\begin{itemize}
+    \item Кольцо целых чисел $(\mathbb{Z}; +, \cdot)$ является подалгеброй поля рациональных чисел $(\mathbb{Q}; +, \cdot)$.
+    \item Алгебра полиномов $\mathcal{P}_x$ является подалгеброй алгебры гладких функций $\mathcal{F}$ по операции дифференцирования.
+\end{itemize}
+
+\subsection*{Система образующих}
+
+\paragraph{Определение}
+Подмножество $M' \subset M$ называется \textbf{системой образующих} алгебры $(M; \Sigma)$, если $M$ является наименьшим замкнутым подмножеством, содержащим $M'$.
+$$\text{Алгебра, порождённая } M' \text{ (обозначается } [M']_\Sigma \text{), равна } M.$$
+\textbf{Конечно-порождённая алгебра:} Алгебра, имеющая конечную систему образующих.
+
+\paragraph{Пример}
+Алгебра натуральных чисел $(\mathbb{N}; +)$ конечно-порождённая, так как имеет систему образующих $M' = \{1\}$.
+
+\subsection*{Свойства бинарных операций}
+
+Пусть $\mathcal{A} = (M; \Sigma)$, $a, b, c \in M$, и $\circ, \bullet \in \Sigma$ --- бинарные операции.
+
+\begin{enumerate}
+    \item \textbf{Ассоциативность} ($\circ$):
+    $$(a \circ b) \circ c = a \circ (b \circ c).$$
+    \item \textbf{Коммутативность} ($\circ$):
+    $$a \circ b = b \circ a.$$
+    \item \textbf{Дистрибутивность} ($\circ$ относительно $\bullet$ слева):
+    $$a \circ (b \bullet c) = (a \circ b) \bullet (a \circ c).$$
+    \item \textbf{Поглощение} ($\circ$ поглощает $\bullet$):
+    $$(a \circ b) \bullet a = a.$$
+    \item \textbf{Идемпотентность} ($\circ$):
+    $$a \circ a = a.$$
+\end{enumerate}

@@ -1,0 +1,48 @@
+# config.yaml
+variants:
+  Z8:
+    variant_0:
+      size: 8
+      rule_plus_one: [a, b, c, d, e, f, g, h]
+      zero_element: a
+      one_element: b
+    variant_1:
+      size: 8
+      rule_plus_one: [b, c, e, g, d, h, f, a]
+      zero_element: a
+      one_element: b
+    variant_2:
+      size: 8
+      rule_plus_one: [b, f, g, c, a, h, e, d]
+      zero_element: a
+      one_element: b
+    variant_easy:
+      size: 8
+      rule_plus_one: ['0', '1', '2', '3', '4', '5', '6', '7']
+      zero_element: 0
+      one_element: 1
+
+    # X1:
+    #   size: 8
+    #   rule_plus_one:
+    #     a: b 
+    #     b: h
+    #     c: g
+    #     d: e
+    #     e: c   
+    #     f: e
+    #     g: a
+    #     h: [d, f]
+    #   zero_element: a
+    #   one_element: b
+  Z11:
+    D1:
+      size: 11
+      rule_plus_one: [b, c, k, g, d, a, j, i, e, f, h]
+      zero_element: a
+      one_element: b 
+    D9:
+      size: 11
+      rule_plus_one: [b, k, e, i, j, a, d, c, f, g, h]
+      zero_element: a
+      one_element: b 

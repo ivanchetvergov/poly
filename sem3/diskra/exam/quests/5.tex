@@ -1,0 +1,81 @@
+\section{Мультимножества. Операции над мультимножествами.}
+
+\subsection*{Мультимножества}
+
+В отличие от обычного множества, где все элементы различны и входят ровно один раз, \textbf{мультимножество} допускает, что элементы могут входить в совокупность \textbf{по несколько раз}.
+
+\paragraph{Определение}
+Пусть $X = \{x_1, \ldots, x_n\}$ --- некоторое (конечное) множество, и пусть $\alpha_1, \ldots, \alpha_n$ --- неотрицательные целые числа.
+
+\textbf{Мультимножеством} $\mathcal{X}$ над множеством $X$ называется совокупность элементов множества $X$, в которую элемент $x_i$ входит $\alpha_i$ раз, $\alpha_i \ge 0$.
+
+\paragraph{Обозначения мультимножеств}
+Мультимножество $\mathcal{X}$ обозначается одним из следующих способов:
+\begin{itemize}
+    \item С использованием показателей (степеней):
+    $$\mathcal{X} = [x_1^{\alpha_1}, \ldots, x_n^{\alpha_n}]$$
+    \item Перечислением элементов (где $x_i$ повторяется $\alpha_i$ раз):
+    $$\mathcal{X} = (x_1, \ldots, x_1, \ldots, x_n, \ldots, x_n)$$
+    \item С использованием пары (показатель, элемент):
+    $$\mathcal{X} = (\alpha_1(x_1), \ldots, \alpha_n(x_n))$$
+\end{itemize}
+
+\textbf{Пример:} Пусть $X = \{a, b, c\}$. Тогда $\mathcal{X} = [a^0 b^3 c^4] = (b, b, b, c, c, c, c) = (0(a), 3(b), 4(c))$.
+
+\paragraph{Основные характеристики}
+Пусть $\mathcal{X} = (\alpha_1(x_1), \ldots, \alpha_n(x_n))$ --- мультимножество над $X = \{x_1, \ldots, x_n\}$.
+\begin{itemize}
+    \item \textbf{Показатель (кратность) элемента $x_i$:} Число $\alpha_i$.
+    \item \textbf{Носитель мультимножества:} Множество $X$, над которым определено $\mathcal{X}$.
+    \item \textbf{Мощность мультимножества $|\mathcal{X}|$:} Общее число элементов с учетом кратности:
+    $$m = \alpha_1 + \alpha_2 + \cdots + \alpha_n.$$
+    \item \textbf{Состав мультимножества:} Множество элементов, имеющих положительный показатель (кратность $\alpha_i > 0$):
+    $$X' = \{x_i \in X \mid \alpha_i > 0\}.$$
+\end{itemize}
+\textbf{ЗАМЕЧАНИЕ:} Элементы мультимножества, равно как и элементы множества, считаются \textbf{неупорядоченными}.
+
+\subsection*{Операции над мультимножествами}
+
+Пусть $\mathcal{A} = (\alpha_i(x_i))$ и $\mathcal{B} = (\beta_i(x_i))$ --- два мультимножества над одним носителем $X = \{x_1, \ldots, x_n\}$, где $\alpha_i$ и $\beta_i$ --- кратности элемента $x_i$ в $\mathcal{A}$ и $\mathcal{B}$ соответственно. $U$ --- универсум с кратностью $u_i$ для элемента $x_i$.
+
+\subsubsection*{Логические (Теоретико-множественные) операции}
+
+В основе этих операций лежат функции $\max$ и $\min$ для кратностей:
+\begin{enumerate}
+    \item \textbf{Объединение ($\mathcal{A} \cup \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{максимуму} из кратностей:
+    $$\mathcal{C} = \mathcal{A} \cup \mathcal{B} \implies \gamma_i = \max(\alpha_i, \beta_i).$$
+
+    \item \textbf{Пересечение ($\mathcal{A} \cap \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{минимуму} из кратностей:
+    $$\mathcal{C} = \mathcal{A} \cap \mathcal{B} \implies \gamma_i = \min(\alpha_i, \beta_i).$$
+
+    \item \textbf{Разность ($\mathcal{A} \setminus \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{разности кратностей}, ограниченной снизу нулем:
+    $$\mathcal{C} = \mathcal{A} \setminus \mathcal{B} \implies \gamma_i = \max(\alpha_i - \beta_i, 0).$$
+
+    \item \textbf{Симметрическая разность ($\mathcal{A} \Delta \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{модулю разности кратностей}:
+    $$\mathcal{C} = \mathcal{A} \Delta \mathcal{B} \implies \gamma_i = |\alpha_i - \beta_i|.$$
+
+    \item \textbf{Дополнение ($\overline{\mathcal{A}}$):} Дополнение относительно универсума $\mathcal{U}$:
+    $$\mathcal{C} = \overline{\mathcal{A}} = \mathcal{U} \setminus \mathcal{A} \implies \gamma_i = \max(u_i - \alpha_i, 0).$$
+\end{enumerate}
+
+\subsubsection*{Арифметические операции}
+
+Эти операции используют арифметические правила для кратностей, часто с ограничением сверху кратностью в универсуме ($u_i$).
+
+\begin{enumerate}
+    \item \textbf{Арифметическая сумма ($\mathcal{A} + \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{сумме кратностей}, ограниченной $u_i$:
+    $$\mathcal{C} = \mathcal{A} + \mathcal{B} \implies \gamma_i = \min(\alpha_i + \beta_i, u_i).$$
+
+    \item \textbf{Арифметическая разность ($\mathcal{A} - \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{разности кратностей}, ограниченной снизу нулем:
+    $$\mathcal{C} = \mathcal{A} - \mathcal{B} \implies \gamma_i = \max(\alpha_i - \beta_i, 0).$$
+
+    \item \textbf{Арифметическое произведение ($\mathcal{A} \times \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{произведению кратностей}, ограниченному $u_i$:
+    $$\mathcal{C} = \mathcal{A} \times \mathcal{B} \implies \gamma_i = \min(\alpha_i \cdot \beta_i, u_i).$$
+
+    \item \textbf{Арифметическое деление ($\mathcal{A} \div \mathcal{B}$):} Кратность элемента $x_i$ равна \textbf{целой части от деления кратностей}:
+    $$\mathcal{C} = \mathcal{A} \div \mathcal{B} \implies \gamma_i = \begin{cases}
+        \lfloor \alpha_i / \beta_i \rfloor, & \text{если } \beta_i \ne 0 \\
+        0, & \text{если } \beta_i = 0
+    \end{cases} $$
+    (С учетом ограничения универсума: $\gamma_i = \min(\lfloor \alpha_i / \beta_i \rfloor, u_i)$ при $\beta_i \ne 0$).
+\end{enumerate}

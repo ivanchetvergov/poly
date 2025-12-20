@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(lab8 VERSION 1.0 LANGUAGES CXX)
+
+# включаем автоматику qt
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+set(SOURCES
+    main.cc
+    ui/src/MainWindow.cc
+    ui/src/MainWindowUI.cc
+    ui/src/MainWindowLogic.cc
+    core/src/ContactManager.cc
+    core/src/Validator.cc
+    core/src/ContactTableModel.cc   
+)
+
+set(HEADERS
+    ui/include/MainWindow.h
+    core/include/Contact.h
+    core/include/ContactManager.h
+    core/include/Validator.h
+    core/include/ContactTableModel.h
+)
+
+add_executable(${PROJECT_NAME}
+    ${SOURCES}
+    ${HEADERS}
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${PROJECT_SOURCE_DIR}/ui/include
+    ${PROJECT_SOURCE_DIR}/core/include
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)

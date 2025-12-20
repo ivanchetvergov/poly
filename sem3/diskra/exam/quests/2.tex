@@ -1,0 +1,89 @@
+\section{Алгебра подмножеств. Сравнение множеств. Мощность множества. Операции над множествами.}
+
+\subsection*{Сравнение множеств}
+
+Для конструирования новых множеств из имеющихся определяются \textbf{операции над множествами}.
+
+\paragraph{Подмножество и Надмножество}
+Множество $A$ \textbf{содержится} в множестве $B$ (или $B$ \textbf{включает} $A$), если каждый элемент множества $A$ есть элемент множества $B$:
+$$A \subset B \stackrel{\text{def}}{\iff} \forall x (x \in A \implies x \in B).$$
+В этом случае $A$ называется \textbf{подмножеством} $B$, $B$ --- \textbf{надмножеством} $A$.
+По определению, $\forall M (\emptyset \subset M)$.
+
+\paragraph{Равенство множеств}
+Два множества \textbf{равны}, если они являются подмножествами друг друга:
+$$A = B \iff (A \subset B \land B \subset A).$$
+
+\paragraph{Свойства включения множеств (Теорема)}
+Включение множеств обладает следующими свойствами:
+\begin{enumerate}
+    \item Рефлексивность: $\forall A (A \subset A)$.
+    \item Антисимметричность: $\forall A, B (A \subset B \land B \subset A \implies A = B)$.
+    \item Транзитивность: $\forall A, B, C (A \subset B \land B \subset C \implies A \subset C)$.
+\end{enumerate}
+
+\subsection*{Мощность множества}
+
+\paragraph{Равномощные множества}
+Говорят, что между множествами $A$ и $B$ установлено \textbf{взаимно-однозначное соответствие} (или они \textbf{изоморфны}, $A \sim B$), если:
+\begin{itemize}
+    \item Каждому элементу $a \in A$ соответствует один и только один элемент $b \in B$.
+    \item Для каждого элемента $b \in B$ соответствует один и только один элемент $a \in A$.
+\end{itemize}
+Если $a \in A$ соответствует $b \in B$, обозначают $a \mapsto b$.
+
+\textbf{Пример:} Соответствие $n \mapsto 2n$ устанавливает взаимно-однозначное соответствие между множеством натуральных чисел $\mathbb{N}$ и множеством чётных натуральных чисел $2\mathbb{N}$. $(\mathbb{N} \sim 2\mathbb{N})$
+
+\paragraph{Одинаковая мощность}
+Если между двумя множествами $A$ и $B$ может быть установлено взаимно-однозначное соответствие, то говорят, что множества имеют \textbf{одинаковую мощность} или \textbf{равномощны}, и записывают это как $|A| = |B|$.
+$$|A| = |B| \iff A \sim B.$$
+
+\paragraph{Свойства равномощности (Теорема)}
+Равномощность множеств обладает следующими свойствами:
+\begin{enumerate}
+    \item Рефлексивность: $\forall A (|A| = |A|)$.
+    \item Симметричность: $\forall A, B (|A| = |B| \implies |B| = |A|)$.
+    \item Транзитивность: $\forall A, B, C (|A| = |B| \land |B| = |C| \implies |A| = |C|)$.
+\end{enumerate}
+
+\subsection*{Конечные и бесконечные множества}
+
+\paragraph{Конечное множество}
+Множество $A$ называется \textbf{конечным}, если у него нет равномощного \textbf{собственного} подмножества ($B \subset A$ и $B \ne A$):
+$$\forall B ((B \subset A \land |B| = |A|) \implies B = A).$$
+Обозначение: $|A| < \infty$.
+
+\paragraph{Бесконечное множество}
+Множество $A$ называется \textbf{бесконечным}, если оно равномощно некоторому своему собственному подмножеству:
+$$\exists B (B \subset A \land |B| = |A| \land B \ne A).$$
+Обозначение: $|A| = \infty$.
+
+\textbf{Пример:} Множество $\mathbb{N}$ бесконечно, $|\mathbb{N}| = \infty$, так как оно равномощно своему собственному подмножеству чётных чисел $2\mathbb{N}$.
+
+\textbf{Теорема:} Множество, имеющее бесконечное подмножество, бесконечно:
+$$(B \subset A \land |B| = \infty) \implies (|A| = \infty).$$
+
+\paragraph{Мощность конечного множества}
+\textbf{Теорема:} Любое непустое конечное множество равномощно некоторому отрезку натурального ряда:
+$$\forall A (A \ne \emptyset \land |A| < \infty \implies \exists k \in \mathbb{N} (|A| = |\{1, \ldots, k\}|)).$$
+
+\subsection*{Операции над множествами}
+
+Обычно рассматриваются следующие операции над множествами:
+
+\begin{description}
+    \item[Объединение (Union):] $A \cup B \stackrel{\text{def}}{=} \{x \mid x \in A \lor x \in B\}$
+    \item[Пересечение (Intersection):] $A \cap B \stackrel{\text{def}}{=} \{x \mid x \in A \land x \in B\}$
+    \item[Разность (Difference):] $A \setminus B \stackrel{\text{def}}{=} \{x \mid x \in A \land x \notin B\}$
+    \item[Симметрическая разность (Symmetric Difference):]  $A \Delta B \stackrel{\text{def}}{=} (A \cup B) \setminus (A \cap B) = \{x \mid (x \in A \land x \notin B) \lor (x \notin A \land x \in B)\}$
+    \item[Дополнение (Complement):] $\overline{A} \stackrel{\text{def}}{=} \{x \mid x \notin A\}$
+\end{description}
+
+\textbf{ЗАМЕЧАНИЕ:} Операция дополнения $\overline{A}$ определена только при заданном \textbf{универсуме} $U$: $\overline{A} = U \setminus A$.
+
+\paragraph{Формулы для мощностей (для конечных множеств)}
+\begin{itemize}
+    \item $|\text{A} \cup \text{B}| = |\text{A}| + |\text{B}| - |\text{A} \cap \text{B}|$ 
+    \item $|\text{A} \setminus \text{B}| = |\text{A}| - |\text{A} \cap \text{B}|$
+    \item $|\text{A} \Delta \text{B}| = |\text{A}| + |\text{B}| - 2|\text{A} \cap \text{B}|$
+\end{itemize}

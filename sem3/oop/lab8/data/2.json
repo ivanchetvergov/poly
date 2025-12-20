@@ -1,0 +1,71 @@
+[
+    {
+        "address": "13-ая линия ВО 46А",
+        "birthDate": "2005-10-14",
+        "email": "ivar5165885@gmail.com",
+        "firstName": "Иван",
+        "lastName": "Четвергов",
+        "middleName": "Сергеевич",
+        "phoneNumbers": {
+            "Домашний": "+7 (923) 519 58 85",
+            "Рабочий": "+79235195885",
+            "Служебный": "89235195885"
+        }
+    },
+    {
+        "address": "Харченко 16",
+        "birthDate": "2006-11-13",
+        "email": "seleznev@mail.ru",
+        "firstName": "Кирилл",
+        "lastName": "Селезнев",
+        "middleName": "Na",
+        "phoneNumbers": {
+            "Домашний": "",
+            "Рабочий": "+79287766000"
+        }
+    },
+    {
+        "address": "Харченко 16",
+        "birthDate": "2006-12-13",
+        "email": "adiabat@ya.ru",
+        "firstName": "Тимур",
+        "lastName": "Адиатуллин",
+        "middleName": "Ренатович",
+        "phoneNumbers": {
+            "Рабочий": "+79953448227"
+        }
+    },
+    {
+        "address": "Харченко 16",
+        "birthDate": "2006-11-13",
+        "email": "seleznev@mail.ru",
+        "firstName": "Кирилл",
+        "lastName": "Селезнев",
+        "middleName": "Na",
+        "phoneNumbers": {
+            "Домашний": ""
+        }
+    },
+    {
+        "address": "13-ая линия ВО 46А",
+        "birthDate": "2005-10-14",
+        "email": "ivar5165885@gmail.com",
+        "firstName": "Иван",
+        "lastName": "Четвергов",
+        "middleName": "Сергеевич",
+        "phoneNumbers": {
+            "Домашний": "+7 (923) 519 58 85"
+        }
+    },
+    {
+        "address": "Харченко 16",
+        "birthDate": "2006-12-13",
+        "email": "adiabat@ya.ru",
+        "firstName": "Тимур",
+        "lastName": "Адиатуллин",
+        "middleName": "Ренатович",
+        "phoneNumbers": {
+            "Домашний": ""
+        }
+    }
+]

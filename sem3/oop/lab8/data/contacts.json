@@ -1,0 +1,35 @@
+[
+    {
+        "address": "Санкт Петербург, Санкт-Петербургская академия наук",
+        "birthDate": "1856-06-14",
+        "email": "markovs@chain.spb",
+        "firstName": "Андрей",
+        "lastName": "Марков",
+        "middleName": "Андреевич",
+        "phoneNumbers": {
+            "Домашний": "+7 123 456 78 90"
+        }
+    },
+    {
+        "address": "Москва Охотный Ряд Университет Ломоносовский проспект (МГУ)",
+        "birthDate": "1903-04-25",
+        "email": "kolmogorovs@probability.axioms",
+        "firstName": "Андрей",
+        "lastName": "Колмогоров",
+        "middleName": "Николаевич",
+        "phoneNumbers": {
+            "Домашний": "+7 (777) - 777 77 77"
+        }
+    },
+    {
+        "address": "Санкт Петербург, Санкт-Петербургская академия наук",
+        "birthDate": "1856-06-14",
+        "email": "markovs@chain.spb",
+        "firstName": "Андрей",
+        "lastName": "Марков",
+        "middleName": "Андреевич",
+        "phoneNumbers": {
+            "Домашний": "+7 123 456 78 90"
+        }
+    }
+]

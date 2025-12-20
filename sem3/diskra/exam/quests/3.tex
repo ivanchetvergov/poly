@@ -1,0 +1,66 @@
+\section{Разбиения и покрытия. Булеан. Свойства операций над множествами. Диаграммы Эйлера-Венна.}
+
+\subsection*{Разбиения и покрытия}
+
+Пусть $\mathcal{E} = \{E_i\}_{i \in I}$ --- некоторое \textbf{семейство подмножеств} множества $M$, $E_i \subset M$.
+
+\paragraph{Покрытие}
+Семейство $\mathcal{E}$ называется \textbf{покрытием} множества $M$, если каждый элемент $x \in M$ принадлежит хотя бы одному из множеств $E_i$:
+$$\forall x \in M (\exists i \in I (x \in E_i)).$$
+
+\paragraph{Дизъюнктное семейство}
+Семейство $\mathcal{E}$ называется \textbf{дизъюнктным}, если элементы этого семейства \textbf{попарно не пересекаются}:
+$$\forall i, j \in I (i \ne j \implies E_i \cap E_j = \emptyset).$$
+
+\paragraph{Разбиение}
+\textbf{Дизъюнктное покрытие} называется \textbf{разбиением} множества $M$. Элементы разбиения (подмножества $E_i$) часто называют \textbf{блоками} разбиения.
+
+\textbf{Пример:} Пусть $M = \{1, 2, 3\}$.
+\begin{itemize}
+    \item $\{\{1, 2\}, \{2, 3\}, \{3, 1\}\}$ --- покрытие, но не разбиение (есть пересечения).
+    \item $\{\{1\}, \{2\}, \{3\}\}$ --- разбиение (и покрытие).
+    \item $\{\{1\}, \{2\}\}$ --- дизъюнктное, но не покрытие, следовательно не разбиение.
+\end{itemize}
+
+\subsection*{Булеан (Множество подмножеств)}
+
+\paragraph{Определение Булеана}
+\textbf{Множество всех подмножеств} множества $M$ называется \textbf{булеаном} множества $M$ и обозначается $\mathbf{2^M}$ или $\mathcal{P}(M)$:
+$$\mathbf{2^M} \stackrel{\text{def}}{=} \{A \mid A \subset M\}.$$
+
+\paragraph{Теорема о мощности Булеана}
+Если множество $M$ конечно, то мощность его булеана равна $2$ в степени мощности $M$:
+$$| \mathbf{2^M} | = 2^{|M|}.$$
+
+\paragraph{Алгебра подмножеств}
+Множество всех подмножеств универсума $U$, снабженное операциями пересечения, объединения, разности и дополнения, образует \textbf{алгебру подмножеств} множества $U$.
+
+\subsection*{Свойства операций над множествами}
+
+Пусть задан универсум $U$. Тогда $\forall A, B, C \subset U$ выполняются следующие равенства (где $\overline{A}$ --- дополнение $A$ до $U$, т.е. $U \setminus A$):
+
+\begin{enumerate}
+    \item \textbf{Идемпотентность:}
+    $$A \cup A = A, \quad A \cap A = A$$
+    \item \textbf{Коммутативность:}
+    $$A \cup B = B \cup A, \quad A \cap B = B \cap A$$
+    \item \textbf{Ассоциативность:}
+    $$A \cup (B \cup C) = (A \cup B) \cup C, \quad A \cap (B \cap C) = (A \cap B) \cap C$$
+    \item \textbf{Дистрибутивность:}
+    $$A \cup (B \cap C) = (A \cup B) \cap (A \cup C)$$
+    $$A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$$
+    \item \textbf{Поглощение:}
+    $$(A \cap B) \cup A = A, \quad (A \cup B) \cap A = A$$
+    \item \textbf{Свойства нуля ($\emptyset$):}
+    $$A \cup \emptyset = A, \quad A \cap \emptyset = \emptyset$$
+    \item \textbf{Свойства единицы ($U$):}
+    $$A \cup U = U, \quad A \cap U = A$$
+    \item \textbf{Инволютивность (двойное дополнение):}
+    $$\overline{\overline{A}} = A$$
+    \item \textbf{Законы де Моргана:}
+    $$\overline{A \cap B} = \overline{A} \cup \overline{B}, \quad \overline{A \cup B} = \overline{A} \cap \overline{B}$$
+    \item \textbf{Свойства дополнения:}
+    $$A \cup \overline{A} = U, \quad A \cap \overline{A} = \emptyset$$
+    \item \textbf{Выражение для разности:}
+    $$A \setminus B = A \cap \overline{B}$$
+\end{enumerate}

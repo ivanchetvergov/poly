@@ -1,0 +1,110 @@
+00.o:	file format mach-o 32-bit i386
+
+Disassembly of section __TEXT,__text:
+
+00000000 <_main>:
+; int main(void) {
+       0: 55                           	push	ebp                          ; сохранить старый кадр стека (push ebp)
+       1: 89 e5                        	mov	ebp, esp                     ; установить новый кадр (ebp = esp)
+       3: 57                           	push	edi                          ; сохранить регистр edi 
+       4: 56                           	push	esi                          ; сохранить регистр esi 
+       5: 83 ec 20                     	sub	esp, 0x20                    ; зарезервировать 32 байта на стеке для локальных переменных
+       8: e8 00 00 00 00               	call	0xd <_main+0xd>              ; вызов следующей инструкции для получения адреса 
+       d: 58                           	pop	eax                          ; вернуть адрес вызова в eax (для вычисления адресов данных)
+       e: 89 45 f0                     	mov	dword ptr [ebp - 0x10], eax  ; сохранить временный указатель 
+      11: c7 45 f4 00 00 00 00         	mov	dword ptr [ebp - 0xc], 0x0   ; i = 0  (локальная переменная/счётчик инициализируется)
+;     for (i = 0; i < 9; i++) {         инициализация: 
+      18: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; загрузить адрес глобальной переменной (eax + offset)
+      1e: c7 00 00 00 00 00            	mov	dword ptr [eax], 0x0         ; записать 0 в память по адресу cMas (первый элемент)
+      24: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]  ; восстановить базовый указатель 
+;     for (i = 0; i < 9; i++) {         Проверка цикла: if (i >= 9) jump to end
+      27: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; снова загрузка адреса структуры/символа
+      2d: 83 38 09                     	cmp	dword ptr [eax], 0x9         ; сравнить cMas[i] или i с 9 
+      30: 0f 83 ab 00 00 00            	jae	0xe1 <_main+0xe1>            ; если >= 9, перейти к концу
+      36: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]  ; подготовка для проверки условия if ((i > 3) && (i != 6))
+;         if ((i > 3) && (i != 6))      проверка (i > 3)
+      39: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; взять адрес/указатель на i 
+      3f: 83 38 03                     	cmp	dword ptr [eax], 0x3         ; сравнить *адрес* i с 3
+      42: 0f 86 45 00 00 00            	jbe	0x8d <_main+0x8d>            ; если <= 3 (обратное условие), перейти к ветке else
+      48: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]  ; снова подготовить eax
+;         if ((i > 3) && (i != 6))      проверка (i != 6)
+      4b: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; загрузить адрес i
+      51: 83 38 06                     	cmp	dword ptr [eax], 0x6         ; сравнить i с 6
+      54: 0f 84 33 00 00 00            	je	0x8d <_main+0x8d>            ; если равно 6, перейти в else (обратное от !=)
+      5a: 8b 75 f0                     	mov	esi, dword ptr [ebp - 0x10]  ; esi = адрес/контекст (используется как base pointer)
+;             cMas[i] = (8 * i) | 0x3;  тогда: cMas[i] = (8 * i) | 0x3;
+      5d: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i (через базу + смещение)
+      63: 8b 10                        	mov	edx, dword ptr [eax]         ; edx = i  (загрузка значения i)
+      65: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; повторная загрузка адреса i (компилятор часто повторяет загрузки)
+      6b: c1 e2 03                     	shl	edx, 0x3                     ; edx <<= 3  (умножить i на 8)
+      6e: 83 ca 03                     	or	edx, 0x3                     ; edx |= 3  (поставить младшие биты)
+      71: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i (ещё раз)
+      77: 8b 08                        	mov	ecx, dword ptr [eax]         ; ecx = i  (индекс для записи)
+      79: 8b 86 b0 04 00 00            	mov	eax, dword ptr [esi + 0x4b0] ; eax = указатель на начало массива cMas
+      7f: 8b b6 b4 04 00 00            	mov	esi, dword ptr [esi + 0x4b4] ; esi = i (или сохраняем адрес i) — подготовка индекса
+      85: 89 14 88                     	mov	dword ptr [eax + 4*ecx], edx ; запись: cMas[ecx] = edx  ( base + index*scale)
+      88: e9 2e 00 00 00               	jmp	0xbb <_main+0xbb>            ; перейти к инкременту/концу итерации
+      8d: 8b 75 f0                     	mov	esi, dword ptr [ebp - 0x10]  ; else-ветка: esi = контекст
+; else: cMas[i] = (int)25 * i / 3;
+      90: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i
+      96: 6b 00 19                     	imul	eax, dword ptr [eax], 0x19   ; eax = i * 25  (IMUL с immediate)
+      99: b9 03 00 00 00               	mov	ecx, 0x3                     ; делитель 3 в ecx
+      9e: 31 d2                        	xor	edx, edx                     ; очистить edx для деления (EDX:EAX / ECX)
+      a0: f7 f1                        	div	ecx                          ; EAX = EAX / ECX, остаток в EDX
+      a2: 89 c2                        	mov	edx, eax                     ; сохранить результат деления в edx (для записи)
+      a4: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i (подготовка к индексации)
+      aa: 8b 08                        	mov	ecx, dword ptr [eax]   ; ecx = i
+      ac: 8b 86 b0 04 00 00            	mov	eax, dword ptr [esi + 0x4b0] ; eax = base адрес массива cMas
+      b2: 8b b6 b4 04 00 00            	mov	esi, dword ptr [esi + 0x4b4] ; esi = i (индекс)
+      b8: 89 14 88                     	mov	dword ptr [eax + 4*ecx], edx ; cMas[ecx] = result (записать результат деления)
+; инкремент и переход к проверке условия цикла
+      bb: e9 00 00 00 00               	jmp	0xc0 <_main+0xc0>           ; короткий переход 
+      c0: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10] ; загрузить контекст/указатель
+; подготовка: ecx = * (адрес i) ; увеличить i и записать обратно
+      c3: 8b 88 b4 04 00 00            	mov	ecx, dword ptr [eax + 0x4b4] ; ecx = адрес i
+      c9: 8b 09                        	mov	ecx, dword ptr [ecx]         ; ecx = i (значение)
+      cb: 8b 90 b4 04 00 00            	mov	edx, dword ptr [eax + 0x4b4] ; edx = адрес i (для записи позже)
+      d1: 83 c1 01                     	add	ecx, 0x1                     ; ecx = i + 1
+      d4: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; eax = адрес i
+      da: 89 08                        	mov	dword ptr [eax], ecx         ; записать i+1 обратно (i++)
+      dc: e9 43 ff ff ff               	jmp	0x24 <_main+0x24>            ; перейти к началу цикла (переход назад)
+      e1: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]  ; метка конца цикла / выход
+; повторная инициализация/очистка массива (в зависимости от исходника)
+      e4: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; eax = указатель на структуру/глобальные
+      ea: c7 00 00 00 00 00            	mov	dword ptr [eax], 0x0         ; установить ноль 
+      f0: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]
+; вторая часть: печать значений массива через printf
+      f3: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; eax = адрес контекста
+      f9: 83 38 09                     	cmp	dword ptr [eax], 0x9         ; проверить i < 9
+      fc: 0f 83 5f 00 00 00            	jae	0x161 <_main+0x161>          ; если >=9 — выйти из печати
+     102: 8b 75 f0                     	mov	esi, dword ptr [ebp - 0x10]. ; esi = контекст
+; подготовка аргументов для printf: cMas[i] и i
+     105: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i
+     10b: 8b 08                        	mov	ecx, dword ptr [eax]         ; ecx = i  (второй аргумент printf)
+     10d: 8b 86 b4 04 00 00            	mov	eax, dword ptr [esi + 0x4b4] ; eax = адрес i
+     113: 8b 10                        	mov	edx, dword ptr [eax]         ; edx = i (используется как индекс)
+     115: 8b 86 b0 04 00 00            	mov	eax, dword ptr [esi + 0x4b0] ; eax = base cMas
+     11b: 8b be b4 04 00 00            	mov	edi, dword ptr [esi + 0x4b4] ; edi = i (индекс)
+     121: 8b 04 90                     	mov	eax, dword ptr [eax + 4*edx] ; eax = cMas[edx] (индексированная загрузка)
+     124: 8d 96 5d 01 00 00            	lea	edx, [esi + 0x15d]           ; загрузить адрес строки форматирования (или указатель на литерал)
+     12a: 8b b6 b0 04 00 00            	mov	esi, dword ptr [esi + 0x4b0] ; esi = base cMas (или восстановление)
+     130: 89 14 24                     	mov	dword ptr [esp], edx         ; положить аргументы на стек: формат
+     133: 89 4c 24 04                  	mov	dword ptr [esp + 0x4], ecx   ; второй аргумент (i)
+     137: 89 44 24 08                  	mov	dword ptr [esp + 0x8], eax   ; первый аргумент (cMas[i])
+     13b: e8 c0 fe ff ff               	call	0x0 <_main>              ; вызвать printf (через PLT/GOT обычно)
+     140: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]  ; после printf — подготовиться к следующей итерации
+; увеличить i и записать обратно (то же, что делали ранее)
+     143: 8b 88 b4 04 00 00            	mov	ecx, dword ptr [eax + 0x4b4] ; ecx = адрес i
+     149: 8b 09                        	mov	ecx, dword ptr [ecx]         ; ecx = i
+     14b: 8b 90 b4 04 00 00            	mov	edx, dword ptr [eax + 0x4b4] ; edx = адрес i
+     151: 83 c1 01                     	add	ecx, 0x1                     ; ecx = i + 1
+     154: 8b 80 b4 04 00 00            	mov	eax, dword ptr [eax + 0x4b4] ; eax = адрес i
+     15a: 89 08                        	mov	dword ptr [eax], ecx         ; записать i+1 обратно (i++)
+     15c: e9 8f ff ff ff               	jmp	0xf0 <_main+0xf0>            ; цикл печати: перейти к проверке
+; завершение: вернуть 0
+     161: 31 c0                        	xor	eax, eax                     ; eax = 0 (return 0)
+     163: 83 c4 20                     	add	esp, 0x20                    ; восстановить стек (удаленное при входе)
+     166: 5e                           	pop	esi                          ; восстановить esi
+     167: 5f                           	pop	edi                          ; восстановить edi
+     168: 5d                           	pop	ebp                          ; восстановить ebp
+     169: c3                           	ret                                ; возврат из main

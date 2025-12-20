@@ -1,0 +1,109 @@
+
+01.o:	file format mach-o 32-bit i386
+
+Disassembly of section __TEXT,__text:
+
+00000000 <_main>:
+; int main(void) {
+       0: 55                           	push	ebp 
+       1: 89 e5                        	mov	ebp, esp
+       3: 57                           	push	edi
+       4: 56                           	push	esi
+       5: 83 ec 20                     	sub	esp, 0x20
+       8: e8 00 00 00 00               	call	0xd <_main+0xd>
+       d: 58                           	pop	eax
+       e: 89 45 ec                     	mov	dword ptr [ebp - 0x14], eax
+      11: c7 45 f4 00 00 00 00         	mov	dword ptr [ebp - 0xc], 0x0
+;     i = 0;
+      18: 8b 88 c4 04 00 00            	mov	ecx, dword ptr [eax + 0x4c4]
+      1e: c7 01 00 00 00 00            	mov	dword ptr [ecx], 0x0
+;     p = cMas; 
+      24: 8b 80 c0 04 00 00            	mov	eax, dword ptr [eax + 0x4c0]
+      2a: 89 45 f0                     	mov	dword ptr [ebp - 0x10], eax
+      2d: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;         if ((i > 3) && (i != 6))
+      30: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      36: 83 38 03                     	cmp	dword ptr [eax], 0x3
+      39: 0f 86 33 00 00 00            	jbe	0x72 <_main+0x72>
+      3f: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;         if ((i > 3) && (i != 6))
+      42: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      48: 83 38 06                     	cmp	dword ptr [eax], 0x6
+      4b: 0f 84 21 00 00 00            	je	0x72 <_main+0x72>
+      51: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;             *p = (8 * i) | 0x3;
+      54: 8b 88 c4 04 00 00            	mov	ecx, dword ptr [eax + 0x4c4]
+      5a: 8b 09                        	mov	ecx, dword ptr [ecx]
+      5c: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      62: c1 e1 03                     	shl	ecx, 0x3
+      65: 83 c9 03                     	or	ecx, 0x3
+      68: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]
+      6b: 89 08                        	mov	dword ptr [eax], ecx
+      6d: e9 1c 00 00 00               	jmp	0x8e <_main+0x8e>
+      72: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;             *p = (int)25 * i / 3;
+      75: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      7b: 6b 00 19                     	imul	eax, dword ptr [eax], 0x19
+      7e: b9 03 00 00 00               	mov	ecx, 0x3
+      83: 31 d2                        	xor	edx, edx
+      85: f7 f1                        	div	ecx
+      87: 89 c1                        	mov	ecx, eax
+      89: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]
+      8c: 89 08                        	mov	dword ptr [eax], ecx
+      8e: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;         i++;
+      91: 8b 88 c4 04 00 00            	mov	ecx, dword ptr [eax + 0x4c4]
+      97: 8b 09                        	mov	ecx, dword ptr [ecx]
+      99: 8b 90 c4 04 00 00            	mov	edx, dword ptr [eax + 0x4c4]
+      9f: 83 c1 01                     	add	ecx, 0x1
+      a2: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      a8: 89 08                        	mov	dword ptr [eax], ecx
+;         p++; 
+      aa: 8b 45 f0                     	mov	eax, dword ptr [ebp - 0x10]
+      ad: 83 c0 04                     	add	eax, 0x4
+      b0: 89 45 f0                     	mov	dword ptr [ebp - 0x10], eax
+      b3: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;     } while (i < 9);
+      b6: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      bc: 83 38 09                     	cmp	dword ptr [eax], 0x9
+      bf: 0f 82 68 ff ff ff            	jb	0x2d <_main+0x2d>
+      c5: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;     for (i = 0; i < 9; i++)
+      c8: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      ce: c7 00 00 00 00 00            	mov	dword ptr [eax], 0x0
+      d4: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;     for (i = 0; i < 9; i++)
+      d7: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+      dd: 83 38 09                     	cmp	dword ptr [eax], 0x9
+      e0: 0f 83 5f 00 00 00            	jae	0x145 <_main+0x145>
+      e6: 8b 75 ec                     	mov	esi, dword ptr [ebp - 0x14]
+;         printf("cMas[%u] = %u\n", i, cMas[i]);
+      e9: 8b 86 c4 04 00 00            	mov	eax, dword ptr [esi + 0x4c4]
+      ef: 8b 08                        	mov	ecx, dword ptr [eax]
+      f1: 8b 86 c4 04 00 00            	mov	eax, dword ptr [esi + 0x4c4]
+      f7: 8b 10                        	mov	edx, dword ptr [eax]
+      f9: 8b 86 c0 04 00 00            	mov	eax, dword ptr [esi + 0x4c0]
+      ff: 8b be c4 04 00 00            	mov	edi, dword ptr [esi + 0x4c4]
+     105: 8b 04 90                     	mov	eax, dword ptr [eax + 4*edx]
+     108: 8d 96 41 01 00 00            	lea	edx, [esi + 0x141]
+     10e: 8b b6 c0 04 00 00            	mov	esi, dword ptr [esi + 0x4c0]
+     114: 89 14 24                     	mov	dword ptr [esp], edx
+     117: 89 4c 24 04                  	mov	dword ptr [esp + 0x4], ecx
+     11b: 89 44 24 08                  	mov	dword ptr [esp + 0x8], eax
+     11f: e8 dc fe ff ff               	call	0x0 <_main>
+     124: 8b 45 ec                     	mov	eax, dword ptr [ebp - 0x14]
+;     for (i = 0; i < 9; i++)
+     127: 8b 88 c4 04 00 00            	mov	ecx, dword ptr [eax + 0x4c4]
+     12d: 8b 09                        	mov	ecx, dword ptr [ecx]
+     12f: 8b 90 c4 04 00 00            	mov	edx, dword ptr [eax + 0x4c4]
+     135: 83 c1 01                     	add	ecx, 0x1
+     138: 8b 80 c4 04 00 00            	mov	eax, dword ptr [eax + 0x4c4]
+     13e: 89 08                        	mov	dword ptr [eax], ecx
+     140: e9 8f ff ff ff               	jmp	0xd4 <_main+0xd4>
+;     return 0;
+     145: 31 c0                        	xor	eax, eax
+     147: 83 c4 20                     	add	esp, 0x20
+     14a: 5e                           	pop	esi
+     14b: 5f                           	pop	edi
+     14c: 5d                           	pop	ebp
+     14d: c3                           	ret
