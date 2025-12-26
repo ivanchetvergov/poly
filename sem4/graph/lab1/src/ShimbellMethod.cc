@@ -18,16 +18,13 @@ ShimbellResult ShimbellMethod::compute(int pathLength) {
         throw std::invalid_argument("Длина пути должна быть положительной");
     }
 
-    // Начальная матрица смежности (пути длины 1)
     DistanceMatrix currentMin = createAdjacencyMatrix();
     DistanceMatrix currentMax = createAdjacencyMatrix();
 
-    // Если нужна длина 1, возвращаем матрицу смежности
     if (pathLength == 1) {
         return {currentMin, currentMax, 1};
     }
 
-    // Итеративное умножение для получения путей длины pathLength
     DistanceMatrix baseMin = currentMin;
     DistanceMatrix baseMax = currentMax;
 
@@ -42,18 +39,16 @@ ShimbellResult ShimbellMethod::compute(int pathLength) {
 DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
     DistanceMatrix matrix(m_size, std::vector<std::optional<double>>(m_size, std::nullopt));
 
-    // Заполняем диагональ нулями (путь от вершины к себе)
     for (int i = 0; i < m_size; ++i) {
         matrix[i][i] = 0.0;
     }
 
-    // Заполняем матрицу весами рёбер
     for (const auto& edge : m_graph.edges()) {
         int fromIdx = getIndex(edge.from);
         int toIdx = getIndex(edge.to);
         
         matrix[fromIdx][toIdx] = edge.weight;
-        matrix[toIdx][fromIdx] = edge.weight;  // Неориентированный граф
+        matrix[toIdx][fromIdx] = edge.weight;  
     }
 
     return matrix;
@@ -123,14 +118,12 @@ void ShimbellMethod::printMatrix(const DistanceMatrix& matrix, const char* title
 
     int size = static_cast<int>(matrix.size());
     
-    // Вывод заголовка столбцов
     std::cout << std::setw(8) << " ";
     for (int j = 0; j < size; ++j) {
         std::cout << std::setw(10) << j;
     }
     std::cout << "\n";
 
-    // Вывод строк матрицы
     for (int i = 0; i < size; ++i) {
         std::cout << std::setw(8) << i;
         for (int j = 0; j < size; ++j) {
@@ -138,7 +131,7 @@ void ShimbellMethod::printMatrix(const DistanceMatrix& matrix, const char* title
                 std::cout << std::setw(10) << std::fixed << std::setprecision(2) 
                           << matrix[i][j].value();
             } else {
-                std::cout << std::setw(10) << "∞";
+                std::cout << std::setw(10) << "-";
             }
         }
         std::cout << "\n";

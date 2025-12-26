@@ -9,30 +9,11 @@
 
 using namespace graph;
 
-void printGraphInfo(const Graph& graph) {
-    std::cout << "\n=== Информация о графе ===\n";
-    std::cout << "Количество вершин: " << graph.vertexCount() << "\n";
-    std::cout << "Количество рёбер: " << graph.edgeCount() << "\n";
-    
-    std::cout << "\nСписок рёбер:\n";
-    std::cout << std::setw(8) << "От" 
-              << std::setw(8) << "До" 
-              << std::setw(12) << "Вес\n";
-    std::cout << std::string(28, '-') << "\n";
-    
-    for (const auto& edge : graph.edges()) {
-        std::cout << std::setw(8) << edge.from
-                  << std::setw(8) << edge.to
-                  << std::setw(12) << std::fixed << std::setprecision(4) << edge.weight
-                  << "\n";
-    }
-    std::cout << std::endl;
-}
 
 void runShimbellMethod(const Graph& graph) {
     std::cout << "\n=== Метод Шимбелла ===\n";
     
-    int pathLength = readInt("Введите длину пути (количество рёбер): ");
+    int pathLength = readInt("Введите длину пути (количество ребер): ");
     
     if (pathLength <= 0) {
         std::cout << "Длина пути должна быть положительной.\n";
@@ -87,18 +68,11 @@ void countPathsBetweenVertices(const Graph& graph) {
     }
 }
 
-void mainMenu() {
-    std::cout << "\n╔════════════════════════════════════════════════╗\n";
-    std::cout << "║   Лабораторная работа №1: Теория графов       ║\n";
-    std::cout << "║   Генерация графов с распределением Эрланга   ║\n";
-    std::cout << "╚════════════════════════════════════════════════╝\n";
-}
-
 int main() {
     try {
-        mainMenu();
         
         int numVertices = readInt("\nВведите количество вершин: ");
+        int numEdges = readInt("\nВведите количество ребер: ");
         
         if (numVertices <= 0) {
             std::cout << "Количество вершин должно быть положительным.\n";
@@ -108,9 +82,10 @@ int main() {
         std::cout << "\nГенерация связного ациклического графа...\n";
         std::cout << "Параметры распределения Эрланга: shape=3, rate=1.5\n";
         
-        auto graph = generateRandomTree(numVertices, 3, 1.5);
+        auto graph = generateRandomGraph(numVertices, numEdges);
         
-        printGraphInfo(*graph);
+        graph->printGraphInfo();
+        graph->printGraph();
         
         runShimbellMethod(*graph);
         
