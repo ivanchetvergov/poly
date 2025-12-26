@@ -137,4 +137,10 @@ void Graph::printGraph() const {
     }
 }
 
+void Graph::printGraphInfo() const {
+    std::cout << "Информация о графе:\n";
+    std::cout << "Количество вершин: " << vertexCount() << "\n";
+    std::cout << "Количество рёбер: " << edgeCount() << "\n";
+}
+
 } // namespace graph

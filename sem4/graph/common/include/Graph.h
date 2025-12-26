@@ -50,6 +50,7 @@ public:
     
     void generateWeights(bool allowNegative = false);
     void printGraph() const;
+    void printGraphInfo() const;
 
 protected:
     std::unordered_map<int, std::unique_ptr<Vertex>> m_vertices;
