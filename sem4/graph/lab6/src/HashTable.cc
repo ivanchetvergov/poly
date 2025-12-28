@@ -1,6 +1,7 @@
 #include "HashTable.h"
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 namespace dict {
 
@@ -91,11 +92,32 @@ size_t HashTable::hash(const std::string& key) const noexcept {
 bool HashTable::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) return false;
-    std::string line;
-    while (file >> line) {
-        insert(line);
-    }
+    
+    std::string content;
+    std::string word;
+    
+    // Читаем весь файл
+    file.seekg(0, std::ios::end);
+    content.resize(file.tellg());
+    file.seekg(0, std::ios::beg);
+    file.read(&content[0], content.size());
     file.close();
+    
+    // Разбиваем на слова по разделителям
+    for (char c : content) {
+        if (c == ' ' || c == ',' || c == '.' || c == '\n' || c == '\r' || c == '\t') {
+            if (!word.empty()) {
+                insert(word);
+                word.clear();
+            }
+        } else {
+            word += c;
+        }
+    }
+    if (!word.empty()) {
+        insert(word);
+    }
+    
     return true;
 }
 
@@ -111,6 +133,26 @@ bool HashTable::saveToFile(const std::string& filename) const {
     }
     file.close();
     return true;
+}
+
+void HashTable::printTable() const {
+    std::cout << "\n=== Содержимое хеш-таблицы ===" << std::endl;
+    std::cout << "Размер: " << m_size << ", Емкость: " << m_capacity << std::endl;
+    std::cout << "Слова:" << std::endl;
+    
+    int count = 0;
+    for (size_t i = 0; i < m_capacity; ++i) {
+        auto* curr = m_table[i].get();
+        while (curr) {
+            std::cout << "  " << curr->key << " (" << curr->count << "x)" << std::endl;
+            curr = curr->next.get();
+            count++;
+        }
+    }
+    
+    if (count == 0) {
+        std::cout << "  (пусто)" << std::endl;
+    }
 }
 
 } // namespace dict
