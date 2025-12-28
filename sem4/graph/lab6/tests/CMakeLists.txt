@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab6_hash_table_tests)
+project(lab6_tests)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,10 @@ include_directories(${CMAKE_SOURCE_DIR}/../include)
 
 add_library(HashTable STATIC
     ../src/HashTable.cc
+)
+
+add_library(RBTree STATIC
+    ../src/RBTree.cc
 )
 
 find_package(GTest REQUIRED)
@@ -19,5 +23,12 @@ add_executable(Test_HashTable
 
 target_link_libraries(Test_HashTable HashTable GTest::GTest GTest::Main pthread)
 
+add_executable(Test_RBTree
+    Test_RBTree.cc
+)
+
+target_link_libraries(Test_RBTree RBTree GTest::GTest GTest::Main pthread)
+
 enable_testing()
 add_test(NAME HashTableTests COMMAND Test_HashTable)
+add_test(NAME RBTreeTests COMMAND Test_RBTree)
