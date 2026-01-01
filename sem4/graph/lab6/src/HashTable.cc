@@ -93,37 +93,19 @@ bool HashTable::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) return false;
     
-    std::string content;
     std::string word;
-    
-    // Читаем весь файл
-    file.seekg(0, std::ios::end);
-    content.resize(file.tellg());
-    file.seekg(0, std::ios::beg);
-    file.read(&content[0], content.size());
-    file.close();
-    
-    // Разбиваем на слова по разделителям
-    for (char c : content) {
-        if (c == ' ' || c == ',' || c == '.' || c == '\n' || c == '\r' || c == '\t') {
-            if (!word.empty()) {
-                insert(word);
-                word.clear();
-            }
-        } else {
-            word += c;
-        }
-    }
-    if (!word.empty()) {
+    while (file >> word) {
         insert(word);
     }
     
+    file.close();
     return true;
 }
 
 bool HashTable::saveToFile(const std::string& filename) const {
     std::ofstream file(filename);
     if (!file.is_open()) return false;
+
     for (size_t i = 0; i < m_capacity; ++i) {
         auto* curr = m_table[i].get();
         while (curr) {
