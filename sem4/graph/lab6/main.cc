@@ -4,8 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <locale>
-#include <clocale>
 
 using namespace dict;
 
@@ -140,10 +138,6 @@ void generatorMenu() {
 }
 
 int main() {
-    // Установка UTF-8 локали для корректной работы с кириллицей
-    setlocale(LC_ALL, "ru_RU.UTF-8");
-    std::ios_base::sync_with_stdio(false);
-    
     std::string choice;
     
     while (true) {
