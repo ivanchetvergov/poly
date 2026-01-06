@@ -19,8 +19,8 @@ void showMenu() {
 void hashTableMenu() {
     HashTable table;
     std::string choice, word, filename;
-    
-    while (true) {
+
+    for (;;) {
         std::cout << "\n--- Хеш-таблица ---" << std::endl;
         std::cout << "1. Добавить слово" << std::endl;
         std::cout << "2. Найти слово" << std::endl;
@@ -33,7 +33,7 @@ void hashTableMenu() {
         std::cout << "0. Назад" << std::endl;
         std::cout << "Выбор: ";
         std::cin >> choice;
-        
+
         if (choice == "1") {
             std::cout << "Слово: ";
             std::cin >> word;
@@ -71,8 +71,8 @@ void hashTableMenu() {
 void rbTreeMenu() {
     RBTree tree;
     std::string choice, word, filename;
-    
-    while (true) {
+
+    for (;;) {
         std::cout << "\n--- Красно-черное дерево ---" << std::endl;
         std::cout << "1. Добавить слово" << std::endl;
         std::cout << "2. Найти слово" << std::endl;
@@ -84,7 +84,7 @@ void rbTreeMenu() {
         std::cout << "0. Назад" << std::endl;
         std::cout << "Выбор: ";
         std::cin >> choice;
-        
+
         if (choice == "1") {
             std::cout << "Слово: ";
             std::cin >> word;
@@ -121,15 +121,15 @@ void generatorMenu() {
     TextGenerator gen;
     std::string choice, filename;
     size_t length;
-    
+
     std::cout << "\n--- Генератор текста ---" << std::endl;
     std::cout << "Длина текста (по умолчанию 10000): ";
     std::cin >> length;
     if (length == 0) length = 10000;
-    
+
     std::cout << "Имя файла для сохранения: ";
     std::cin >> filename;
-    
+
     if (gen.saveToFile(filename, length)) {
         std::cout << "Текст сгенерирован и сохранен в " << filename << std::endl;
     } else {
@@ -139,11 +139,11 @@ void generatorMenu() {
 
 int main() {
     std::string choice;
-    
-    while (true) {
+
+    for (;;) {
         showMenu();
         std::cin >> choice;
-        
+
         if (choice == "1") {
             hashTableMenu();
         } else if (choice == "2") {
@@ -157,6 +157,6 @@ int main() {
             std::cout << "Неверный выбор" << std::endl;
         }
     }
-    
+
     return 0;
 }
