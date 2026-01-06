@@ -1,9 +1,7 @@
 // ShimbellMethod.cc
 #include "ShimbellMethod.h"
-
+#include <MatrixPrinter.h>
 #include <algorithm>
-#include <iomanip>
-#include <iostream>
 
 namespace graph {
 
@@ -46,58 +44,54 @@ DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
     for (const auto& edge : m_graph.edges()) {
         int fromIdx = getIndex(edge.from);
         int toIdx = getIndex(edge.to);
-        
+
         matrix[fromIdx][toIdx] = edge.weight;
-        matrix[toIdx][fromIdx] = edge.weight;  
+        matrix[toIdx][fromIdx] = edge.weight;
     }
 
     return matrix;
 }
 
-DistanceMatrix ShimbellMethod::multiplyMin(
-    const DistanceMatrix& a, 
-    const DistanceMatrix& b
-) const {
-    DistanceMatrix result(m_size, std::vector<std::optional<double>>(m_size, std::nullopt));
+namespace {
+    template<typename CompareFunc>
+    DistanceMatrix multiplyMatrix(
+        const DistanceMatrix& a,
+        const DistanceMatrix& b,
+        int size,
+        CompareFunc compare)
+    {
+        DistanceMatrix result(size, std::vector<std::optional<double>>(size, std::nullopt));
 
-    for (int i = 0; i < m_size; ++i) {
-        for (int j = 0; j < m_size; ++j) {
-            for (int k = 0; k < m_size; ++k) {
-                if (a[i][k].has_value() && b[k][j].has_value()) {
-                    double distance = a[i][k].value() + b[k][j].value();
-                    
-                    if (!result[i][j].has_value() || distance < result[i][j].value()) {
-                        result[i][j] = distance;
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                for (int k = 0; k < size; ++k) {
+                    if (a[i][k].has_value() && b[k][j].has_value()) {
+                        double distance = a[i][k].value() + b[k][j].value();
+
+                        if (!result[i][j].has_value() || compare(distance, result[i][j].value())) {
+                            result[i][j] = distance;
+                        }
                     }
                 }
             }
         }
-    }
 
-    return result;
+        return result;
+    }
+} // anonymous namespace
+
+DistanceMatrix ShimbellMethod::multiplyMin(
+    const DistanceMatrix& a,
+    const DistanceMatrix& b
+) const {
+    return multiplyMatrix(a, b, m_size, std::less<double>());
 }
 
 DistanceMatrix ShimbellMethod::multiplyMax(
-    const DistanceMatrix& a, 
+    const DistanceMatrix& a,
     const DistanceMatrix& b
 ) const {
-    DistanceMatrix result(m_size, std::vector<std::optional<double>>(m_size, std::nullopt));
-
-    for (int i = 0; i < m_size; ++i) {
-        for (int j = 0; j < m_size; ++j) {
-            for (int k = 0; k < m_size; ++k) {
-                if (a[i][k].has_value() && b[k][j].has_value()) {
-                    double distance = a[i][k].value() + b[k][j].value();
-                    
-                    if (!result[i][j].has_value() || distance > result[i][j].value()) {
-                        result[i][j] = distance;
-                    }
-                }
-            }
-        }
-    }
-
-    return result;
+    return multiplyMatrix(a, b, m_size, std::greater<double>());
 }
 
 int ShimbellMethod::getIndex(int vertexId) const {
@@ -109,34 +103,7 @@ int ShimbellMethod::getIndex(int vertexId) const {
 }
 
 void ShimbellMethod::printMatrix(const DistanceMatrix& matrix, const char* title) {
-    std::cout << "\n" << title << ":\n";
-    
-    if (matrix.empty()) {
-        std::cout << "Матрица пуста\n";
-        return;
-    }
-
-    int size = static_cast<int>(matrix.size());
-    
-    std::cout << std::setw(8) << " ";
-    for (int j = 0; j < size; ++j) {
-        std::cout << std::setw(10) << j;
-    }
-    std::cout << "\n";
-
-    for (int i = 0; i < size; ++i) {
-        std::cout << std::setw(8) << i;
-        for (int j = 0; j < size; ++j) {
-            if (matrix[i][j].has_value()) {
-                std::cout << std::setw(10) << std::fixed << std::setprecision(2) 
-                          << matrix[i][j].value();
-            } else {
-                std::cout << std::setw(10) << "-";
-            }
-        }
-        std::cout << "\n";
-    }
-    std::cout << std::endl;
+    MatrixPrinter::printOptionalMatrix(matrix, title, 2);
 }
 
 } // namespace graph
