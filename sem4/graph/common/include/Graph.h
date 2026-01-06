@@ -39,13 +39,15 @@ public:
     
     [[nodiscard]] size_t vertexCount() const noexcept;
     [[nodiscard]] size_t edgeCount() const noexcept;
+
     [[nodiscard]] std::optional<const Vertex*> getVertex(int id) const;
+    [[nodiscard]] std::optional<double> getEdgeWeight(int from, int to) const;
     [[nodiscard]] const std::vector<EdgeData>& edges() const noexcept;
     [[nodiscard]] std::vector<int> vertexIds() const;
     [[nodiscard]] std::vector<std::pair<int, double>> neighbors(int id) const;
+
     [[nodiscard]] bool hasVertex(int id) const noexcept;
     [[nodiscard]] bool hasEdge(int from, int to) const;
-    [[nodiscard]] std::optional<double> getEdgeWeight(int from, int to) const;
     [[nodiscard]] int degree(int v) const;
     
     void generateWeights(bool allowNegative = false);
@@ -53,7 +55,7 @@ public:
     void printGraphInfo() const;
 
 protected:
-    std::unordered_map<int, std::unique_ptr<Vertex>> m_vertices;
+    std::unordered_map<int, std::unique_ptr<Vertex>> m_vertices; // список инцидентности
     std::vector<EdgeData> m_edges;
 };
 

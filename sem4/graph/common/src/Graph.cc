@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <RandomGenerator.h>
 
 namespace graph {
 
@@ -26,7 +27,7 @@ bool Graph::addEdge(int from, int to, double weight) {
     if (!hasVertex(from) || !hasVertex(to)) {
         return false;
     }
-    
+
     m_edges.emplace_back(from, to, weight);
     m_vertices[from]->addNeighbor(to, weight);
     m_vertices[to]->addNeighbor(from, weight);
@@ -78,7 +79,7 @@ bool Graph::hasVertex(int id) const noexcept {
 bool Graph::hasEdge(int from, int to) const {
     auto vertex = getVertex(from);
     if (!vertex) return false;
-    
+
     for (const auto& [neighborId, _] : (*vertex)->neighbors()) {
         if (neighborId == to) return true;
     }
@@ -90,7 +91,7 @@ std::optional<double> Graph::getEdgeWeight(int from, int to) const {
     if (!vertex) {
         return std::nullopt;
     }
-    
+
     for (const auto& [neighborId, weight] : (*vertex)->neighbors()) {
         if (neighborId == to) {
             return weight;
@@ -104,23 +105,20 @@ int Graph::degree(int v) const {
 }
 
 void Graph::generateWeights(bool allowNegative) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(1.0, 10.0);
-    std::uniform_real_distribution<> negDist(-5.0, 10.0);
-    
+    RandomGenerator rng;
+
     std::vector<std::pair<int, int>> edgePairs;
     for (const auto& edge : m_edges) {
         edgePairs.emplace_back(edge.from, edge.to);
     }
-    
+
     m_edges.clear();
     for (auto& [_, vertex] : m_vertices) {
         vertex = std::make_unique<Vertex>(vertex->id());
     }
-    
+
     for (const auto& [from, to] : edgePairs) {
-        double weight = allowNegative ? negDist(gen) : dist(gen);
+        double weight = allowNegative ? rng.randomDouble(-10.0, 10.0) : rng.randomDouble(1.0, 10.0);
         addEdge(from, to, weight);
     }
 }
@@ -129,7 +127,7 @@ void Graph::printGraph() const {
     std::cout << "\nРебра графа:\n";
     std::cout << std::setw(8) << "От" << std::setw(8) << "До" << std::setw(12) << "Вес\n";
     std::cout << std::string(28, '-') << "\n";
-    
+
     for (const auto& edge : m_edges) {
         std::cout << std::setw(8) << edge.from
                   << std::setw(8) << edge.to

@@ -9,7 +9,7 @@ namespace graph {
 
 inline int readInt(const char* prompt) {
     int value;
-    while (true) {
+    for (;;) {
         std::cout << prompt;
         if (std::cin >> value) {
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
