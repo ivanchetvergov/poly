@@ -19,14 +19,14 @@ struct ShimbellResult {
 class ShimbellMethod {
 public:
     explicit ShimbellMethod(const Graph& graph);
-    
-    [[nodiscard]] ShimbellResult compute(int pathLength);
-    static void printMatrix(const DistanceMatrix& matrix, const char* title);
+
+    [[nodiscard]] const ShimbellResult& compute(int pathLength);
 
 private:
     const Graph& m_graph;
     std::vector<int> m_vertexIds;
     int m_size;
+    ShimbellResult result_;
 
     [[nodiscard]] DistanceMatrix createAdjacencyMatrix() const;
     [[nodiscard]] DistanceMatrix multiplyMin(const DistanceMatrix& a, const DistanceMatrix& b) const;

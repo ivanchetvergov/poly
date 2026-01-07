@@ -15,15 +15,8 @@ endif()
 add_library(graph_lab1_lib STATIC
     src/ShimbellMethod.cc
     src/PathCounter.cc
+    src/Runner.cc
 )
 target_include_directories(graph_lab1_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(graph_lab1_lib PUBLIC graph_common)
 target_compile_options(graph_lab1_lib PRIVATE -Wall -Wextra)
-
-add_executable(graph_lab1
-    main.cc
-)
-
-target_include_directories(graph_lab1 PRIVATE include ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(graph_lab1 PRIVATE graph_common graph_lab1_lib graph_flow)
-target_compile_options(graph_lab1 PRIVATE -Wall -Wextra)

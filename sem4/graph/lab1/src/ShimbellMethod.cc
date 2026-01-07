@@ -1,6 +1,7 @@
 // ShimbellMethod.cc
 #include "ShimbellMethod.h"
-#include <MatrixPrinter.h>
+
+#include <CollectionUtils.h>
 #include <algorithm>
 
 namespace graph {
@@ -11,7 +12,7 @@ ShimbellMethod::ShimbellMethod(const Graph& graph)
     , m_size(static_cast<int>(m_vertexIds.size())) {
 }
 
-ShimbellResult ShimbellMethod::compute(int pathLength) {
+const ShimbellResult& ShimbellMethod::compute(int pathLength) {
     if (pathLength <= 0) {
         throw std::invalid_argument("Длина пути должна быть положительной");
     }
@@ -20,7 +21,8 @@ ShimbellResult ShimbellMethod::compute(int pathLength) {
     DistanceMatrix currentMax = createAdjacencyMatrix();
 
     if (pathLength == 1) {
-        return {currentMin, currentMax, 1};
+        result_ = ShimbellResult{currentMin, currentMax, 1};
+        return result_;
     }
 
     DistanceMatrix baseMin = currentMin;
@@ -31,7 +33,8 @@ ShimbellResult ShimbellMethod::compute(int pathLength) {
         currentMax = multiplyMax(currentMax, baseMax);
     }
 
-    return {currentMin, currentMax, pathLength};
+    result_ = ShimbellResult{currentMin, currentMax, pathLength};
+    return result_;
 }
 
 DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
@@ -52,46 +55,18 @@ DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
     return matrix;
 }
 
-namespace {
-    template<typename CompareFunc>
-    DistanceMatrix multiplyMatrix(
-        const DistanceMatrix& a,
-        const DistanceMatrix& b,
-        int size,
-        CompareFunc compare)
-    {
-        DistanceMatrix result(size, std::vector<std::optional<double>>(size, std::nullopt));
-
-        for (int i = 0; i < size; ++i) {
-            for (int j = 0; j < size; ++j) {
-                for (int k = 0; k < size; ++k) {
-                    if (a[i][k].has_value() && b[k][j].has_value()) {
-                        double distance = a[i][k].value() + b[k][j].value();
-
-                        if (!result[i][j].has_value() || compare(distance, result[i][j].value())) {
-                            result[i][j] = distance;
-                        }
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-} // anonymous namespace
-
 DistanceMatrix ShimbellMethod::multiplyMin(
     const DistanceMatrix& a,
     const DistanceMatrix& b
 ) const {
-    return multiplyMatrix(a, b, m_size, std::less<double>());
+    return CollectionUtils::multiplyOptionalMatrix(a, b, std::less<double>());
 }
 
 DistanceMatrix ShimbellMethod::multiplyMax(
     const DistanceMatrix& a,
     const DistanceMatrix& b
 ) const {
-    return multiplyMatrix(a, b, m_size, std::greater<double>());
+    return CollectionUtils::multiplyOptionalMatrix(a, b, std::greater<double>());
 }
 
 int ShimbellMethod::getIndex(int vertexId) const {
@@ -102,8 +77,5 @@ int ShimbellMethod::getIndex(int vertexId) const {
     return static_cast<int>(std::distance(m_vertexIds.begin(), it));
 }
 
-void ShimbellMethod::printMatrix(const DistanceMatrix& matrix, const char* title) {
-    MatrixPrinter::printOptionalMatrix(matrix, title, 2);
-}
 
 } // namespace graph
