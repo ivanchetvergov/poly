@@ -33,7 +33,7 @@ private:
 
 class Graph {
 public:
-    Graph() = default;
+    explicit Graph() = default;
 
     bool addVertex(int id);
     bool addEdge(int from, int to, double weight);
@@ -57,9 +57,13 @@ public:
     void printAdjacencyMatrix() const;
     void printWeightMatrix() const;
 
+    void drawGraph(const std::string& filename = "graph.png") const;
 protected:
     std::unordered_map<int, std::unique_ptr<Vertex>> m_vertices; // список инцидентности
     std::vector<EdgeData> m_edges;
+
+private:
+    void exportToTxt(const std::string& filename = "graph.txt") const;
 };
 
 } // namespace graph

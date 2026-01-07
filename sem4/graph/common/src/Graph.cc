@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
-#include <random>
+#include <fstream>
 #include <RandomGenerator.h>
 
 namespace graph {
@@ -164,6 +164,30 @@ void Graph::printWeightMatrix() const {
         },
         2
     );
+}
+
+void Graph::drawGraph(const std::string& filename) const {
+    exportToTxt("assets/graph.txt");
+
+    std::string cmd = "./venv/bin/python assets/plot_graph.py assets/graph.txt " + filename;
+    int ret = system(cmd.c_str());
+    if (ret != 0) {
+        std::cerr << "[FAIL] Не удалось запустить Python-скрипт для отрисовки графа\n";
+    } else {
+        std::cout << "[OK] Граф сохранён в " << filename << "\n";
+    }
+}
+
+void Graph::exportToTxt(const std::string& filename) const {
+    std::ofstream out(filename);
+    if (!out) {
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        return;
+    }
+    for (const auto& edge : m_edges) {
+        out << edge.from << " " << edge.to << " " << edge.weight << "\n";
+    }
+    std::cout << "[OK] Граф экспортирован в " << filename << "\n";
 }
 
 } // namespace graph
