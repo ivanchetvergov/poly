@@ -2,192 +2,56 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
-#include <fstream>
-#include <RandomGenerator.h>
 
 namespace graph {
 
-void Vertex::addNeighbor(int neighborId, double weight) {
-    m_neighbors.emplace_back(neighborId, weight);
+void Vertex::addNeighbor(int neighborId) {
+    m_neighbors.push_back(neighborId);
 }
 
-const std::vector<std::pair<int, double>>& Vertex::neighbors() const noexcept {
+std::vector<int> Vertex::neighbors() const {
     return m_neighbors;
 }
 
-bool Graph::addVertex(int id) {
-    if (m_vertices.find(id) != m_vertices.end()) {
-        return false;
-    }
-    m_vertices[id] = std::make_unique<Vertex>(id);
-    return true;
-}
-
 bool Graph::addEdge(int from, int to, double weight) {
-    if (!hasVertex(from) || !hasVertex(to)) {
-        return false;
+    EdgeData edge(from, to, weight);
+    bool added = GraphBase::addEdge(from, to, edge);
+
+    if (added && !isDirected_ && hasVertex(to)) {
+        this->m_vertices[to]->addNeighbor(from);
     }
 
-    m_edges.emplace_back(from, to, weight);
-    m_vertices[from]->addNeighbor(to, weight);
-    m_vertices[to]->addNeighbor(from, weight);
-    return true;
-}
-
-size_t Graph::vertexCount() const noexcept {
-    return m_vertices.size();
-}
-
-size_t Graph::edgeCount() const noexcept {
-    return m_edges.size();
-}
-
-std::optional<const Vertex*> Graph::getVertex(int id) const {
-    auto it = m_vertices.find(id);
-    if (it == m_vertices.end()) {
-        return std::nullopt;
-    }
-    return it->second.get();
-}
-
-const std::vector<EdgeData>& Graph::edges() const noexcept {
-    return m_edges;
-}
-
-std::vector<int> Graph::vertexIds() const {
-    std::vector<int> ids;
-    ids.reserve(m_vertices.size());
-    for (const auto& [id, _] : m_vertices) {
-        ids.push_back(id);
-    }
-    std::sort(ids.begin(), ids.end());
-    return ids;
-}
-
-std::vector<std::pair<int, double>> Graph::neighbors(int id) const {
-    auto vertex = getVertex(id);
-    if (!vertex) {
-        return {};
-    }
-    return (*vertex)->neighbors();
-}
-
-bool Graph::hasVertex(int id) const noexcept {
-    return m_vertices.find(id) != m_vertices.end();
-}
-
-bool Graph::hasEdge(int from, int to) const {
-    auto vertex = getVertex(from);
-    if (!vertex) return false;
-
-    for (const auto& [neighborId, _] : (*vertex)->neighbors()) {
-        if (neighborId == to) return true;
-    }
-    return false;
+    return added;
 }
 
 std::optional<double> Graph::getEdgeWeight(int from, int to) const {
-    auto vertex = getVertex(from);
-    if (!vertex) {
-        return std::nullopt;
-    }
+    auto edge = getEdge(from, to);
+    if (!edge) return std::nullopt;
+    return edge->weight;
+}
 
-    for (const auto& [neighborId, weight] : (*vertex)->neighbors()) {
-        if (neighborId == to) {
-            return weight;
+
+
+std::vector<std::pair<int, double>> Graph::neighbors(int id) const {
+    auto neighs = GraphBase::neighbors(id);
+    std::vector<std::pair<int, double>> result;
+    for (int nb : neighs) {
+        auto weight = getEdgeWeight(id, nb);
+        if (weight) {
+            result.emplace_back(nb, *weight);
         }
     }
-    return std::nullopt;
+    return result;
 }
 
-int Graph::degree(int v) const {
-    return static_cast<int>(neighbors(v).size());
-}
-
-void Graph::generateWeights(bool allowNegative) {
-    RandomGenerator rng;
-
-    std::vector<std::pair<int, int>> edgePairs;
-    for (const auto& edge : m_edges) {
-        edgePairs.emplace_back(edge.from, edge.to);
-    }
-
-    m_edges.clear();
-    for (auto& [_, vertex] : m_vertices) {
-        vertex = std::make_unique<Vertex>(vertex->id());
-    }
-
-    for (const auto& [from, to] : edgePairs) {
-        double weight = allowNegative ? rng.randomDouble(-10.0, 10.0) : rng.randomDouble(1.0, 10.0);
-        addEdge(from, to, weight);
-    }
-}
-
-void Graph::printGraph() const {
-    std::cout << "\nРебра графа:\n";
-    std::cout << std::setw(8) << "От" << std::setw(8) << "До" << std::setw(12) << "Вес\n";
-    std::cout << std::string(28, '-') << "\n";
-
-    for (const auto& edge : m_edges) {
-        std::cout << std::setw(8) << edge.from
-                  << std::setw(8) << edge.to
-                  << std::setw(12) << std::fixed << std::setprecision(2) << edge.weight << "\n";
-    }
+std::vector<int> Graph::getNeighbors(int id) const {
+    return GraphBase::neighbors(id);
 }
 
 void Graph::printGraphInfo() const {
     std::cout << "Информация о графе:\n";
     std::cout << "Количество вершин: " << vertexCount() << "\n";
     std::cout << "Количество рёбер: " << edgeCount() << "\n";
-}
-
-void Graph::printAdjacencyMatrix() const {
-    auto ids = vertexIds();
-    MatrixPrinter::printMatrix<int>(
-        "Матрица смежности",
-        ids,
-        [this](int from, int to) -> int {
-            return hasEdge(from, to) ? 1 : 0;
-        },
-        0
-    );
-}
-
-void Graph::printWeightMatrix() const {
-    auto ids = vertexIds();
-    MatrixPrinter::printMatrix<double>(
-        "Матрица весов",
-        ids,
-        [this](int from, int to) -> double {
-            auto weight = getEdgeWeight(from, to);
-            return weight.has_value() ? weight.value() : 0.0;
-        },
-        2
-    );
-}
-
-void Graph::drawGraph(const std::string& filename) const {
-    exportToTxt("assets/graph.txt");
-
-    std::string cmd = "./venv/bin/python assets/plot_graph.py assets/graph.txt " + filename;
-    int ret = system(cmd.c_str());
-    if (ret != 0) {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт для отрисовки графа\n";
-    } else {
-        std::cout << "[OK] Граф сохранён в " << filename << "\n";
-    }
-}
-
-void Graph::exportToTxt(const std::string& filename) const {
-    std::ofstream out(filename);
-    if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
-        return;
-    }
-    for (const auto& edge : m_edges) {
-        out << edge.from << " " << edge.to << " " << edge.weight << "\n";
-    }
-    std::cout << "[OK] Граф экспортирован в " << filename << "\n";
 }
 
 } // namespace graph

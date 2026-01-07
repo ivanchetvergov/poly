@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+#include <optional>
 
 namespace graph {
 
@@ -24,6 +25,31 @@ public:
             }
         }
         return matrix;
+    }
+
+    template<typename CompareFunc>
+    static Matrix<std::optional<double>> multiplyOptionalMatrix(
+        const Matrix<std::optional<double>>& a,
+        const Matrix<std::optional<double>>& b,
+        CompareFunc compare)
+    {
+        int size = static_cast<int>(a.size());
+        Matrix<std::optional<double>> result(size, std::vector<std::optional<double>>(size, std::nullopt));
+
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                for (int k = 0; k < size; ++k) {
+                    if (a[i][k].has_value() && b[k][j].has_value()) {
+                        double distance = a[i][k].value() + b[k][j].value();
+
+                        if (!result[i][j].has_value() || compare(distance, result[i][j].value())) {
+                            result[i][j] = distance;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     template<typename T>
@@ -51,5 +77,10 @@ public:
         return map.find(key) != map.end();
     }
 };
+
+template<typename Map, typename Key>
+static bool hasKey(const Map& map, const Key& key) {
+    return map.find(key) != map.end();
+}
 
 } // namespace graph

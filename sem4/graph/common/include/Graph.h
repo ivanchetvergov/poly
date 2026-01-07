@@ -1,10 +1,10 @@
 #pragma once
 
+#include "GraphBase.h"
 #include <memory>
 #include <optional>
 #include <unordered_map>
 #include <vector>
-#include "MatrixPrinter.h"
 
 namespace graph {
 
@@ -23,47 +23,26 @@ public:
     explicit Vertex(int id) : m_id(id) {}
 
     [[nodiscard]] int id() const noexcept { return m_id; }
-    void addNeighbor(int neighborId, double weight);
-    [[nodiscard]] const std::vector<std::pair<int, double>>& neighbors() const noexcept;
+    void addNeighbor(int neighborId);
+    [[nodiscard]] std::vector<int> neighbors() const;
 
 private:
     int m_id;
-    std::vector<std::pair<int, double>> m_neighbors;
+    std::vector<int> m_neighbors;
 };
 
-class Graph {
+class Graph : public GraphBase<Vertex, EdgeData> {
 public:
-    explicit Graph() = default;
+    Graph(bool isDirected = false) : GraphBase(isDirected) {}
 
-    bool addVertex(int id);
     bool addEdge(int from, int to, double weight);
 
-    [[nodiscard]] size_t vertexCount() const noexcept;
-    [[nodiscard]] size_t edgeCount() const noexcept;
-
-    [[nodiscard]] std::optional<const Vertex*> getVertex(int id) const;
     [[nodiscard]] std::optional<double> getEdgeWeight(int from, int to) const;
-    [[nodiscard]] const std::vector<EdgeData>& edges() const noexcept;
-    [[nodiscard]] std::vector<int> vertexIds() const;
     [[nodiscard]] std::vector<std::pair<int, double>> neighbors(int id) const;
+    [[nodiscard]] std::vector<int> getNeighbors(int id) const;
 
-    [[nodiscard]] bool hasVertex(int id) const noexcept;
-    [[nodiscard]] bool hasEdge(int from, int to) const;
-    [[nodiscard]] int degree(int v) const;
 
-    void generateWeights(bool allowNegative = false);
-    void printGraph() const;
     void printGraphInfo() const;
-    void printAdjacencyMatrix() const;
-    void printWeightMatrix() const;
-
-    void drawGraph(const std::string& filename = "graph.png") const;
-protected:
-    std::unordered_map<int, std::unique_ptr<Vertex>> m_vertices; // список инцидентности
-    std::vector<EdgeData> m_edges;
-
-private:
-    void exportToTxt(const std::string& filename = "graph.txt") const;
 };
 
 } // namespace graph

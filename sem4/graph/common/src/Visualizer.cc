@@ -33,20 +33,22 @@ void Visualizer::drawCostMatrix(const FlowNetwork& network, const std::string& o
 void Visualizer::drawGraph(const Graph& graph, const std::string& outputFile) {
     exportEdges(graph, "assets/txt/graph.txt");
 
-    if (runPythonScript("plot_graph.py", "assets/txt/graph.txt", outputFile) == 0) {
+    std::string graphType = graph.isDirected() ? "directed" : "undirected";
+    if (runPythonScript("plot_graph.py", "assets/txt/graph.txt", outputFile, graphType) == 0) {
         std::cout << "[OK] Граф сохранён в " << outputFile << "\n";
     } else {
         std::cerr << "[FAIL] Не удалось сохранить граф в " << outputFile << "\n";
     }
 }
 
-void Visualizer::drawGraphWithPath(const Graph& graph, const std::vector<int>& path,
-                                   const std::string& outputFile, const std::string& title)
+void Visualizer::drawGraphWithPath(const Graph& graph,
+        const std::vector<int>& path, const std::string& outputFile)
 {
     exportEdges(graph, "assets/txt/graph.txt");
     exportPath(path, "assets/txt/path.txt");
 
-    if (runPythonScript("plot_graph_path.py", "assets/txt/graph.txt", outputFile, title) == 0) {
+    std::string graphType = graph.isDirected() ? "directed" : "undirected";
+    if (runPythonScript("plot_graph_path.py", "assets/txt/graph.txt", outputFile, graphType) == 0) {
         std::cout << "[OK] Граф с путём сохранён в " << outputFile << "\n";
     } else {
         std::cerr << "[FAIL] Не удалось сохранить граф с путём\n";
@@ -62,6 +64,24 @@ void Visualizer::drawAdjacencyMatrix(const Graph& graph, const std::string& outp
     exportMatrix(matrix, "assets/txt/matrix.txt");
     if (runPythonScript("plot_matrix.py", "assets/txt/matrix.txt", outputFile) == 0) {
         std::cout << "[OK] Матрица смежности сохранена в " << outputFile << "\n";
+    }
+}
+
+using DistanceMatrix = std::vector<std::vector<std::optional<double>>>;
+
+void Visualizer::drawShimbellMatrix(const DistanceMatrix& shimMatrix, const std::string& outputFile) {
+    size_t n = shimMatrix.size();
+    std::vector<int> indices(static_cast<size_t>(n));
+    for (size_t i = 0; i < n; ++i) indices[i] = static_cast<int>(i);
+
+    auto matrix = CollectionUtils::makeMatrix<double>(indices, indices,
+        [&](int i, int j) {
+            return shimMatrix[i][j].has_value() ? shimMatrix[i][j].value() : -1e9;
+        });
+
+    exportMatrix(matrix, "assets/txt/shimbell.txt");
+    if (runPythonScript("plot_matrix.py", "assets/txt/shimbell.txt", outputFile) == 0) {
+        std::cout << "[OK] Матрица Шимбелла сохранена в " << outputFile << "\n";
     }
 }
 

@@ -9,27 +9,33 @@ class Graph;
 class FlowNetwork;
 
 class Visualizer {
+
+using DistanceMatrix = std::vector<std::vector<std::optional<double>>>;
+
 public:
     static void drawGraph(const Graph& graph,
         const std::string& outputFile = "assets/png/graph.png");
 
     static void drawGraphWithPath(const Graph& graph, const std::vector<int>& path,
-        const std::string& outputFile = "assets/png/path.png", const std::string& title = "Путь");
+        const std::string& outputFile = "assets/png/path.png");
 
     static void drawFlowNetwork(const FlowNetwork& network,
         const std::string& outputFile = "assets/png/flow.png");
 
-    static void drawCapacityMatrix(const FlowNetwork& network,
-        const std::string& outputFile = "assets/png/capacity_matrix.png");
-
-    static void drawCostMatrix(const FlowNetwork& network,
-        const std::string& outputFile = "assets/png/cost_matrix.png");
+    static void drawShimbellMatrix(const DistanceMatrix& shimMatrix,
+        const std::string& outputFile = "assets/shimbell.png");
 
     static void drawAdjacencyMatrix(const Graph& graph,
         const std::string& outputFile = "assets/png/adjacency.png");
 
     static void drawWeightMatrix(const Graph& graph,
         const std::string& outputFile = "assets/png/weights.png");
+
+    static void drawCapacityMatrix(const FlowNetwork& network,
+        const std::string& outputFile = "assets/png/capacity_matrix.png");
+
+    static void drawCostMatrix(const FlowNetwork& network,
+        const std::string& outputFile = "assets/png/cost_matrix.png");
 
 private:
     static void exportEdges(const Graph& graph, const std::string& filename);
