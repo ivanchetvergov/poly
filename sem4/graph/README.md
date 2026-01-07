@@ -67,17 +67,19 @@ class GraphBase {
 Template-функции для работы с путями. Принимают граф как набор колбэков.
 
 ```cpp
-// Найти минимум на пути (для Форда-Фалкерсона)
-double bottleneck = PathUtils<double>::getMinPathValue(
-    source, sink, parent,
-    [&](int u, int v) { return capacity[u][v] - flow[u][v]; }
-);
-
-// Применить операцию ко всем ребрам пути
-PathUtils<double>::forEachEdgeInPath(
-    source, sink, parent,
-    [&](int u, int v) { addFlow(u, v, delta); }
-);
+template<typename Func>
+static void forEachEdgeInPath(
+    int source,
+    int sink,
+    const std::unordered_map<int, int>& parent,
+    Func func)
+{
+    for (int v = sink; v != source; v = parent.at(v)) {
+        int u = parent.at(v);
+        func(u, v);
+    }
+}
+...
 ```
 
 Идея: не привязываться к конкретному графу, работать через лямбды. Можно переиспользовать в разных алгоритмах.
@@ -199,9 +201,17 @@ pip install networkx matplotlib seaborn
 `main.cc` объединяет все лабы. Использует `std::unique_ptr` для графов, `checkAndRun` для проверки инициализации.
 
 ```cpp
-checkAndRun(graph, [&]() {
-    Visualizer::drawGraph(*graph, "assets/png/graph.png");
-}, "Сначала сгенерируйте граф");
+template<typename T>
+bool checkAndRun(const std::unique_ptr<T>& ptr,
+    std::function<void()> action, const char* errorMsg)
+{
+    if (ptr) {
+        action();
+        return true;
+    }
+    std::cout << "[FAIL] " << errorMsg << "\n";
+    return false;
+}
 ```
 
 Меню разбито по секциям: общее (генерация + визуализация), lab1, lab3, lab5. Каждая секция запускает свой `Runner`.
