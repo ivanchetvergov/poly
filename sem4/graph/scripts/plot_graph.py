@@ -2,14 +2,19 @@ import sys
 import networkx as nx
 import matplotlib.pyplot as plt
 
-if len(sys.argv) >= 3:
+if len(sys.argv) >= 4:
     input_file = sys.argv[1]
     output_file = sys.argv[2]
+    graph_type = sys.argv[3].lower()
 else:
     input_file = 'assets/txt/graph.txt'
     output_file = 'assets/png/graph.png'
 
-G = nx.Graph()
+if graph_type == 'directed':
+    G = nx.DiGraph()
+else:
+    G = nx.Graph()
+
 with open(input_file, 'r') as f:
     for line in f:
         u, v, w = line.split()
