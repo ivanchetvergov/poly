@@ -1,4 +1,4 @@
-LABS = lab1 lab3 lab5 lab6
+LABS = lab1 lab3 lab5
 JOBS ?= 4
 
 all: main $(LABS)
