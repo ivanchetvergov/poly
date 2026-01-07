@@ -2,7 +2,7 @@
 #include <memory>
 #include <Graph.h>
 #include <GraphGenerator.h>
-#include <GraphVisualizer.h>
+#include <Visualizer.h>
 #include <Utils.h>
 #include "lab1/menu.h"
 #include "lab3/menu.h"
@@ -29,16 +29,22 @@ int main() {
         std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
         std::cout << "11 - Метод Шимбелла\n";
         std::cout << "12 - Подсчёт количества маршрутов\n";
+        std::cout << "13 - Визуализировать найденный путь (assets/path.png)\n";
         std::cout << "\n[Lab 3 - Потоки (отдельный граф)]\n";
         std::cout << "31 - Сгенерировать сеть потоков\n";
         std::cout << "32 - Поиск максимального потока (Форд-Фалкерсон)\n";
         std::cout << "33 - Поиск потока минимальной стоимости (Беллман-Форд)\n";
         std::cout << "34 - Вывести матрицы пропускных способностей и стоимостей\n";
         std::cout << "35 - Визуализировать поток (assets/flow.png)\n";
+        std::cout << "36 - Визуализировать матрицу пропускных способностей (assets/capacity_matrix.png)\n";
+        std::cout << "37 - Визуализировать матрицу стоимостей (assets/cost_matrix.png)\n";
         std::cout << "\n[Lab 5 - Циклы]\n";
         std::cout << "51 - Проверка эйлеровости\n";
         std::cout << "52 - Проверка гамильтоновости\n";
-        std::cout << "53 - Задача коммивояжёра (TSP)\n";
+        std::cout << "53 - Задача коммивояжера (TSP)\n";
+        std::cout << "54 - Визуализировать эйлеров цикл (assets/euler_cycle.png)\n";
+        std::cout << "55 - Визуализировать гамильтонов цикл (assets/hamilton_cycle.png)\n";
+        std::cout << "56 - Визуализировать TSP (assets/tsp_cycle.png)\n";
         std::cout << "\n0 - Выход\n";
         std::cout << "\nВаш выбор: ";
 
@@ -77,21 +83,21 @@ int main() {
                 break;
             case 5:
                 if (graph) {
-                    GraphVisualizer::drawGraph(*graph, "assets/graph.png");
+                    Visualizer::drawGraph(*graph);
                 } else {
                     std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 }
                 break;
             case 6:
                 if (graph) {
-                    GraphVisualizer::drawAdjacencyMatrix(*graph, "assets/adjacency.png");
+                    Visualizer::drawAdjacencyMatrix(*graph);
                 } else {
                     std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 }
                 break;
             case 7:
                 if (graph) {
-                    GraphVisualizer::drawWeightMatrix(*graph, "assets/weights.png");
+                    Visualizer::drawWeightMatrix(*graph);
                 } else {
                     std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 }
@@ -102,6 +108,10 @@ int main() {
                 break;
             case 12:
                 if (graph) lab1::countPathsBetweenVertices(*graph);
+                else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                break;
+            case 13:
+                if (graph) lab1::visualizeFoundPath(*graph);
                 else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 break;
             case 31: {
@@ -140,7 +150,21 @@ int main() {
                 if (!flowNet || flowNet->vertexIds().empty()) {
                     std::cout << "[FAIL] Сначала сгенерируйте сеть потоков (пункт 31)\n";
                 } else {
-                    GraphVisualizer::drawFlowNetwork(*flowNet, "assets/flow.png");
+                    Visualizer::drawFlowNetwork(*flowNet, "assets/flow.png");
+                }
+                break;
+            case 36:
+                if (!flowNet || flowNet->vertexIds().empty()) {
+                    std::cout << "[FAIL] Сначала сгенерируйте сеть потоков (пункт 31)\n";
+                } else {
+                    Visualizer::drawCapacityMatrix(*flowNet, "assets/capacity_matrix.png");
+                }
+                break;
+            case 37:
+                if (!flowNet || flowNet->vertexIds().empty()) {
+                    std::cout << "[FAIL] Сначала сгенерируйте сеть потоков (пункт 31)\n";
+                } else {
+                    Visualizer::drawCostMatrix(*flowNet, "assets/cost_matrix.png");
                 }
                 break;
             case 51:
@@ -153,6 +177,18 @@ int main() {
                 break;
             case 53:
                 if (graph) lab5::solveTSP(*graph);
+                else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                break;
+            case 54:
+                if (graph) lab5::visualizeEulerianCycle(*graph);
+                else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                break;
+            case 55:
+                if (graph) lab5::visualizeHamiltonianCycle(*graph);
+                else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                break;
+            case 56:
+                if (graph) lab5::visualizeTSP(*graph);
                 else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 break;
             case 0:
