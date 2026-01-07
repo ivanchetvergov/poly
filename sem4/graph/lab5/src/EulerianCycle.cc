@@ -58,7 +58,13 @@ std::optional<std::vector<int>> EulerianCycle::findCycle() {
         }
     }
 
-    return findEulerianCycle(start);
+    auto cycle = findEulerianCycle(start);
+
+    if (!cycle.has_value() || cycle->size() < 3) {
+        return std::nullopt;
+    }
+
+    return cycle;
 }
 
 std::optional<std::vector<int>> EulerianCycle::findEulerianCycle(int start) {
