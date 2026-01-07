@@ -2,6 +2,7 @@
 #include <memory>
 #include <Graph.h>
 #include <GraphGenerator.h>
+#include <GraphVisualizer.h>
 #include <Utils.h>
 #include "lab1/menu.h"
 #include "lab3/menu.h"
@@ -22,6 +23,9 @@ int main() {
         std::cout << "2 - Вывести граф\n";
         std::cout << "3 - Вывести матрицу смежности (1 - есть ребро, - - нет)\n";
         std::cout << "4 - Вывести матрицу весов\n";
+        std::cout << "5 - Визуализировать граф (assets/graph.png)\n";
+        std::cout << "6 - Визуальизировать матрицу смежности (assets/adjacency.png)\n";
+        std::cout << "7 - Визуализировать матрицу весов (assets/weights.png)\n";
         std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
         std::cout << "11 - Метод Шимбелла\n";
         std::cout << "12 - Подсчёт количества маршрутов\n";
@@ -30,6 +34,7 @@ int main() {
         std::cout << "32 - Поиск максимального потока (Форд-Фалкерсон)\n";
         std::cout << "33 - Поиск потока минимальной стоимости (Беллман-Форд)\n";
         std::cout << "34 - Вывести матрицы пропускных способностей и стоимостей\n";
+        std::cout << "35 - Визуализировать поток (assets/flow.png)\n";
         std::cout << "\n[Lab 5 - Циклы]\n";
         std::cout << "51 - Проверка эйлеровости\n";
         std::cout << "52 - Проверка гамильтоновости\n";
@@ -66,6 +71,27 @@ int main() {
             case 4:
                 if (graph) {
                     graph->printWeightMatrix();
+                } else {
+                    std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                }
+                break;
+            case 5:
+                if (graph) {
+                    GraphVisualizer::drawGraph(*graph, "assets/graph.png");
+                } else {
+                    std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                }
+                break;
+            case 6:
+                if (graph) {
+                    GraphVisualizer::drawAdjacencyMatrix(*graph, "assets/adjacency.png");
+                } else {
+                    std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
+                }
+                break;
+            case 7:
+                if (graph) {
+                    GraphVisualizer::drawWeightMatrix(*graph, "assets/weights.png");
                 } else {
                     std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
                 }
@@ -110,6 +136,13 @@ int main() {
                 }
                 break;
             }
+            case 35:
+                if (!flowNet || flowNet->vertexIds().empty()) {
+                    std::cout << "[FAIL] Сначала сгенерируйте сеть потоков (пункт 31)\n";
+                } else {
+                    GraphVisualizer::drawFlowNetwork(*flowNet, "assets/flow.png");
+                }
+                break;
             case 51:
                 if (graph) lab5::checkEulerian(*graph);
                 else std::cout << "[FAIL] Сначала сгенерируйте граф (пункт 1)\n";
