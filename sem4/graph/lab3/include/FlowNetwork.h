@@ -1,24 +1,44 @@
 #pragma once
 
+#include "GraphBase.h"
 #include <memory>
 #include <optional>
-#include <random>
 #include <unordered_map>
 #include <vector>
-#include <MatrixPrinter.h>
 
 namespace graph {
 
-class FlowNetwork {
+struct FlowEdge {
+    int from{-1};
+    int to{-1};
+    double capacity{1.0};
+    double cost{0.0};
+    double flow{0.0};
+
+    FlowEdge() = default;
+    FlowEdge(int f, int t, double cap, double c = 0.0, double fl = 0.0)
+        : from(f), to(t), capacity(cap), cost(c), flow(fl) {}
+    bool operator<(const FlowEdge& other) const { return capacity < other.capacity; }
+};
+
+class FlowVertex {
 public:
-    FlowNetwork() = default;
+    explicit FlowVertex(int id) : m_id(id) {}
 
-    void addVertex(int id);
-    void addEdge(int from, int to, double capacity, double cost = 0.0);
+    [[nodiscard]] int id() const noexcept { return m_id; }
+    void addNeighbor(int neighborId);
+    [[nodiscard]] std::vector<int> neighbors() const;
 
-    [[nodiscard]] size_t vertexCount() const noexcept { return m_vertices.size(); }
-    [[nodiscard]] std::vector<int> vertexIds() const;
-    [[nodiscard]] std::vector<int> neighbors(int v) const;
+private:
+    int m_id;
+    std::vector<int> m_neighbors;
+};
+
+class FlowNetwork : public GraphBase<FlowVertex, FlowEdge> {
+public:
+    FlowNetwork(bool isDirected = false) : GraphBase(isDirected) {}
+
+    bool addEdge(int from, int to, double capacity, double cost = 0.0);
 
     [[nodiscard]] double getCapacity(int from, int to) const;
     [[nodiscard]] double getCost(int from, int to) const;
@@ -31,13 +51,6 @@ public:
 
     void printCapacities() const;
     void printCosts() const;
-
-private:
-    std::unordered_map<int, std::vector<int>> m_adj;
-    std::unordered_map<int, std::unordered_map<int, double>> m_capacity;
-    std::unordered_map<int, std::unordered_map<int, double>> m_cost;
-    std::unordered_map<int, std::unordered_map<int, double>> m_flow;
-    std::vector<int> m_vertices;
 };
 
 } // namespace graph

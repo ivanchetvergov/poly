@@ -12,14 +12,8 @@ add_library(graph_flow STATIC
     src/FlowNetwork.cc
     src/MaxFlow.cc
     src/MinCostFlow.cc
+    src/Runner.cc
 )
 target_include_directories(graph_flow PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(graph_flow PUBLIC graph_common)
 target_compile_options(graph_flow PRIVATE -Wall -Wextra)
-
-add_executable(graph_lab3
-    main.cc
-)
-target_include_directories(graph_lab3 PRIVATE include ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(graph_lab3 PRIVATE graph_common graph_flow)
-target_compile_options(graph_lab3 PRIVATE -Wall -Wextra)
