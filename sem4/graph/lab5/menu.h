@@ -1,6 +1,7 @@
 #pragma once
 #include <GraphGenerator.h>
 #include <Utils.h>
+#include <Visualizer.h>
 #include "include/EulerianCycle.h"
 #include "include/HamiltonianCycle.h"
 #include "include/TSPSolver.h"
@@ -8,10 +9,15 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 namespace lab5 {
 
 using namespace graph;
+
+std::optional<std::vector<int>> lastEulerianCycle;
+std::optional<std::vector<int>> lastHamiltonianCycle;
+std::optional<std::vector<int>> lastTSPCycle;
 
 void printCycle(const std::vector<int>& cycle, const char* title) {
     std::cout << "\n" << title << ": ";
@@ -47,8 +53,10 @@ void checkEulerian(Graph& graph) {
 
     auto cycle = euler.findCycle();
     if (cycle.has_value()) {
+        lastEulerianCycle = cycle.value();
         printCycle(cycle.value(), "Эйлеров цикл");
     } else {
+        lastEulerianCycle = std::nullopt;
         std::cout << "Не удалось найти эйлеров цикл\n";
     }
 }
@@ -68,8 +76,10 @@ void checkHamiltonian(Graph& graph) {
 
     auto cycle = hamilton.findCycle();
     if (cycle.has_value()) {
+        lastHamiltonianCycle = cycle.value();
         printCycle(cycle.value(), "Гамильтонов цикл");
     } else {
+        lastHamiltonianCycle = std::nullopt;
         std::cout << "Не удалось найти гамильтонов цикл\n";
     }
 }
@@ -120,6 +130,7 @@ void solveTSP(const Graph& graph) {
     std::cout << "Стоимость: " << std::fixed << std::setprecision(2)
               << solutions[0].cost << "\n";
     printCycle(solutions[0].path, "Путь");
+    lastTSPCycle = solutions[0].path;
 }
 
 void runLab5UI() {
@@ -149,6 +160,33 @@ void runLab5UI() {
     } catch (const std::exception& e) {
         std::cerr << "Ошибка: " << e.what() << "\n";
     }
+}
+
+void visualizeEulerianCycle(const Graph& graph) {
+    if (!lastEulerianCycle.has_value()) {
+        std::cout << "[FAIL] Сначала найдите эйлеров цикл (пункт 51)\n";
+        return;
+    }
+    Visualizer::drawGraphWithPath(graph, lastEulerianCycle.value(),
+                                  "assets/euler_cycle.png", "Эйлеров цикл");
+}
+
+void visualizeHamiltonianCycle(const Graph& graph) {
+    if (!lastHamiltonianCycle.has_value()) {
+        std::cout << "[FAIL] Сначала найдите гамильтонов цикл (пункт 52)\n";
+        return;
+    }
+    Visualizer::drawGraphWithPath(graph, lastHamiltonianCycle.value(),
+                                  "assets/hamilton_cycle.png", "Гамильтонов цикл");
+}
+
+void visualizeTSP(const Graph& graph) {
+    if (!lastTSPCycle.has_value()) {
+        std::cout << "[FAIL] Сначала решите задачу коммивояжёра (пункт 53)\n";
+        return;
+    }
+    Visualizer::drawGraphWithPath(graph, lastTSPCycle.value(),
+                                  "assets/tsp_cycle.png", "TSP (лучшее решение)");
 }
 
 void Menu() {

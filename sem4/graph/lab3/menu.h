@@ -2,10 +2,10 @@
 #include <Utils.h>
 #include <RandomGenerator.h>
 #include <GraphGenerator.h>
-#include <GraphVisualizer.h>
-#include "FlowNetwork.h"
-#include "MaxFlow.h"
-#include "MinCostFlow.h"
+#include <Visualizer.h>
+#include "include/FlowNetwork.h"
+#include "include/MaxFlow.h"
+#include "include/MinCostFlow.h"
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -114,7 +114,7 @@ void Menu(FlowNetwork& network) {
             case 2: lastMaxFlow = findMaxFlow(network); break;
             case 3: findMinCostFlow(network, lastMaxFlow); break;
             case 4: printGraphInfo(network); break;
-            case 5: GraphVisualizer::drawFlowNetwork(network, "assets/flow.png"); break;
+            case 5: Visualizer::drawFlowNetwork(network, "assets/flow.png"); break;
             case 0: running = false; break;
             default: std::cout << "Неверный выбор!\n";
         }
