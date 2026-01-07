@@ -8,6 +8,24 @@ namespace graph {
 
 class CollectionUtils {
 public:
+
+    template<typename T>
+    using Matrix = std::vector<std::vector<T>>;
+
+    template<typename T, typename Getter>
+    static Matrix<T> makeMatrix(const std::vector<int>& rows,
+        const std::vector<int>& cols, Getter getter)
+    {
+        Matrix<T> matrix(rows.size(), std::vector<T>(cols.size()));
+
+        for (size_t i = 0; i < rows.size(); ++i) {
+            for (size_t j = 0; j < cols.size(); ++j) {
+                matrix[i][j] = getter(rows[i], cols[j]);
+            }
+        }
+        return matrix;
+    }
+
     template<typename T>
     static void addUnique(std::vector<T>& vec, const T& value) {
         if (std::find(vec.begin(), vec.end(), value) == vec.end()) {
