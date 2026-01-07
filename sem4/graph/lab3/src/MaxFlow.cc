@@ -36,7 +36,7 @@ bool MaxFlow::bfs(int source, int sink, std::unordered_map<int, int>& parent) {
                     visited.insert(v);
                     parent[v] = u;
 
-                    if (v == sink) return true
+                    if (v == sink) return true;
 
                     q.push(v);
                 }
