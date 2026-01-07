@@ -141,4 +141,29 @@ void Graph::printGraphInfo() const {
     std::cout << "Количество рёбер: " << edgeCount() << "\n";
 }
 
+void Graph::printAdjacencyMatrix() const {
+    auto ids = vertexIds();
+    MatrixPrinter::printMatrix<int>(
+        "Матрица смежности",
+        ids,
+        [this](int from, int to) -> int {
+            return hasEdge(from, to) ? 1 : 0;
+        },
+        0
+    );
+}
+
+void Graph::printWeightMatrix() const {
+    auto ids = vertexIds();
+    MatrixPrinter::printMatrix<double>(
+        "Матрица весов",
+        ids,
+        [this](int from, int to) -> double {
+            auto weight = getEdgeWeight(from, to);
+            return weight.has_value() ? weight.value() : 0.0;
+        },
+        2
+    );
+}
+
 } // namespace graph
