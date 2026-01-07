@@ -2,6 +2,7 @@
 #include <Utils.h>
 #include <RandomGenerator.h>
 #include <GraphGenerator.h>
+#include <GraphVisualizer.h>
 #include "FlowNetwork.h"
 #include "MaxFlow.h"
 #include "MinCostFlow.h"
@@ -105,6 +106,7 @@ void Menu(FlowNetwork& network) {
         std::cout << "\n2 - Поиск максимального потока (Форд-Фалкерсон)";
         std::cout << "\n3 - Поиск потока минимальной стоимости (Беллман-Форд)";
         std::cout << "\n4 - Вывести граф (матрицы пропускных способностей и стоимостей)";
+        std::cout << "\n5 - Визуализировать поток (сохранить в .png)";
         std::cout << "\n0 - Назад\n";
         int choice = readInt("Ваш выбор: ");
         switch (choice) {
@@ -112,6 +114,7 @@ void Menu(FlowNetwork& network) {
             case 2: lastMaxFlow = findMaxFlow(network); break;
             case 3: findMinCostFlow(network, lastMaxFlow); break;
             case 4: printGraphInfo(network); break;
+            case 5: GraphVisualizer::drawFlowNetwork(network, "assets/flow.png"); break;
             case 0: running = false; break;
             default: std::cout << "Неверный выбор!\n";
         }

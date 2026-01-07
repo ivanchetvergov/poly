@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(graph_common STATIC
     src/Graph.cc
     src/GraphGenerator.cc
+    src/GraphVisualizer.cc
 )
 
 target_include_directories(graph_common PUBLIC

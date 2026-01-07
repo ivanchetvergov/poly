@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
-project(lab6)
+cmake_minimum_required(VERSION 3.16)
+project(graph_lab6)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Флаги для корректной работы с UTF-8
 add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -21,8 +20,9 @@ add_library(TextGenerator STATIC
     src/TextGenerator.cc
 )
 
-add_executable(lab6_main
+add_executable(${PROJECT_NAME}
     main.cc
 )
 
-target_link_libraries(lab6_main HashTable RBTree TextGenerator)
+target_link_libraries(${PROJECT_NAME} HashTable RBTree TextGenerator)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
