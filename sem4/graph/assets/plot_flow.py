@@ -12,7 +12,6 @@ else:
 G = nx.Graph()
 flow_data = {}
 
-# Формат файла: from to capacity flow cost
 with open(input_file, 'r') as f:
     for line in f:
         parts = line.split()
@@ -26,13 +25,11 @@ with open(input_file, 'r') as f:
 plt.figure(figsize=(12, 8))
 pos = nx.spring_layout(G, seed=42)
 
-# Рёбра: толщина по потоку, цвет по загрузке (flow/capacity)
 edges = G.edges()
 flows = [G[u][v]['flow'] for u, v in edges]
 capacities = [G[u][v]['capacity'] for u, v in edges]
 utilization = [G[u][v]['flow'] / G[u][v]['capacity'] if G[u][v]['capacity'] > 0 else 0 for u, v in edges]
 
-# Рисуем рёбра с цветом по утилизации (flow/capacity)
 nx.draw_networkx_edges(
     G, pos,
     width=[1 + f/2 for f in flows],

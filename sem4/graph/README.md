@@ -93,11 +93,38 @@ lab6/    # Словарь на хеш-таблице и красно-черно�
 - **CollectionUtils** — хелперы типа `addUnique`, `getNestedMapValue`
 - **MatrixPrinter** — красивая печать матриц с optional значениями
 
+## Визуализация графов, матриц и потоков
+
+В проекте реализована автоматическая визуализация:
+
+- **Графы** — через Python-скрипт `assets/plot_graph.py` (networkx, matplotlib)
+- **Матрицы** — через `assets/plot_matrix.py` (seaborn, matplotlib)
+- **Потоки** — через `assets/plot_flow.py` (networkx, matplotlib)
+
+Вызов осуществляется из C++ через класс `GraphVisualizer`. Картинки сохраняются в папку `assets/`.
+
+**Пример:**
+
+```cpp
+GraphVisualizer::drawGraph(graph, "assets/graph.png");
+GraphVisualizer::drawAdjacencyMatrix(graph, "assets/adjacency.png");
+GraphVisualizer::drawFlowNetwork(flowNet, "assets/flow.png");
+```
+
 ## Требования
 
 - C++20
 - CMake 3.10+
 - Компилятор с поддержкой C++20 (gcc 10+, clang 10+)
+- Python 3.8+
+- Библиотеки: networkx, matplotlib, seaborn
+
+**Рекомендуется использовать виртуальную среду (venv):**
+
+```bash
+python3 -m venv venv
+./venv/bin/pip install networkx matplotlib seaborn
+```
 
 ## Единое меню и запуск
 

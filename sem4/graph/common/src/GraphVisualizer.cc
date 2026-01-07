@@ -93,16 +93,15 @@ void GraphVisualizer::exportFlow(const FlowNetwork& network, const std::string& 
     if (!out) {
         std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
         return;
-
-        auto vertices = network.vertexIds();
-        for (int from : vertices) {
-            for (int to : network.neighbors(from)) {
-                if (from < to) {
-                    double capacity = network.getCapacity(from, to);
-                    double flow = network.getFlow(from, to);
-                    double cost = network.getCost(from, to);
-                    out << from << " " << to << " " << capacity << " " << flow << " " << cost << "\n";
-                }
+    }
+    auto vertices = network.vertexIds();
+    for (int from : vertices) {
+        for (int to : network.neighbors(from)) {
+            if (from < to) {
+                double capacity = network.getCapacity(from, to);
+                double flow = network.getFlow(from, to);
+                double cost = network.getCost(from, to);
+                out << from << " " << to << " " << capacity << " " << flow << " " << cost << "\n";
             }
         }
     }
