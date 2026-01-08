@@ -38,6 +38,12 @@ clean:
 	rm -rf build
 	for d in $(LABS); do rm -rf $$d/build; done
 
+fix-code:
+	@echo "Applying clang-tidy fixes..."
+	find . -name "*.cc" -o -name "*.h" | xargs clang-tidy --fix
+	@echo "Applying clang-format..."
+	find . -name "*.cc" -o -name "*.h" | xargs clang-format -i
+
 help:
 	@echo "Доступные цели:"
 	@echo "  all        - собрать main и все лабораторные через CMake"
@@ -51,7 +57,8 @@ help:
 	@echo "  run-lab3   - запустить lab3 (./lab3/build/graph_lab3)"
 	@echo "  run-lab5   - запустить lab5 (./lab5/build/graph_lab5)"
 	@echo "  run-lab6   - запустить lab6 (./lab6/build/graph_lab6)"
+	@echo "  fix-code   - применить clang-tidy --fix и clang-format ко всем .cc и .h файлам"
 	@echo "  clean      - удалить все build директории"
 	@echo "  help       - показать это сообщение"
 
-.PHONY: all main $(LABS) run run-lab1 run-lab3 run-lab5 run-lab6 clean help
+.PHONY: all main $(LABS) run run-lab1 run-lab3 run-lab5 run-lab6 clean fix-code help
