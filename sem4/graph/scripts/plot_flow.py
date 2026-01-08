@@ -1,62 +1,66 @@
-import matplotlib.pyplot as plt
+
+import sys
 import matplotlib as mpl
-from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
-from config import *
-from utils import *
+
+from graph_loader import GraphLoader
+from renderer import Renderer
+from config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
 
 
 def main():
-    input_file, output_file, graph_type, title = parse_args(
-        'assets/txt/flow.txt',
-        'assets/png/flow.png',
-        'undirected'
-    )
+    flow_file = sys.argv[1]
+    output_file = sys.argv[2]
+    directed = True if len(sys.argv) <= 3 else sys.argv[3].lower() == 'directed'
 
-    G = create_graph(graph_type)
-    read_flow_file(input_file, G)
+    loader = GraphLoader()
+    G = loader.load_flow_network(flow_file, directed)
 
-    setup_figure()
-    pos = get_pos(G)
+    renderer = Renderer()
+    renderer.setup_plot()
+    pos = renderer.compute_layout(G)
 
     edges = list(G.edges())
     flows = [G[u][v]['flow'] for u, v in edges]
-    capacities = [G[u][v]['capacity'] for u, v in edges]
     utilization = [
         (G[u][v]['flow'] / G[u][v]['capacity']) if G[u][v]['capacity'] > 0 else 0
         for u, v in edges
     ]
 
-    draw_edges(
-        G, pos, graph_type,
-        width=[1.5 + f / 2 for f in flows],
+    renderer.draw_edges(
+        G, pos, directed,
+        width=[edge_cfg.edge_width_base + f * edge_cfg.flow_multiplier for f in flows],
         edge_color=utilization,
-        edge_cmap=mpl.colormaps[FLOW_COLORMAP],
+        edge_cmap=mpl.colormaps[colormap_cfg.flow_colormap],
         edge_vmin=0,
         edge_vmax=1,
-        alpha=FLOW_EDGE_ALPHA
+        alpha=edge_cfg.flow_edge_alpha
     )
 
-    draw_nodes(G, pos, FLOW_NODE_COLOR)
-    draw_labels(G, pos)
+    renderer.draw_nodes(G, pos, node_cfg.flow_node_color)
+    renderer.draw_labels(G, pos)
 
     edge_labels = {
         (u, v): f"{G[u][v]['flow']:.1f}/{G[u][v]['capacity']:.1f}"
         for u, v in edges
     }
-    draw_edge_labels(G, pos, edge_labels)
+    renderer.draw_edge_labels(G, pos, edge_labels)
 
-    legend_elements = [
-        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=FLOW_NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Узлы сети'),
-        Line2D([0], [0], color='blue', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Низкая загрузка'),
-        Line2D([0], [0], color='red', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Высокая загрузка'),
-        Line2D([0], [0], color='gray', linewidth=1, linestyle=LEGEND_EDGE_STYLE, label='Толщина = поток')
+    legend = [
+        Line2D([0], [0], marker=legend_cfg.legend_node_marker, color='w',
+               markerfacecolor=node_cfg.flow_node_color, markersize=legend_cfg.legend_node_size,
+               label='Узлы сети'),
+        Line2D([0], [0], color='blue', linewidth=2, linestyle=legend_cfg.legend_edge_style,
+               label='Низкая загрузка'),
+        Line2D([0], [0], color='red', linewidth=2, linestyle=legend_cfg.legend_edge_style,
+               label='Высокая загрузка'),
+        Line2D([0], [0], color='gray', linewidth=1, linestyle=legend_cfg.legend_edge_style,
+               label='Толщина = поток')
     ]
-    plt.legend(handles=legend_elements, loc='upper left', fontsize=FONTSIZE)
+    renderer.add_legend(legend)
 
-    if title is None:
-        title = f'Сеть потоков: толщина = поток, цвет = загрузка ({graph_type})'
-    finalize_plot(output_file, title)
+    title = f'Сеть потоков: толщина = поток, цвет = загрузка ({"directed" if directed else "undirected"})'
+    renderer.finalize(output_file, title)
 
 
 if __name__ == '__main__':

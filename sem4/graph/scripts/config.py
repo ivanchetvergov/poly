@@ -1,49 +1,98 @@
-FIGSIZE = (12, 8)
-SEED = 42
-FONTSIZE = 10
-TITLE_FONT_SIZE = 15
-TITLE_FONT_WEIGHT = 'bold'
-
-NODE_SIZE = 800
-NODE_COLOR = 'skyblue'
-NODE_EDGE_COLOR = 'black'
-NODE_EDGE_WIDTH = 2.0
-PATH_NODE_COLOR = 'orange'
-FLOW_NODE_COLOR = 'lightblue'
+from dataclasses import dataclass, field
+from typing import Dict, Any
 
 
-ARROW_STYLE = '-|>'
-ARROW_SIZE = 30
-CONNECTION_STYLE = 'arc3,rad=0.1'
-MIN_SOURCE_MARGIN = 15
-MIN_TARGET_MARGIN = 15
-DEFAULT_EDGE_COLOR = 'gray'
-DEFAULT_EDGE_WIDTH = 1.5
-DEFAULT_EDGE_ALPHA = 0.7
-PATH_EDGE_COLOR = 'red'
-PATH_EDGE_WIDTH = 4.5
-PATH_EDGE_ALPHA = 0.9
-FLOW_EDGE_ALPHA = 0.8
+@dataclass(frozen=True)
+class PlotConfig:
+    figsize: tuple = (12, 8)
+    seed: int = 42
+    fontsize: int = 10
+    title_font_size: int = 15
+    title_font_weight: str = 'bold'
 
-ADDED_EDGE_COLOR = '#C71585'
-ADDED_EDGE_WIDTH = 5.0
 
-LABEL_FONT_SIZE = 13
-LABEL_FONT_WEIGHT = 'bold'
-LABEL_FONT_COLOR = 'black'
-EDGE_LABEL_FONT_SIZE = 10
-EDGE_LABEL_FONT_COLOR = 'darkred'
-EDGE_LABEL_FONT_WEIGHT = 'normal'
-EDGE_LABEL_BBOX = dict(boxstyle='round,pad=0.3', facecolor='white', edgecolor='none', alpha=0.8)
+@dataclass(frozen=True)
+class NodeConfig:
+    node_size: int = 800
+    node_color: str = 'skyblue'
+    node_edge_color: str = 'black'
+    node_edge_width: float = 2.0
+    path_node_color: str = 'orange'
+    flow_node_color: str = 'lightblue'
 
-GRAPH_COLORMAP = 'magma'
-FLOW_COLORMAP = 'RdYlGn_r'
 
-LEGEND_NODE_MARKER = 'o'
-LEGEND_EDGE_STYLE = '-'
-LEGEND_NODE_SIZE = 14
+@dataclass(frozen=True)
+class EdgeConfig:
+    arrow_style: str = '-|>'
+    arrow_size: int = 30
+    connection_style: str = 'arc3,rad=0.1'
+    min_source_margin: int = 15
+    min_target_margin: int = 15
+    default_edge_color: str = 'gray'
+    default_edge_width: float = 1.5
+    default_edge_alpha: float = 0.7
+    path_edge_color: str = 'red'
+    path_edge_width: float = 4.5
+    path_edge_alpha: float = 0.9
+    flow_edge_alpha: float = 0.8
+    added_edge_color: str = '#C71585'
+    added_edge_width: float = 5.0
+    edge_width_base: float = 1.5
+    flow_multiplier: float = 0.5
+    graph_edge_base: float = 0.7
+    graph_weight_multiplier: float = 1/3
+    path_edge_base: float = 4.5
 
-MATRIX_FIGSIZE = (10, 10)
-MATRIX_COLORMAP = 'viridis'
-MATRIX_TITLE_SIZE = 15
-MATRIX_ANNOT_SIZE = 10
+
+@dataclass(frozen=True)
+class LabelConfig:
+    label_font_size: int = 13
+    label_font_weight: str = 'bold'
+    label_font_color: str = 'black'
+    edge_label_font_size: int = 10
+    edge_label_font_color: str = 'darkred'
+    edge_label_font_weight: str = 'normal'
+    edge_label_bbox: Dict[str, Any] = field(default_factory=lambda: {
+        'boxstyle': 'round,pad=0.3',
+        'facecolor': 'white',
+        'edgecolor': 'none',
+        'alpha': 0.8
+    })
+
+
+@dataclass(frozen=True)
+class ColormapConfig:
+    graph_colormap: str = 'magma'
+    flow_colormap: str = 'RdYlGn_r'
+
+
+@dataclass(frozen=True)
+class LegendConfig:
+    legend_node_marker: str = 'o'
+    legend_edge_style: str = '-'
+    legend_node_size: int = 14
+
+
+@dataclass(frozen=True)
+class MatrixConfig:
+    matrix_figsize: tuple = (10, 10)
+    matrix_colormap: str = 'viridis'
+    matrix_title_size: int = 15
+    matrix_annot_size: int = 10
+
+
+@dataclass(frozen=True)
+class AnimationConfig:
+    animation_interval: int = 500
+    animation_repeat_delay: int = 1000
+
+
+plot_cfg = PlotConfig()
+node_cfg = NodeConfig()
+edge_cfg = EdgeConfig()
+label_cfg = LabelConfig()
+colormap_cfg = ColormapConfig()
+legend_cfg = LegendConfig()
+matrix_cfg = MatrixConfig()
+animation_cfg = AnimationConfig()
+

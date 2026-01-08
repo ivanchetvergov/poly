@@ -1,76 +1,79 @@
-import matplotlib.pyplot as plt
+import sys
 import matplotlib as mpl
-from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
-from config import *
-from utils import *
 
+from graph_loader import GraphLoader
+from renderer import Renderer
+from config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
+from helpers import get_path_edges, normalize_edge
 
 def main():
-    input_file, output_file, graph_type, title = parse_args(
-        'assets/txt/flow.txt',
-        'assets/png/flow_path.png',
-        'undirected'
-    )
+    flow_file = sys.argv[1]
+    path_file = sys.argv[2]
+    output_file = sys.argv[3]
+    directed = True if len(sys.argv) <= 4 else sys.argv[4].lower() == 'directed'
 
-    G = create_graph(graph_type)
-    read_flow_file(input_file, G)
+    loader = GraphLoader()
+    G = loader.load_flow_network(flow_file, directed)
+    path = loader.load_path(path_file)
 
-    path = read_path_file()
+    renderer = Renderer()
+    renderer.setup_plot()
+    pos = renderer.compute_layout(G)
 
-    setup_figure()
-    pos = get_pos(G)
-
+    path_edges = get_path_edges(path, directed)
     edges = list(G.edges())
-    path_edges = get_path_edges(path, graph_type)
 
     edge_colors = []
     edge_widths = []
-
     for u, v in edges:
-        edge = normalize_edge(u, v, graph_type)
+        edge = normalize_edge(u, v, directed)
         flow = G[u][v]['flow']
         capacity = G[u][v]['capacity']
         utilization = (flow / capacity) if capacity > 0 else 0
 
         if edge in path_edges:
             edge_colors.append('#00FF00')
-            edge_widths.append(3.0 + flow / 2)
+            edge_widths.append(3.0 + flow * edge_cfg.flow_multiplier)
         else:
-            cmap = mpl.colormaps[FLOW_COLORMAP]
+            cmap = mpl.colormaps[colormap_cfg.flow_colormap]
             edge_colors.append(cmap(utilization))
-            edge_widths.append(1.5 + flow / 2)
+            edge_widths.append(edge_cfg.edge_width_base + flow * edge_cfg.flow_multiplier)
 
-    draw_edges(
-        G, pos, graph_type,
-        width=edge_widths,
-        edge_color=edge_colors,
-        alpha=FLOW_EDGE_ALPHA
-    )
+    renderer.draw_edges(G, pos, directed, width=edge_widths, edge_color=edge_colors,
+                       alpha=edge_cfg.flow_edge_alpha)
 
-    node_colors = [PATH_NODE_COLOR if node in path else FLOW_NODE_COLOR for node in G.nodes()]
-    draw_nodes(G, pos, node_colors)
-    draw_labels(G, pos)
+    node_colors = [
+        node_cfg.path_node_color if node in path else node_cfg.flow_node_color
+        for node in G.nodes()
+    ]
+    renderer.draw_nodes(G, pos, node_colors)
+    renderer.draw_labels(G, pos)
 
     edge_labels = {
         (u, v): f"{G[u][v]['flow']:.1f}/{G[u][v]['capacity']:.1f}"
         for u, v in edges
     }
-    draw_edge_labels(G, pos, edge_labels)
+    renderer.draw_edge_labels(G, pos, edge_labels)
 
-    legend_elements = [
-        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=FLOW_NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Обычные узлы'),
-        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=PATH_NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Узлы в пути'),
-        Line2D([0], [0], color='blue', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Низкая загрузка'),
-        Line2D([0], [0], color='red', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Высокая загрузка'),
-        Line2D([0], [0], color='#00FF00', linewidth=3, linestyle=LEGEND_EDGE_STYLE, label='Рёбра в пути')
+    legend = [
+        Line2D([0], [0], marker=legend_cfg.legend_node_marker, color='w',
+               markerfacecolor=node_cfg.flow_node_color, markersize=legend_cfg.legend_node_size,
+               label='Обычные узлы'),
+        Line2D([0], [0], marker=legend_cfg.legend_node_marker, color='w',
+               markerfacecolor=node_cfg.path_node_color, markersize=legend_cfg.legend_node_size,
+               label='Узлы в пути'),
+        Line2D([0], [0], color='blue', linewidth=2, linestyle=legend_cfg.legend_edge_style,
+               label='Низкая загрузка'),
+        Line2D([0], [0], color='red', linewidth=2, linestyle=legend_cfg.legend_edge_style,
+               label='Высокая загрузка'),
+        Line2D([0], [0], color='#00FF00', linewidth=3, linestyle=legend_cfg.legend_edge_style,
+               label='Рёбра в пути')
     ]
-    plt.legend(handles=legend_elements, loc='upper left', fontsize=FONTSIZE)
+    renderer.add_legend(legend)
 
-    if title is None:
-        title = f'Сеть потоков с путём ({graph_type})'
-    finalize_plot(output_file, title)
-
+    title = f'Сеть потоков с путём ({"directed" if directed else "undirected"})'
+    renderer.finalize(output_file, title)
 
 if __name__ == '__main__':
     main()

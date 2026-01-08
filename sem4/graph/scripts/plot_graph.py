@@ -1,49 +1,53 @@
-import matplotlib.pyplot as plt
+#!/usr/bin/env python3
+"""Визуализация графа с весами"""
+import sys
 import matplotlib as mpl
-from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
-from config import *
-from utils import *
+
+from graph_loader import GraphLoader
+from renderer import Renderer
+from config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
 
 
 def main():
-    input_file, output_file, graph_type, title = parse_args(
-        'assets/txt/graph.txt',
-        'assets/png/graph.png'
-    )
+    graph_file = sys.argv[1]
+    output_file = sys.argv[2]
+    directed = len(sys.argv) > 3 and sys.argv[3].lower() == 'directed'
 
-    G = create_graph(graph_type)
-    read_graph_file(input_file, G)
+    loader = GraphLoader()
+    G = loader.load_graph(graph_file, directed)
 
-    setup_figure()
-    pos = get_pos(G)
+    renderer = Renderer()
+    renderer.setup_plot()
+    pos = renderer.compute_layout(G)
 
     weights = [G[u][v]['weight'] for u, v in G.edges()]
 
-    draw_edges(
-        G, pos, graph_type,
-        width=[0.7 + w / 3 for w in weights],
+    renderer.draw_edges(
+        G, pos, directed,
+        width=[edge_cfg.graph_edge_base + w * edge_cfg.graph_weight_multiplier for w in weights],
         edge_color=weights,
-        edge_cmap=mpl.colormaps[GRAPH_COLORMAP],
-        alpha=DEFAULT_EDGE_ALPHA
+        edge_cmap=mpl.colormaps[colormap_cfg.graph_colormap],
+        alpha=edge_cfg.default_edge_alpha
     )
 
-    draw_nodes(G, pos)
-    draw_labels(G, pos)
+    renderer.draw_nodes(G, pos)
+    renderer.draw_labels(G, pos)
 
-    edge_labels = {k: f"{v:.2f}" for k, v in nx.get_edge_attributes(G, 'weight').items()}
-    draw_edge_labels(G, pos, edge_labels)
+    edge_labels = {(u, v): f"{G[u][v]['weight']:.2f}" for u, v in G.edges()}
+    renderer.draw_edge_labels(G, pos, edge_labels)
 
-    legend_elements = [
-        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Узлы графа'),
-        Line2D([0], [0], color='gray', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Рёбра (цвет зависит от веса)')
+    legend = [
+        Line2D([0], [0], marker=legend_cfg.legend_node_marker, color='w',
+               markerfacecolor=node_cfg.node_color, markersize=legend_cfg.legend_node_size,
+               label='Узлы графа'),
+        Line2D([0], [0], color='gray', linewidth=2, linestyle=legend_cfg.legend_edge_style,
+               label='Рёбра (цвет зависит от веса)')
     ]
-    plt.legend(handles=legend_elements, loc='upper left', fontsize=FONTSIZE)
+    renderer.add_legend(legend)
 
-    if title is None:
-        title = f'Граф ({graph_type})'
-    finalize_plot(output_file, title)
-
+    title = f'Граф ({"directed" if directed else "undirected"})'
+    renderer.finalize(output_file, title)
 
 if __name__ == '__main__':
     main()
