@@ -1,5 +1,3 @@
-
-
 def get_path_edges(path, directed):
     path_edges = set()
     if len(path) > 1:
