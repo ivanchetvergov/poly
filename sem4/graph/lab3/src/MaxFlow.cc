@@ -30,9 +30,9 @@ bool MaxFlow::bfs(int source, int sink, std::unordered_map<int, int>& parent) {
 
         for (int v : m_network.neighbors(u)) {
             if (visited.find(v) == visited.end()) {
-                double diff = m_network.getCapacity(u, v) - m_network.getFlow(u, v);
+                double residual = m_network.getResidualCapacity(u, v);
 
-                if (diff > 0) {
+                if (residual > 0) {
                     visited.insert(v);
                     parent[v] = u;
 
@@ -54,7 +54,7 @@ double MaxFlow::fordFulkerson(int source, int sink) {
 
     while (bfs(source, sink, parent)) {
         auto calcResidual = [this](int u, int v) {
-            return m_network.getCapacity(u, v) - m_network.getFlow(u, v);
+            return m_network.getResidualCapacity(u, v);
         };
 
         double pathFlow = PathUtils<double>::getMinPathValue(source, sink, parent, calcResidual);
@@ -66,7 +66,6 @@ double MaxFlow::fordFulkerson(int source, int sink) {
 
         maxFlow += pathFlow;
     }
-
     return maxFlow;
 }
 

@@ -41,17 +41,9 @@ MinCostResult Runner::findMinCostFlow(int source, int sink, double targetFlow) {
     MinCostFlow minCostFlowAlgo(*network_);
     auto result = minCostFlowAlgo.findMinCostFlow(source, sink, targetFlow);
 
-    if (result.success) {
-        std::cout << "\n[OK] Результат:\n";
-        std::cout << "  Поток: " << result.flow << "\n";
-        std::cout << "  Минимальная стоимость: " << result.cost << "\n";
-    } else {
-        std::cout << "\n[WARN] Не удалось достичь целевого потока\n";
-        std::cout << "  Достигнутый поток: " << result.flow << "\n";
-        std::cout << "  Стоимость: " << result.cost << "\n";
-    }
+    lastMinCostResult_ = {result.cost, result.flow, result.path};
 
-    return {result.cost, result.flow};
+    return lastMinCostResult_;
 }
 
 } // namespace lab3

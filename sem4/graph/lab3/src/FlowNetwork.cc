@@ -15,11 +15,15 @@ std::vector<int> FlowVertex::neighbors() const {
 }
 
 bool FlowNetwork::addEdge(int from, int to, double capacity, double cost) {
-    FlowEdge edge(from, to, capacity, cost, 0.0);
-    bool added = GraphBase::addEdge(from, to, edge);
+    FlowEdge forwardEdge(from, to, capacity, cost, 0.0);
+    FlowEdge backwardEdge(to, from, 0.0, -cost, 0.0);
 
-    if (added && hasVertex(to)) {
-        m_vertices[to]->addNeighbor(from);
+    bool added = GraphBase::addEdge(from, to, forwardEdge);
+    if (added) {
+        GraphBase::addEdge(to, from, backwardEdge);
+        if (hasVertex(to)) {
+            m_vertices[to]->addNeighbor(from);
+        }
     }
 
     return added;
@@ -40,6 +44,10 @@ double FlowNetwork::getFlow(int from, int to) const {
     return edge ? edge->flow : 0.0;
 }
 
+double FlowNetwork::getResidualCapacity(int from, int to) const {
+    return getCapacity(from, to) - getFlow(from, to);
+}
+
 void FlowNetwork::setFlow(int from, int to, double flow) {
     auto edge = getEdgeMutable(from, to);
     if (edge) {
@@ -58,29 +66,5 @@ void FlowNetwork::addFlow(int from, int to, double flow) {
         edgeBackward->flow -= flow;
     }
 }
-
-void FlowNetwork::generateFromTree(int numVertices) {
-    Generator gen;
-
-    for (int i = 0; i < numVertices; ++i) {
-        addVertex(i);
-    }
-
-    std::vector<int> inTree = {0};
-    std::vector<int> notInTree(numVertices - 1);
-    std::iota(notInTree.begin(), notInTree.end(), 1);
-
-    while (!notInTree.empty()) {
-        int from = inTree[gen.randomInt(0, static_cast<int>(inTree.size()) - 1)];
-        int toIdx = gen.randomInt(0, static_cast<int>(notInTree.size()) - 1);
-        int to = notInTree[toIdx];
-
-        addEdge(from, to, gen.randomReal(5.0, 20.0), gen.randomReal(1.0, 10.0));
-
-        inTree.push_back(to);
-        notInTree.erase(notInTree.begin() + toIdx);
-    }
-}
-
 
 } // namespace graph

@@ -10,6 +10,7 @@ using namespace graph;
 struct MinCostResult {
     double cost;
     double flow;
+    std::vector<int> path;
 };
 
 class Runner {
@@ -20,14 +21,17 @@ public:
     void setNetwork(FlowNetwork* network) { network_ = network; }
     const FlowNetwork* getNetwork() const;
 
-    double findMaxFlow(int source, int sink);
-    MinCostResult findMinCostFlow(int source, int sink, double targetFlow);
+    [[nodiscard]] double findMaxFlow(int source, int sink);
+    [[nodiscard]] MinCostResult findMinCostFlow(int source, int sink, double targetFlow);
 
-    double getLastMaxFlow() const { return lastMaxFlow_; }
+    [[nodiscard]] double getLastMaxFlow() const { return lastMaxFlow_; }
+    [[nodiscard]] MinCostResult getLastMinCostResult() const { return lastMinCostResult_; }
 
 private:
     FlowNetwork* network_ = nullptr;
+
     double lastMaxFlow_ = 0.0;
+    MinCostResult lastMinCostResult_{0.0, 0.0, {}};
 };
 
 } // namespace lab3

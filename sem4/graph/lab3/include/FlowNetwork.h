@@ -36,18 +36,17 @@ private:
 
 class FlowNetwork : public GraphBase<FlowVertex, FlowEdge> {
 public:
-    FlowNetwork(bool isDirected = false) : GraphBase(isDirected) {}
+    FlowNetwork(bool isDirected = true) : GraphBase(isDirected) {}
 
     bool addEdge(int from, int to, double capacity, double cost = 0.0);
 
     [[nodiscard]] double getCapacity(int from, int to) const;
     [[nodiscard]] double getCost(int from, int to) const;
     [[nodiscard]] double getFlow(int from, int to) const;
+    [[nodiscard]] double getResidualCapacity(int from, int to) const;
 
     void setFlow(int from, int to, double flow);
     void addFlow(int from, int to, double flow);
-
-    void generateFromTree(int numVertices);
 
     void printCapacities() const;
     void printCosts() const;

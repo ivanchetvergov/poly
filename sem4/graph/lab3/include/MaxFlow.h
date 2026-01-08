@@ -8,9 +8,9 @@ namespace graph {
 class MaxFlow {
 public:
     explicit MaxFlow(FlowNetwork& network) : m_network(network) {}
-    
+
     [[nodiscard]] double fordFulkerson(int source, int sink);
-    
+
 private:
     FlowNetwork& m_network;
 
