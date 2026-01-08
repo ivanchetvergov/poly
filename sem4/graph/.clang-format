@@ -1,0 +1,104 @@
+# Graph Project - clang-format configuration
+# Based on Google Style with project-specific adaptations for C++20
+
+BasedOnStyle: Google
+
+# Language and standard
+Language: Cpp
+Standard: c++20
+
+# Indentation and alignment
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+AccessModifierOffset: -4
+
+# Pointer and reference alignment: "Type& var" (left alignment)
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Const placement: prefer "east const" (Type const&)
+QualifierAlignment: Right
+
+# Braces
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+
+# Line breaking
+ColumnLimit: 100
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+AlwaysBreakTemplateDeclarations: Yes
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+AllowShortBlocksOnASingleLine: Empty
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpacesInAngles: Never
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Include sorting
+SortIncludes: CaseInsensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Project headers (local)
+  - Regex: '^"[A-Za-z0-9_]+\.h"$'
+    Priority: 1
+  # Project headers (subdirectories)
+  - Regex: '^".*"$'
+    Priority: 2
+  # C++ standard library
+  - Regex: '^<[^/.]+>$'
+    Priority: 4
+  # C standard library
+  - Regex: '^<[A-Za-z0-9_]+\.h>$'
+    Priority: 5
+  # Other system headers
+  - Regex: '^<.*>$'
+    Priority: 3
+
+# Namespaces
+CompactNamespaces: false
+NamespaceIndentation: None
+
+# Comments
+ReflowComments: true
+CommentPragmas: '(@copydoc|@copybrief|@see|@overload|@snippet|NOLINT)'
+
+# Other
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignOperands: Align
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackArguments: true
+BinPackParameters: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1

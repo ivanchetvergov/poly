@@ -1,0 +1,100 @@
+# Graph Project - clang-tidy configuration (C++20)
+# Balanced between strict analysis and practical development
+
+# Philosophy:
+# - Enable most Google, modernize, performance, and readability checks
+# - Disable overly pedantic checks that hurt productivity
+# - Allow #pragma once (more convenient than include guards)
+# - Follow project naming conventions (snake_case with trailing _)
+
+Checks: >
+  -*,
+  abseil-*,
+  bugprone-*,
+  google-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -bugprone-inc-dec-in-conditions,
+  -bugprone-narrowing-conversions,
+  -bugprone-unchecked-optional-access,
+  -bugprone-unused-return-value,
+  -google-readability-braces-around-statements,
+  -google-readability-namespace-comments,
+  -google-runtime-references,
+  -misc-const-correctness,
+  -misc-header-include-cycle,
+  -misc-include-cleaner,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-avoid-c-arrays,
+  -modernize-concat-nested-namespaces,
+  -modernize-return-braced-init-list,
+  -modernize-use-trailing-return-type,
+  -performance-avoid-endl,
+  -performance-enum-size,
+  -performance-move-const-arg,
+  -portability-avoid-pragma-once,
+  -readability-avoid-return-with-void-value,
+  -readability-braces-around-statements,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-redundant-declaration
+
+# Warnings as errors: off for development, enable in CI
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '(common|lab[0-9]+)/include/.*\.h$'
+
+CheckOptions:
+  # Naming conventions
+  - { key: readability-identifier-naming.NamespaceCase,           value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,               value: CamelCase  }
+  - { key: readability-identifier-naming.StructCase,              value: CamelCase  }
+  - { key: readability-identifier-naming.EnumCase,                value: CamelCase  }
+  - { key: readability-identifier-naming.UnionCase,               value: CamelCase  }
+  - { key: readability-identifier-naming.TemplateParameterCase,   value: CamelCase  }
+  - { key: readability-identifier-naming.TypeAliasCase,           value: CamelCase  }
+
+  # Functions can be any case (flexibility for different styles)
+  - { key: readability-identifier-naming.FunctionCase,            value: aNy_CasE   }
+  - { key: readability-identifier-naming.MethodCase,              value: camelBack  }
+
+  # Variables and parameters
+  - { key: readability-identifier-naming.VariableCase,            value: lower_case }
+  - { key: readability-identifier-naming.ParameterCase,           value: camelBack  }
+  - { key: readability-identifier-naming.LocalVariableCase,       value: lower_case }
+
+  # Class members with trailing underscore
+  - { key: readability-identifier-naming.PrivateMemberCase,       value: lower_case }
+  - { key: readability-identifier-naming.PrivateMemberSuffix,     value: _          }
+  - { key: readability-identifier-naming.ProtectedMemberCase,     value: lower_case }
+  - { key: readability-identifier-naming.ProtectedMemberSuffix,   value: _          }
+  - { key: readability-identifier-naming.PublicMemberCase,        value: lower_case }
+
+  # Constants with k prefix (Google style)
+  - { key: readability-identifier-naming.ConstexprVariableCase,   value: CamelCase  }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix, value: k          }
+  - { key: readability-identifier-naming.GlobalConstantCase,      value: CamelCase  }
+  - { key: readability-identifier-naming.GlobalConstantPrefix,    value: k          }
+  - { key: readability-identifier-naming.StaticConstantCase,      value: CamelCase  }
+  - { key: readability-identifier-naming.StaticConstantPrefix,    value: k          }
+  - { key: readability-identifier-naming.EnumConstantCase,        value: CamelCase  }
+  - { key: readability-identifier-naming.EnumConstantPrefix,      value: k          }
+
+  # Bool conversions
+  - { key: readability-implicit-bool-conversion.AllowIntegerConditions, value: 1 }
+  - { key: readability-implicit-bool-conversion.AllowPointerConditions, value: 1 }
+
+  # Function complexity
+  - { key: readability-function-cognitive-complexity.IgnoreMacros,      value: 1 }
+  - { key: readability-function-size.LineThreshold,                     value: 150 }
+  - { key: readability-function-size.StatementThreshold,                value: 100 }
+
+  # Performance
+  - { key: performance-unnecessary-value-param.AllowedTypes,            value: 'std::function' }
