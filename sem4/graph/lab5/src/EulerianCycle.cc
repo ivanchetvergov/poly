@@ -32,12 +32,15 @@ void EulerianCycle::makeEulerian() {
 
     if (oddVertices.empty()) return;
 
+    m_addedEdges.clear();
+
     for (size_t i = 0; i + 1 < oddVertices.size(); i += 2) {
         int v1 = oddVertices[i];
         int v2 = oddVertices[i + 1];
 
         if (!m_graph.hasEdge(v1, v2)) {
             m_graph.addEdge(v1, v2, 1.0);
+            m_addedEdges.push_back({v1, v2});
         }
     }
 }

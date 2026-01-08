@@ -16,8 +16,11 @@ public:
 
     void makeHamiltonian();
 
+    [[nodiscard]] const std::vector<std::pair<int, int>>& getAddedEdges() const { return m_addedEdges; }
+
 private:
     Graph& m_graph;
+    std::vector<std::pair<int, int>> m_addedEdges;
 
     [[nodiscard]] bool hasHamiltonianCycle(std::vector<int>& path, std::vector<bool>& visited, const int pos);
 };

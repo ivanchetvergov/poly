@@ -26,11 +26,16 @@ public:
     const std::optional<std::vector<int>>& getLastHamiltonianCycle() const;
     const std::optional<std::vector<int>>& getLastTSPCycle() const;
 
+    const std::vector<std::pair<int, int>>& getLastEulerianAddedEdges() const { return lastEulerianAddedEdges_; }
+    const std::vector<std::pair<int, int>>& getLastHamiltonianAddedEdges() const { return lastHamiltonianAddedEdges_; }
+
 private:
     Graph* graph_ = nullptr;
     std::optional<std::vector<int>> lastEulerianCycle_;
     std::optional<std::vector<int>> lastHamiltonianCycle_;
     std::optional<std::vector<int>> lastTSPCycle_;
+    std::vector<std::pair<int, int>> lastEulerianAddedEdges_;
+    std::vector<std::pair<int, int>> lastHamiltonianAddedEdges_;
 };
 
 } // namespace lab5

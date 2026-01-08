@@ -18,8 +18,11 @@ public:
     void makeEulerian();
     [[nodiscard]] std::optional<std::vector<int>> findCycle();
 
+    [[nodiscard]] const std::vector<std::pair<int, int>>& getAddedEdges() const { return m_addedEdges; }
+
 private:
     Graph& m_graph;
+    std::vector<std::pair<int, int>> m_addedEdges;
 
     [[nodiscard]] std::optional<std::vector<int>> findEulerianCycle(int start);
 };

@@ -34,6 +34,8 @@ void HamiltonianCycle::makeHamiltonian() {
     auto vertices = m_graph.vertexIds();
     int n = static_cast<int>(vertices.size());
 
+    m_addedEdges.clear();
+
     for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {
             int v1 = vertices[i];
@@ -42,6 +44,7 @@ void HamiltonianCycle::makeHamiltonian() {
             if (m_graph.degree(v1) < n / 2 || m_graph.degree(v2) < n / 2) {
                 if (!m_graph.hasEdge(v1, v2)) {
                     m_graph.addEdge(v1, v2, 1.0);
+                    m_addedEdges.push_back({v1, v2});
                 }
             }
         }

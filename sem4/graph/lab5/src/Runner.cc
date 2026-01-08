@@ -39,10 +39,16 @@ void Runner::checkEulerian() {
 
         std::cout << "\nПопытка модификации графа...\n";
         euler.makeEulerian();
+        lastEulerianAddedEdges_ = euler.getAddedEdges();
+        if (!lastEulerianAddedEdges_.empty()) {
+            std::cout << "[ИНФО] Добавлено рёбер: " << lastEulerianAddedEdges_.size() << "\n";
+        }
         auto cycle = euler.findCycle();
         if (cycle.has_value()) {
             lastEulerianCycle_ = cycle.value();
-            std::cout << "[OK] После модификации найден эйлеров цикл\n";
+            std::cout << "[OK] После модификации найден эйлеров цикл, длина: " << lastEulerianCycle_->size() << "\n";
+        } else {
+            std::cout << "[WARN] Не удалось найти эйлеров цикл после модификации\n";
         }
     }
 }
@@ -67,10 +73,16 @@ void Runner::checkHamiltonian() {
         std::cout << "[INFO] Граф не является гамильтоновым\n";
         std::cout << "Попытка модификации графа...\n";
         hamilton.makeHamiltonian();
+        lastHamiltonianAddedEdges_ = hamilton.getAddedEdges();
+        if (!lastHamiltonianAddedEdges_.empty()) {
+            std::cout << "[ИНФО] Добавлено рёбер: " << lastHamiltonianAddedEdges_.size() << "\n";
+        }
         auto cycle = hamilton.findCycle();
         if (cycle.has_value()) {
             lastHamiltonianCycle_ = cycle.value();
             std::cout << "[OK] После модификации найден гамильтонов цикл\n";
+        } else {
+            std::cout << "[WARN] Не удалось найти гамильтонов цикл после модификации\n";
         }
     }
 }
