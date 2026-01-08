@@ -1,43 +1,49 @@
-import sys
-import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+from config import *
+from utils import *
 
-if len(sys.argv) >= 4:
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-    graph_type = sys.argv[3].lower()
-else:
-    input_file = 'assets/txt/graph.txt'
-    output_file = 'assets/png/graph.png'
 
-if graph_type == 'directed':
-    G = nx.DiGraph()
-else:
-    G = nx.Graph()
+def main():
+    input_file, output_file, graph_type, title = parse_args(
+        'assets/txt/graph.txt',
+        'assets/png/graph.png'
+    )
 
-with open(input_file, 'r') as f:
-    for line in f:
-        u, v, w = line.split()
-        G.add_edge(int(u), int(v), weight=float(w))
+    G = create_graph(graph_type)
+    read_graph_file(input_file, G)
 
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(G, seed=42)
+    setup_figure()
+    pos = get_pos(G)
 
-weights = [G[u][v]['weight'] for u, v in G.edges()]
-nx.draw_networkx_edges(
-    G, pos,
-    width=[0.7 + w/3 for w in weights],
-    edge_color=weights,
-    edge_cmap=plt.cm.magma)
+    weights = [G[u][v]['weight'] for u, v in G.edges()]
 
-nx.draw_networkx_nodes(G, pos, node_color='skyblue', node_size=600, edgecolors='black')
-nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
+    draw_edges(
+        G, pos, graph_type,
+        width=[0.7 + w / 3 for w in weights],
+        edge_color=weights,
+        edge_cmap=mpl.colormaps[GRAPH_COLORMAP],
+        alpha=DEFAULT_EDGE_ALPHA
+    )
 
-edge_labels = nx.get_edge_attributes(G, 'weight')
-edge_labels = {k: f"{v:.2f}" for k, v in edge_labels.items()}
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='darkred', font_size=10)
+    draw_nodes(G, pos)
+    draw_labels(G, pos)
 
-plt.axis('off')
-plt.tight_layout()
-plt.savefig(output_file)
-plt.show()
+    edge_labels = {k: f"{v:.2f}" for k, v in nx.get_edge_attributes(G, 'weight').items()}
+    draw_edge_labels(G, pos, edge_labels)
+
+    legend_elements = [
+        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Узлы графа'),
+        Line2D([0], [0], color='gray', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Рёбра (цвет зависит от веса)')
+    ]
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=FONTSIZE)
+
+    if title is None:
+        title = f'Граф ({graph_type})'
+    finalize_plot(output_file, title)
+
+
+if __name__ == '__main__':
+    main()

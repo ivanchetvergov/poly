@@ -1,55 +1,63 @@
-import sys
-import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+from config import *
+from utils import *
 
-if len(sys.argv) >= 3:
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
-else:
-    input_file = 'assets/txt/flow.txt'
-    output_file = 'assets/png/flow.png'
 
-G = nx.Graph()
-with open(input_file, 'r') as f:
-    for line in f:
-        if not line.strip():
-            continue
-        u, v, capacity, flow, cost = line.split()
-        u, v = int(u), int(v)
-        capacity, flow, cost = float(capacity), float(flow), float(cost)
-        G.add_edge(u, v, capacity=capacity, flow=flow, cost=cost)
+def main():
+    input_file, output_file, graph_type, title = parse_args(
+        'assets/txt/flow.txt',
+        'assets/png/flow.png',
+        'undirected'
+    )
 
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(G, seed=42)
+    G = create_graph(graph_type)
+    read_flow_file(input_file, G)
 
-edges = list(G.edges())
-flows = [G[u][v]['flow'] for u, v in edges]
-capacities = [G[u][v]['capacity'] for u, v in edges]
-utilization = [
-    (G[u][v]['flow'] / G[u][v]['capacity']) if G[u][v]['capacity'] > 0 else 0
-    for u, v in edges
-]
+    setup_figure()
+    pos = get_pos(G)
 
-nx.draw_networkx_edges(
-    G, pos,
-    width=[1 + f / 2 for f in flows],
-    edge_color=utilization,
-    edge_cmap=plt.cm.RdYlGn_r,
-    edge_vmin=0,
-    edge_vmax=1
-)
+    edges = list(G.edges())
+    flows = [G[u][v]['flow'] for u, v in edges]
+    capacities = [G[u][v]['capacity'] for u, v in edges]
+    utilization = [
+        (G[u][v]['flow'] / G[u][v]['capacity']) if G[u][v]['capacity'] > 0 else 0
+        for u, v in edges
+    ]
 
-nx.draw_networkx_nodes(G, pos, node_color='lightblue', node_size=700, edgecolors='black')
-nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
+    draw_edges(
+        G, pos, graph_type,
+        width=[1.5 + f / 2 for f in flows],
+        edge_color=utilization,
+        edge_cmap=mpl.colormaps[FLOW_COLORMAP],
+        edge_vmin=0,
+        edge_vmax=1,
+        alpha=FLOW_EDGE_ALPHA
+    )
 
-edge_labels = {
-    (u, v): f"{G[u][v]['flow']:.1f}/{G[u][v]['capacity']:.1f}"
-    for u, v in edges
-}
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='darkred', font_size=9)
+    draw_nodes(G, pos, FLOW_NODE_COLOR)
+    draw_labels(G, pos)
 
-plt.title('Визуализация потока (толщина = поток, цвет = загрузка)', fontsize=14)
-plt.axis('off')
-plt.tight_layout()
-plt.savefig(output_file, dpi=150)
-plt.show()
+    edge_labels = {
+        (u, v): f"{G[u][v]['flow']:.1f}/{G[u][v]['capacity']:.1f}"
+        for u, v in edges
+    }
+    draw_edge_labels(G, pos, edge_labels)
+
+    legend_elements = [
+        Line2D([0], [0], marker=LEGEND_NODE_MARKER, color='w', markerfacecolor=FLOW_NODE_COLOR, markersize=LEGEND_NODE_SIZE, label='Узлы сети'),
+        Line2D([0], [0], color='blue', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Низкая загрузка'),
+        Line2D([0], [0], color='red', linewidth=2, linestyle=LEGEND_EDGE_STYLE, label='Высокая загрузка'),
+        Line2D([0], [0], color='gray', linewidth=1, linestyle=LEGEND_EDGE_STYLE, label='Толщина = поток')
+    ]
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=FONTSIZE)
+
+    if title is None:
+        title = f'Сеть потоков: толщина = поток, цвет = загрузка ({graph_type})'
+    finalize_plot(output_file, title)
+
+
+if __name__ == '__main__':
+    main()
