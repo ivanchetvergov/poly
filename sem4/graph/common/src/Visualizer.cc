@@ -2,6 +2,7 @@
 #include "Graph.h"
 #include "../../lab3/include/FlowNetwork.h"
 #include "CollectionUtils.h"
+#include "Utils.h"
 #include <fstream>
 #include <iostream>
 
@@ -12,27 +13,18 @@ static void drawGraphHelper(const std::string& scriptName,
                              const std::string& outputFile,
                              const std::string& graphType,
                              const std::string& title,
-                             const std::string& defaultTitle,
-                             const std::string& successMsg)
+                             const std::string& defaultTitle)
 {
     std::string graphTitle = title.empty() ? defaultTitle : title;
-    std::string args = graphType + " \"" + graphTitle + "\"";
-
-    std::string cmd = "./venv/bin/python scripts/" + scriptName + " " + dataFile + " " + outputFile + " " + args;
-    int ret = system(cmd.c_str());
-    if (ret == 0) {
-        std::cout << successMsg << outputFile << "\n";
-    } else {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: " << scriptName << "\n";
-    }
+    std::vector<std::string> args = {dataFile, outputFile, graphType, "\"" + graphTitle + "\""};
+    runPythonScript(scriptName, args);
 }
 
 static void drawMatrixHelper(const std::vector<std::vector<double>>& matrix,
                              const std::string& matrixFile,
                              const std::string& outputFile,
                              const std::string& title,
-                             const std::string& defaultTitle,
-                             const std::string& successMsg)
+                             const std::string& defaultTitle)
 {
     std::ofstream out(matrixFile);
     if (!out) {
@@ -49,15 +41,8 @@ static void drawMatrixHelper(const std::vector<std::vector<double>>& matrix,
     out.close();
 
     std::string matrixTitle = title.empty() ? defaultTitle : title;
-    std::string args = "\"" + matrixTitle + "\"";
-
-    std::string cmd = "./venv/bin/python scripts/plot_matrix.py " + matrixFile + " " + outputFile + " " + args;
-    int ret = system(cmd.c_str());
-    if (ret == 0) {
-        std::cout << successMsg << outputFile << "\n";
-    } else {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт\n";
-    }
+    std::vector<std::string> args = {matrixFile, outputFile, "\"" + matrixTitle + "\""};
+    runPythonScript("plot_matrix.py", args);
 }
 
 void Visualizer::drawGraph(const Graph& graph,
@@ -67,7 +52,7 @@ void Visualizer::drawGraph(const Graph& graph,
     std::string graphType = graph.isDirected() ? "directed" : "undirected";
 
     drawGraphHelper("plot_graph.py", "assets/txt/graph.txt", outputFile, graphType, title,
-                    "Граф (" + graphType + ")", "[OK] Граф сохранён в ");
+                    "Граф (" + graphType + ")");
 }
 
 void Visualizer::drawGraphWithPath(const Graph& graph,
@@ -78,7 +63,7 @@ void Visualizer::drawGraphWithPath(const Graph& graph,
     std::string graphType = graph.isDirected() ? "directed" : "undirected";
 
     drawGraphHelper("plot_graph_path.py", "assets/txt/graph.txt", outputFile, graphType, title,
-                    "Граф с путём (" + graphType + ")", "[OK] Граф с путём сохранён в ");
+                    "Граф с путём (" + graphType + ")");
 }
 
 void Visualizer::drawGraphWithPath(const Graph& graph,
@@ -92,15 +77,8 @@ void Visualizer::drawGraphWithPath(const Graph& graph,
     std::string graphType = graph.isDirected() ? "directed" : "undirected";
 
     std::string graphTitle = title.empty() ? "Граф с путём (" + graphType + ")" : title;
-    std::string args = graphType + " \"" + graphTitle + "\" assets/txt/added_edges.txt";
-
-    std::string cmd = "./venv/bin/python scripts/plot_graph_path.py assets/txt/graph.txt " + outputFile + " " + args;
-    int ret = system(cmd.c_str());
-    if (ret == 0) {
-        std::cout << "[OK] Граф с путём сохранён в " << outputFile << "\n";
-    } else {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: plot_graph_path.py\n";
-    }
+    std::vector<std::string> args = {"assets/txt/graph.txt", outputFile, graphType, "\"" + graphTitle + "\"", "assets/txt/added_edges.txt"};
+    runPythonScript("plot_graph_path.py", args);
 }
 
 void Visualizer::drawFlowNetwork(const FlowNetwork& network,
@@ -110,8 +88,7 @@ void Visualizer::drawFlowNetwork(const FlowNetwork& network,
     std::string graphType = network.isDirected() ? "directed" : "undirected";
 
     drawGraphHelper("plot_flow.py", "assets/txt/flow.txt", outputFile, graphType, title,
-                    "Сеть потоков: толщина = поток, цвет = загрузка (" + graphType + ")",
-                    "[OK] Визуализация потока сохранена в ");
+                    "Сеть потоков: толщина = поток, цвет = загрузка (" + graphType + ")");
 }
 
 void Visualizer::drawCapacityMatrix(const FlowNetwork& network,
@@ -122,8 +99,7 @@ void Visualizer::drawCapacityMatrix(const FlowNetwork& network,
         [&](int i, int j){ return network.getCapacity(i, j); });
 
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица пропускных способностей",
-                     "[OK] Матрица пропускных способностей сохранена в ");
+                     "Матрица пропускных способностей");
 }
 
 void Visualizer::drawCostMatrix(const FlowNetwork& network,
@@ -134,8 +110,7 @@ void Visualizer::drawCostMatrix(const FlowNetwork& network,
         [&](int i, int j){ return network.getCost(i, j); });
 
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица стоимостей",
-                     "[OK] Матрица стоимостей сохранена в ");
+                     "Матрица стоимостей");
 }
 
 void Visualizer::drawAdjacencyMatrix(const Graph& graph,
@@ -147,8 +122,7 @@ void Visualizer::drawAdjacencyMatrix(const Graph& graph,
         { return graph.hasEdge(i, j) ? 1.0 : 0.0; });
 
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица смежности",
-                     "[OK] Матрица смежности сохранена в ");
+                     "Матрица смежности");
 }
 
 using DistanceMatrix = std::vector<std::vector<std::optional<double>>>;
@@ -166,8 +140,7 @@ void Visualizer::drawShimbellMatrix(const DistanceMatrix& shimMatrix,
         });
 
     drawMatrixHelper(matrix, "assets/txt/shimbell.txt", outputFile, title,
-                     "Матрица Шимбелла",
-                     "[OK] Матрица Шимбелла сохранена в ");
+                     "Матрица Шимбелла");
 }
 
 void Visualizer::drawWeightMatrix(const Graph& graph,
@@ -181,8 +154,7 @@ void Visualizer::drawWeightMatrix(const Graph& graph,
     });
 
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица весов",
-                     "[OK] Матрица весов сохранена в ");
+                     "Матрица весов");
 }
 
 void Visualizer::drawFlowNetworkWithPath(const FlowNetwork& network, const std::vector<int>& path,
@@ -193,15 +165,9 @@ void Visualizer::drawFlowNetworkWithPath(const FlowNetwork& network, const std::
     std::string graphType = network.isDirected() ? "directed" : "undirected";
 
     std::string graphTitle = title.empty() ? "Сеть потоков с путём (" + graphType + ")" : title;
-    std::string args = graphType + " \"" + graphTitle + "\"";
-
-    std::string cmd = "./venv/bin/python scripts/plot_flow_path.py assets/txt/flow.txt " + outputFile + " " + args;
-    int ret = system(cmd.c_str());
-    if (ret == 0) {
-        std::cout << "[OK] Сеть потоков с путём сохранена в " << outputFile << "\n";
-    } else {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: plot_flow_path.py\n";
-    }
+    std::vector<std::string> args = {"assets/txt/flow.txt", outputFile, graphType, "\"" + graphTitle + "\""};
+    runPythonScript("plot_flow_path.py", args);
 }
+
 
 } // namespace graph

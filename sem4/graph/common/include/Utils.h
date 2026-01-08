@@ -4,6 +4,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 namespace graph {
 
@@ -33,41 +34,15 @@ bool checkAndRun(const std::unique_ptr<T>& ptr,
     return false;
 }
 
-void showMenu() {
-    std::cout << "\n=== Единое меню лабораторных работ ===\n";
-
-    std::cout << "\n[Общее]\n";
-    std::cout << "1 - Сгенерировать граф\n";
-    std::cout << "2 - Визуализировать граф\n";
-    std::cout << "3 - Визуализировать матрицу смежности\n";
-    std::cout << "4 - Визуализировать матрицу весов\n";
-
-    std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
-    std::cout << "11 - Метод Шимбелла\n";
-    std::cout << "12 - Подсчёт количества маршрутов\n";
-    std::cout << "13 - Визуализировать найденный путь\n";
-    std::cout << "14 - Визуализировать матрицу Шимбелла\n";
-
-    std::cout << "\n[Lab 3 - Потоки]\n";
-    std::cout << "31 - Сгенерировать сеть потоков\n";
-    std::cout << "32 - Поиск максимального потока\n";
-    std::cout << "33 - Поиск потока минимальной стоимости\n";
-    std::cout << "34 - Визуализировать сеть\n";
-    std::cout << "35 - Визуализировать путь минимальной стоимости\n";
-    std::cout << "36 - Визуализировать матрицу пропускных способностей\n";
-    std::cout << "37 - Визуализировать матрицу стоимостей\n";
-
-    std::cout << "\n[Lab 5 - Циклы]\n";
-    std::cout << "51 - Проверка эйлеровости\n";
-    std::cout << "52 - Проверка гамильтоновости\n";
-    std::cout << "53 - Задача коммивояжера (TSP)\n";
-    std::cout << "54 - Визуализировать TSP-цикл\n";
-    std::cout << "55 - Визуализировать Гамильтонов цикл\n";
-    std::cout << "56 - Визуализировать Эйлеров цикл\n";
-
-    std::cout << "\n0 - Выход\n";
-    std::cout << "\nВаш выбор: ";
+inline void runPythonScript(const std::string& scriptName, const std::vector<std::string>& args) {
+    std::string cmd = "./venv/bin/python scripts/" + scriptName;
+    for (const auto& arg : args) {
+        cmd += " " + arg;
+    }
+    int res = system(cmd.c_str());
+    if (res != 0) {
+        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: " << scriptName << "\n";
+    }
 }
-
 
 } // namespace graph

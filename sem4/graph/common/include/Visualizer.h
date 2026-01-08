@@ -55,13 +55,13 @@ public:
         const std::string& outputFile = "assets/png/cost_matrix.png",
         const std::string& title = "");
 
+
 private:
     static void exportEdges(const Graph& graph, const std::string& filename);
     static void exportPath(const std::vector<int>& path, const std::string& filename);
     static void exportAddedEdges(const std::vector<std::pair<int, int>>& addedEdges, const std::string& filename);
     static void exportMatrix(const std::vector<std::vector<double>>& matrix, const std::string& filename);
     static void exportFlow(const FlowNetwork& network, const std::string& filename);
-    static int runPythonScript(const std::string& scriptName, const std::string& inputFile, const std::string& outputFile, const std::string& extraArg = "");
 };
 
 } // namespace graph

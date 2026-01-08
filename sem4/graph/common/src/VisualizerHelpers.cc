@@ -78,20 +78,4 @@ void Visualizer::exportFlow(const FlowNetwork& network, const std::string& filen
     }
 }
 
-int Visualizer::runPythonScript(const std::string& scriptName,
-                                 const std::string& inputFile,
-                                 const std::string& outputFile,
-                                 const std::string& extraArg)
-{
-    std::string cmd = "./venv/bin/python scripts/" + scriptName + " " + inputFile + " " + outputFile;
-    if (!extraArg.empty()) {
-        cmd += " " + extraArg;
-    }
-    int ret = system(cmd.c_str());
-    if (ret != 0) {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: " << scriptName << "\n";
-    }
-    return ret;
-}
-
 } // namespace graph
