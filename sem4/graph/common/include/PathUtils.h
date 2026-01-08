@@ -2,6 +2,8 @@
 
 #include <limits>
 #include <unordered_map>
+#include <vector>
+#include <algorithm>
 
 namespace graph {
 
@@ -51,6 +53,20 @@ public:
             int u = parent.at(v);
             func(u, v);
         }
+    }
+
+    [[nodiscard]] static std::vector<int> reconstructPath(
+        int source,
+        int sink,
+        const std::unordered_map<int, int>& parent)
+    {
+        std::vector<int> path;
+        for (int v = sink; v != source; v = parent.at(v)) {
+            path.push_back(v);
+        }
+        path.push_back(source);
+        std::reverse(path.begin(), path.end());
+        return path;
     }
 };
 

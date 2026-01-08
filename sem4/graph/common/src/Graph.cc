@@ -31,7 +31,6 @@ std::optional<double> Graph::getEdgeWeight(int from, int to) const {
 }
 
 
-
 std::vector<std::pair<int, double>> Graph::neighbors(int id) const {
     auto neighs = GraphBase::neighbors(id);
     std::vector<std::pair<int, double>> result;

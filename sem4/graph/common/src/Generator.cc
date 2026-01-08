@@ -1,4 +1,5 @@
 #include "Generator.h"
+#include "../../lab3/include/FlowNetwork.h"
 #include <stdexcept>
 #include <algorithm>
 
@@ -13,7 +14,6 @@ int Generator::randomInt(int min, int max) {
     return dist(rng_);
 }
 
-
 double Generator::randomReal(double min, double max) {
     std::uniform_real_distribution<double> dist(min, max);
     return dist(rng_);
@@ -21,42 +21,23 @@ double Generator::randomReal(double min, double max) {
 
 std::unique_ptr<Graph> Generator::generateAcyclicGraph(int numVertices, int numEdges,
                                                        bool isDirected, bool allowNegative) {
-    if (numVertices <= 0) {
-        throw std::invalid_argument("Количество вершин должно быть положительным");
-    }
+    auto genWeight = [this, allowNegative]() {
+        return allowNegative ? randomReal(-10.0, 10.0) : randomReal(1.0, 10.0);
+    };
+    auto addEdge = [](Graph& g, int from, int to, double w) {
+        g.addEdge(from, to, w);
+    };
+    return generateAcyclicTemplate<Graph>(numVertices, numEdges, addEdge, genWeight, isDirected);
+}
 
-    int minEdges = numVertices - 1;
-    numEdges = std::max(numEdges, minEdges);
-
-    int maxEdges = numVertices * (numVertices - 1) / 2;
-    numEdges = std::min(numEdges, maxEdges);
-
-    auto graph = std::make_unique<Graph>(isDirected);
-
-    for (int i = 0; i < numVertices; ++i) {
-        graph->addVertex(i);
-    }
-
-    for (int i = 1; i < numVertices; ++i) {
-        int from = randomInt(0, i - 1);
-        double weight = allowNegative ? randomReal(-10.0, 10.0) : randomReal(1.0, 10.0);
-
-        graph->addEdge(from, i, weight);
-    }
-
-    int currentEdges = numVertices - 1;
-    while (currentEdges < numEdges) {
-        int from = randomInt(0, numVertices - 2);
-        int to = randomInt(from + 1, numVertices - 1);
-
-        if (!graph->hasEdge(from, to)) {
-            double weight = allowNegative ? randomReal(-10.0, 10.0) : randomReal(1.0, 10.0);
-            graph->addEdge(from, to, weight);
-            currentEdges++;
-        }
-    }
-
-    return graph;
+std::unique_ptr<FlowNetwork> Generator::generateFlowNetwork(int numVertices, int numEdges) {
+    auto genWeight = [this]() {
+        return std::make_pair(randomReal(5.0, 20.0), randomReal(1.0, 10.0));
+    };
+    auto addEdge = [](FlowNetwork& g, int from, int to, std::pair<double, double> w) {
+        g.addEdge(from, to, w.first, w.second); // cost and capacity
+    };
+    return generateAcyclicTemplate<FlowNetwork>(numVertices, numEdges, addEdge, genWeight, true);
 }
 
 } // namespace graph

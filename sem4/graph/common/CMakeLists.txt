@@ -8,6 +8,7 @@ add_library(graph_common STATIC
     src/GraphBase.tpp
     src/Generator.cc
     src/Visualizer.cc
+    src/VisualizerHelpers.cc
 )
 
 target_include_directories(graph_common PUBLIC
