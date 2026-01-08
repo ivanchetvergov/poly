@@ -6,11 +6,11 @@
 namespace graph {
 
 void Vertex::addNeighbor(int neighborId) {
-    m_neighbors.push_back(neighborId);
+    m_neighbors_.push_back(neighborId);
 }
 
 std::vector<int> Vertex::neighbors() const {
-    return m_neighbors;
+    return m_neighbors_;
 }
 
 bool Graph::addEdge(int from, int to, double weight) {

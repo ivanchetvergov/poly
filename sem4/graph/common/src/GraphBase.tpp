@@ -1,5 +1,4 @@
 #include "Graph.h"
-#include "../../lab3/include/FlowNetwork.h"
 
 namespace graph {
 

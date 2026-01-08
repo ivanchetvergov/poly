@@ -30,6 +30,22 @@ void Visualizer::exportPath(const std::vector<int>& path, const std::string& fil
     out << "\n";
 }
 
+void Visualizer::exportPaths(const std::vector<std::vector<int>>& paths, const std::string& filename) {
+    std::ofstream out(filename);
+    if (!out) {
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        return;
+    }
+    out << paths.size() << "\n";
+    for (const auto& path : paths) {
+        for (size_t i = 0; i < path.size(); ++i) {
+            out << path[i];
+            if (i + 1 < path.size()) out << " ";
+        }
+        out << "\n";
+    }
+}
+
 void Visualizer::exportAddedEdges(const std::vector<std::pair<int, int>>& addedEdges, const std::string& filename) {
     std::ofstream out(filename);
     if (!out) {

@@ -45,6 +45,8 @@ static void drawMatrixHelper(const std::vector<std::vector<double>>& matrix,
     runPythonScript("plot_matrix.py", args);
 }
 
+// ============================================================================
+
 void Visualizer::drawGraph(const Graph& graph,
     const std::string& outputFile, const std::string& title)
 {
@@ -58,12 +60,8 @@ void Visualizer::drawGraph(const Graph& graph,
 void Visualizer::drawGraphWithPath(const Graph& graph,
         const std::vector<int>& path, const std::string& outputFile, const std::string& title)
 {
-    exportEdges(graph, "assets/txt/graph.txt");
-    exportPath(path, "assets/txt/path.txt");
-    std::string graphType = graph.isDirected() ? "directed" : "undirected";
-
-    drawGraphHelper("plot_graph_path.py", "assets/txt/graph.txt", outputFile, graphType, title,
-                    "Граф с путём (" + graphType + ")");
+    std::vector<std::vector<int>> paths = {path};
+    drawGraphWithPaths(graph, paths, outputFile, title);
 }
 
 void Visualizer::drawGraphWithPath(const Graph& graph,
@@ -71,15 +69,71 @@ void Visualizer::drawGraphWithPath(const Graph& graph,
         const std::vector<std::pair<int, int>>& addedEdges,
         const std::string& outputFile, const std::string& title)
 {
-    exportEdges(graph, "assets/txt/graph.txt");
-    exportPath(path, "assets/txt/path.txt");
     exportAddedEdges(addedEdges, "assets/txt/added_edges.txt");
-    std::string graphType = graph.isDirected() ? "directed" : "undirected";
-
-    std::string graphTitle = title.empty() ? "Граф с путём (" + graphType + ")" : title;
-    std::vector<std::string> args = {"assets/txt/graph.txt", outputFile, graphType, "\"" + graphTitle + "\"", "assets/txt/added_edges.txt"};
-    runPythonScript("plot_graph_path.py", args);
+    std::vector<std::vector<int>> paths = {path};
+    drawGraphWithPaths(graph, paths, outputFile, title);
 }
+
+void Visualizer::drawGraphWithPaths(const Graph& graph,
+        const std::vector<std::vector<int>>& paths,
+        const std::string& outputFile, const std::string& title)
+{
+    exportEdges(graph, "assets/txt/graph.txt");
+    exportPaths(paths, "assets/txt/paths.txt");
+    std::string graphType = graph.isDirected() ? "directed" : "undirected";
+    std::string graphTitle = title.empty() ? (
+        paths.size() == 1 ? "Граф с путём (" + graphType + ")" : "Все пути (" + graphType + ")"
+    ) : title;
+
+    std::vector<std::string> args = {"assets/txt/graph.txt", "assets/txt/paths.txt", outputFile, graphType, "\"" + graphTitle + "\""};
+    runPythonScript("plot_graph_paths.py", args);
+}
+
+// ============================================================================
+
+void Visualizer::drawAdjacencyMatrix(const Graph& graph,
+        const std::string& outputFile, const std::string& title)
+{
+    auto vertices = graph.vertexIds();
+    auto matrix = CollectionUtils::makeMatrix<double>(vertices, vertices,
+        [&](int i, int j)
+        { return graph.hasEdge(i, j) ? 1.0 : 0.0; });
+
+    drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
+                     "Матрица смежности");
+}
+
+void Visualizer::drawWeightMatrix(const Graph& graph,
+    const std::string& outputFile, const std::string& title)
+{
+    auto vertices = graph.vertexIds();
+    auto matrix = CollectionUtils::makeMatrix<double>(vertices, vertices,
+        [&](int i, int j){
+        auto w = graph.getEdgeWeight(i, j);
+        return w ? *w : 0.0;
+    });
+
+    drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
+                     "Матрица весов");
+}
+
+void Visualizer::drawShimbellMatrix(const DistanceMatrix& shimMatrix,
+        const std::string& outputFile, const std::string& title)
+{
+    size_t n = shimMatrix.size();
+    std::vector<int> indices(static_cast<size_t>(n));
+    for (size_t i = 0; i < n; ++i) indices[i] = static_cast<int>(i);
+
+    auto matrix = CollectionUtils::makeMatrix<double>(indices, indices,
+        [&](int i, int j) {
+            return shimMatrix[i][j].has_value() ? shimMatrix[i][j].value() : -1e9;
+        });
+
+    drawMatrixHelper(matrix, "assets/txt/shimbell.txt", outputFile, title,
+                     "Матрица Шимбелла");
+}
+
+// ============================================================================
 
 void Visualizer::drawFlowNetwork(const FlowNetwork& network,
     const std::string& outputFile, const std::string& title)
@@ -89,6 +143,18 @@ void Visualizer::drawFlowNetwork(const FlowNetwork& network,
 
     drawGraphHelper("plot_flow.py", "assets/txt/flow.txt", outputFile, graphType, title,
                     "Сеть потоков: толщина = поток, цвет = загрузка (" + graphType + ")");
+}
+
+void Visualizer::drawFlowNetworkWithPath(const FlowNetwork& network, const std::vector<int>& path,
+    const std::string& outputFile, const std::string& title)
+{
+    exportFlow(network, "assets/txt/flow.txt");
+    exportPath(path, "assets/txt/path.txt");
+    std::string graphType = network.isDirected() ? "directed" : "undirected";
+
+    std::string graphTitle = title.empty() ? "Сеть потоков с путём (" + graphType + ")" : title;
+    std::vector<std::string> args = {"assets/txt/flow.txt", "assets/txt/path.txt", outputFile, graphType, "\"" + graphTitle + "\""};
+    runPythonScript("plot_flow_path.py", args);
 }
 
 void Visualizer::drawCapacityMatrix(const FlowNetwork& network,
@@ -112,62 +178,5 @@ void Visualizer::drawCostMatrix(const FlowNetwork& network,
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
                      "Матрица стоимостей");
 }
-
-void Visualizer::drawAdjacencyMatrix(const Graph& graph,
-        const std::string& outputFile, const std::string& title)
-{
-    auto vertices = graph.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(vertices, vertices,
-        [&](int i, int j)
-        { return graph.hasEdge(i, j) ? 1.0 : 0.0; });
-
-    drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица смежности");
-}
-
-using DistanceMatrix = std::vector<std::vector<std::optional<double>>>;
-
-void Visualizer::drawShimbellMatrix(const DistanceMatrix& shimMatrix,
-        const std::string& outputFile, const std::string& title)
-{
-    size_t n = shimMatrix.size();
-    std::vector<int> indices(static_cast<size_t>(n));
-    for (size_t i = 0; i < n; ++i) indices[i] = static_cast<int>(i);
-
-    auto matrix = CollectionUtils::makeMatrix<double>(indices, indices,
-        [&](int i, int j) {
-            return shimMatrix[i][j].has_value() ? shimMatrix[i][j].value() : -1e9;
-        });
-
-    drawMatrixHelper(matrix, "assets/txt/shimbell.txt", outputFile, title,
-                     "Матрица Шимбелла");
-}
-
-void Visualizer::drawWeightMatrix(const Graph& graph,
-    const std::string& outputFile, const std::string& title)
-{
-    auto vertices = graph.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(vertices, vertices,
-        [&](int i, int j){
-        auto w = graph.getEdgeWeight(i, j);
-        return w ? *w : 0.0;
-    });
-
-    drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title,
-                     "Матрица весов");
-}
-
-void Visualizer::drawFlowNetworkWithPath(const FlowNetwork& network, const std::vector<int>& path,
-    const std::string& outputFile, const std::string& title)
-{
-    exportFlow(network, "assets/txt/flow.txt");
-    exportPath(path, "assets/txt/path.txt");
-    std::string graphType = network.isDirected() ? "directed" : "undirected";
-
-    std::string graphTitle = title.empty() ? "Сеть потоков с путём (" + graphType + ")" : title;
-    std::vector<std::string> args = {"assets/txt/flow.txt", outputFile, graphType, "\"" + graphTitle + "\""};
-    runPythonScript("plot_flow_path.py", args);
-}
-
 
 } // namespace graph

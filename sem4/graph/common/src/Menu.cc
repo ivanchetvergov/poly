@@ -38,22 +38,17 @@ Menu::Menu() {
             int from = readInt("Начальная вершина: ");
             int to = readInt("Конечная вершина: ");
             lab1Runner_.setGraph(graph_.get());
-            auto result = lab1Runner_.countPaths(from, to);
-            std::cout << "Количество путей: " << result.pathCount << "\n";
-            if (!result.path.empty()) {
-                std::cout << "Один из путей: ";
-                for (int v : result.path) std::cout << v << " ";
-                std::cout << "\n";
-            }
+            int result = lab1Runner_.countPaths(from, to);
+            std::cout << "Количество путей: " << result << "\n";
         }, noGraphMsg_);
     };
     actions_[13] = [this]() {
         checkAndRun(graph_, [&]() {
-            auto pathOpt = lab1Runner_.getLastPath();
-            if (pathOpt && !pathOpt->path.empty()) {
-                Visualizer::drawGraphWithPath(*graph_, pathOpt->path, "assets/png/path.png", "Найденный путь");
+            const auto& allPaths = lab1Runner_.getAllPaths();
+            if (!allPaths.empty()) {
+                Visualizer::drawGraphWithPaths(*graph_, allPaths, "assets/png/paths.png", "Найденные пути");
             } else {
-                std::cout << "[FAIL] Сначала найдите путь (пункт 11 или 12)\n";
+                std::cout << "[FAIL] Сначала найдите пути (пункт 12)\n";
             }
         }, noGraphMsg_);
     };
@@ -61,7 +56,9 @@ Menu::Menu() {
         checkAndRun(graph_, [&]() {
             auto shimbell = lab1Runner_.getLastShimbell();
             if (shimbell) {
-                Visualizer::drawShimbellMatrix(shimbell->minDistances, "assets/png/shimbell.png", "Матрица Шимбелла");
+                Visualizer::drawShimbellMatrix(shimbell->minDistances, "assets/png/shimbell.png", "Мин матрица Шимбелла");
+                Visualizer::drawShimbellMatrix(shimbell->maxDistances, "assets/png/shimbell_max.png", "Макс матрица Шимбелла");
+
             } else {
                 std::cout << "[FAIL] Сначала вычислите матрицу Шимбелла (пункт 11)\n";
             }
