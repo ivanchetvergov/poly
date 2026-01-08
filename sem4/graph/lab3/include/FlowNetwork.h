@@ -23,15 +23,15 @@ struct FlowEdge {
 
 class FlowVertex {
 public:
-    explicit FlowVertex(int id) : m_id(id) {}
+    explicit FlowVertex(int id) : m_id_(id) {}
 
-    [[nodiscard]] int id() const noexcept { return m_id; }
+    [[nodiscard]] int id() const noexcept { return m_id_; }
     void addNeighbor(int neighborId);
     [[nodiscard]] std::vector<int> neighbors() const;
 
 private:
-    int m_id;
-    std::vector<int> m_neighbors;
+    int m_id_;
+    std::vector<int> m_neighbors_;
 };
 
 class FlowNetwork : public GraphBase<FlowVertex, FlowEdge> {
@@ -53,3 +53,4 @@ public:
 };
 
 } // namespace graph
+

@@ -7,11 +7,11 @@
 namespace graph {
 
 void FlowVertex::addNeighbor(int neighborId) {
-    m_neighbors.push_back(neighborId);
+    m_neighbors_.push_back(neighborId);
 }
 
 std::vector<int> FlowVertex::neighbors() const {
-    return m_neighbors;
+    return m_neighbors_;
 }
 
 bool FlowNetwork::addEdge(int from, int to, double capacity, double cost) {
