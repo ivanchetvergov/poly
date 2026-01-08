@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <limits>
 #include <unordered_set>
+#include <fstream>
+#include <iomanip>
 
 namespace graph {
 
@@ -46,11 +48,35 @@ bool MaxFlow::bfs(int source, int sink, std::unordered_map<int, int>& parent) {
     return false;
 }
 
-double MaxFlow::fordFulkerson(int source, int sink) {
+void MaxFlow::captureSnapshot(int step, double totalFlow) {
+    FlowSnapshot snapshot;
+    snapshot.step = step;
+    snapshot.totalFlow = totalFlow;
+
+    for (int u : m_network.vertexIds()) {
+        for (int v : m_network.neighbors(u)) {
+            double flow = m_network.getFlow(u, v);
+            double capacity = m_network.getCapacity(u, v);
+            if (capacity > 0) {
+                snapshot.edges.emplace_back(u, v, flow, capacity);
+            }
+        }
+    }
+
+    m_snapshots.push_back(snapshot);
+}
+
+double MaxFlow::fordFulkerson(int source, int sink, bool enableLogging) {
     double maxFlow = 0.0;
     std::unordered_map<int, int> parent;
+    int step = 0;
 
     resetFlows(m_network);
+    m_snapshots.clear();
+
+    if (enableLogging) {
+        captureSnapshot(step++, maxFlow);
+    }
 
     while (bfs(source, sink, parent)) {
         auto calcResidual = [this](int u, int v) {
@@ -65,8 +91,33 @@ double MaxFlow::fordFulkerson(int source, int sink) {
             });
 
         maxFlow += pathFlow;
+
+        if (enableLogging) {
+            captureSnapshot(step++, maxFlow);
+        }
     }
     return maxFlow;
+}
+
+void MaxFlow::exportSnapshots(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filename);
+    }
+
+    file << std::fixed << std::setprecision(2);
+    file << m_snapshots.size() << "\n";
+
+    for (const auto& snapshot : m_snapshots) {
+        file << snapshot.step << " " << snapshot.totalFlow << "\n";
+        file << snapshot.edges.size() << "\n";
+
+        for (const auto& [u, v, flow, capacity] : snapshot.edges) {
+            file << u << " " << v << " " << flow << " " << capacity << "\n";
+        }
+    }
+
+    file.close();
 }
 
 } // namespace graph

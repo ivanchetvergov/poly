@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Graph.h>
-#include <ShimbellMethod.h>
+#include "Graph.h"
+#include "ShimbellMethod.h"
 #include <memory>
 #include <optional>
 #include <vector>

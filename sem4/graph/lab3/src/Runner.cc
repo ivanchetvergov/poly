@@ -21,7 +21,9 @@ double Runner::findMaxFlow(int source, int sink) {
     }
 
     MaxFlow maxFlowAlgo(*network_);
-    lastMaxFlow_ = maxFlowAlgo.fordFulkerson(source, sink);
+    lastMaxFlow_ = maxFlowAlgo.fordFulkerson(source, sink, true);
+
+    maxFlowAlgo.exportSnapshots("assets/txt/flow_snapshots.txt");
 
     std::cout << "\n[OK] Максимальный поток: " << std::fixed << std::setprecision(2)
               << lastMaxFlow_ << "\n";
