@@ -3,9 +3,9 @@ import sys
 import matplotlib as mpl
 from matplotlib.lines import Line2D
 
-from graph_loader import GraphLoader
-from renderer import Renderer
-from config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
+from ..core.graph_loader import GraphLoader
+from ..core.renderer import Renderer
+from ..core.config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
 
 
 def main():

@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from config import plot_cfg, node_cfg, edge_cfg, label_cfg
+from .config import plot_cfg, node_cfg, edge_cfg, label_cfg
 
 
 class Renderer:

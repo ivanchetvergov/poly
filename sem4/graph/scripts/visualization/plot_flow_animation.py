@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -8,9 +7,9 @@ from matplotlib.lines import Line2D
 import webbrowser
 import os
 
-from graph_loader import GraphLoader
-from renderer import Renderer
-from config import node_cfg, edge_cfg, colormap_cfg, legend_cfg, animation_cfg
+from ..core.graph_loader import GraphLoader
+from ..core.renderer import Renderer
+from ..core.config import node_cfg, edge_cfg, colormap_cfg, legend_cfg, animation_cfg
 
 
 def read_snapshots(filename='assets/txt/flow_snapshots.txt'):

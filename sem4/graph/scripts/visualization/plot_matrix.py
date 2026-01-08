@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from config import matrix_cfg
+from ..core.config import matrix_cfg
 
 
 def main():

@@ -1,33 +1,27 @@
 import sys
 from matplotlib.lines import Line2D
 import matplotlib.cm as cm
+from typing import List, Typle, Set
 
-from graph_loader import GraphLoader
-from renderer import Renderer
-from config import node_cfg, edge_cfg, legend_cfg
-from helpers import get_path_edges, normalize_edge
+from ..core.graph_loader import GraphLoader
+from ..core.renderer import Renderer
+from ..core.config import node_cfg, edge_cfg, legend_cfg
+from ..core.helpers import get_path_edges, normalize_edge, read_paths
 
-def read_paths(filename):
-    with open(filename, 'r') as f:
-        num_paths = int(f.readline().strip())
-        paths = []
-        for _ in range(num_paths):
-            path = [int(x) for x in f.readline().strip().split()]
-            paths.append(path)
-        return paths
 
 def main():
     graph_file = sys.argv[1]
     paths_file = sys.argv[2]
     output_file = sys.argv[3]
     directed = len(sys.argv) > 4 and sys.argv[4].lower() == 'directed'
-    title = sys.argv[5].strip('"') if len(sys.argv) > 5 else f'Пути в графе ({"directed" if directed else "undirected"})'
+    title = (sys.argv[5].strip('"') if len(sys.argv) > 5
+             else f'Пути в графе ({"directed" if directed else "undirected"})')
     added_edges_file = 'assets/txt/added_edges.txt'
 
     loader = GraphLoader()
     G = loader.load_graph(graph_file, directed)
-    paths = read_paths(paths_file)
-    added_edges = loader.load_added_edges(added_edges_file)
+    paths: List[List[int]] = read_paths(paths_file)
+    added_edges: Set[Tuple[int, int]] = loader.load_added_edges(added_edges_file)
 
     renderer = Renderer()
     renderer.setup_plot()
@@ -38,7 +32,7 @@ def main():
     else:
         colors = cm.rainbow([i / len(paths) for i in range(len(paths))])
 
-    all_path_edges = {}
+    all_path_edges: Dict[Tuple[int, int], List[Tuple[int, any]]] = {}
     for idx, path in enumerate(paths):
         path_edges = get_path_edges(path, directed)
         for edge in path_edges:
@@ -50,13 +44,13 @@ def main():
     edge_widths = []
     for u, v in G.edges():
         edge = normalize_edge(u, v, directed)
-        if edge in added_edges or (v, u) in added_edges:
+        if edge in added_edges or (v, u) in added_edges:    # Eurlian and Hamilton
             edge_colors.append(edge_cfg.added_edge_color)
             edge_widths.append(edge_cfg.added_edge_width)
-        elif edge in all_path_edges:
+        elif edge in all_path_edges:                        # for paths
             edge_colors.append(all_path_edges[edge][0][1])
             edge_widths.append(edge_cfg.path_edge_width if len(paths) == 1 else 3.0)
-        else:
+        else:                                               # common edges
             edge_colors.append(edge_cfg.default_edge_color)
             edge_widths.append(edge_cfg.default_edge_width)
 
