@@ -24,7 +24,7 @@ void Runner::runShimbellMethod(int pathLength) {
     lastShimbell_ = shimbell.compute(pathLength);
 }
 
-PathResult Runner::countPaths(int from, int to) {
+int Runner::countPaths(int from, int to) {
     if (!graph_) {
         throw std::runtime_error("Graph not set");
     }
@@ -34,39 +34,24 @@ PathResult Runner::countPaths(int from, int to) {
     }
 
     PathCounter counter(*graph_);
-    int count = counter.countPaths(from, to).value_or(0);
+    allPaths_ = counter.getAllPaths(from, to);
+    int count = counter.getPathCount(from, to);
 
     std::vector<int> path;
-    if (count > 0) {
-        std::unordered_map<int, int> parent{{from, -1}};
-        std::queue<int> q;
-        q.push(from);
-
-        while (!q.empty()) {
-            int curr = q.front();
-            q.pop();
-            if (curr == to) {
-                for (int v = to; v != -1; v = parent[v]) {
-                    path.push_back(v);
-                }
-                std::reverse(path.begin(), path.end());
-                break;
-            }
-            for (const auto& [nb, _] : graph_->neighbors(curr)) {
-                if (parent.find(nb) == parent.end()) {
-                    parent[nb] = curr;
-                    q.push(nb);
-                }
-            }
-        }
+    if (!allPaths_.empty()) {
+        path = allPaths_[0];
     }
 
     lastPath_ = PathResult{from, to, path, count};
-    return *lastPath_;
+    return count;
 }
 
 const std::optional<PathResult>& Runner::getLastPath() const {
     return lastPath_;
+}
+
+const std::vector<std::vector<int>>& Runner::getAllPaths() const {
+    return allPaths_;
 }
 
 const graph::ShimbellResult* Runner::getLastShimbell() const {

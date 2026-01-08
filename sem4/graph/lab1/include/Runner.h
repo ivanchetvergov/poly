@@ -28,14 +28,16 @@ public:
     void runShimbellMethod(int pathLength);
     const ShimbellResult* getLastShimbell() const;
 
-    PathResult countPaths(int from, int to);
+    int countPaths(int from, int to);
 
     const std::optional<PathResult>& getLastPath() const;
+    const std::vector<std::vector<int>>& getAllPaths() const;
 
 private:
     Graph* graph_ = nullptr;
     std::optional<PathResult> lastPath_;
     std::optional<ShimbellResult> lastShimbell_;
+    std::vector<std::vector<int>> allPaths_;
 };
 
 } // namespace lab1
