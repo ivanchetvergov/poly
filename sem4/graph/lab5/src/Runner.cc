@@ -14,12 +14,8 @@ using graph::EulerianCycle;
 using graph::HamiltonianCycle;
 using graph::TSPSolver;
 
-void Runner::checkEulerian() {
-    if (!graph_) {
-        throw std::runtime_error("Graph not set");
-    }
-
-    EulerianCycle euler(*graph_);
+void Runner::checkEulerian(Graph& graph) {
+    EulerianCycle euler(graph);
 
     std::cout << "\n=== Проверка эйлеровости ===\n";
 
@@ -60,12 +56,8 @@ void Runner::checkEulerian() {
     }
 }
 
-void Runner::checkHamiltonian() {
-    if (!graph_) {
-        throw std::runtime_error("Graph not set");
-    }
-
-    HamiltonianCycle hamilton(*graph_);
+void Runner::checkHamiltonian(Graph& graph) {
+    HamiltonianCycle hamilton(graph);
 
     std::cout << "\n=== Проверка гамильтоновости ===\n";
 
@@ -94,14 +86,10 @@ void Runner::checkHamiltonian() {
     }
 }
 
-void Runner::solveTSP() {
-    if (!graph_) {
-        throw std::runtime_error("Graph not set");
-    }
-
+void Runner::solveTSP(Graph const& graph) {
     std::cout << "\n=== Задача коммивояжёра (TSP) ===\n";
 
-    TSPSolver solver(*graph_);
+    TSPSolver solver(graph);
     auto result = solver.findAllCycles(100);
 
     if (result.empty()) {

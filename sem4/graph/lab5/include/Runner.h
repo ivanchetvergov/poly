@@ -13,15 +13,10 @@ using graph::Graph;
 class Runner {
 public:
     Runner() = default;
-    explicit Runner(Graph* graph) : graph_(graph) {}
 
-    void setGraph(Graph* graph) { graph_ = graph; }
-    Graph* getGraph() { return graph_; }
-    Graph const* getGraph() const { return graph_; }
-
-    void checkEulerian();
-    void checkHamiltonian();
-    void solveTSP();
+    void checkEulerian(Graph& graph);
+    void checkHamiltonian(Graph& graph);
+    void solveTSP(Graph const& graph);
 
     std::optional<std::vector<int>> const& getLastEulerianCycle() const;
     std::optional<std::vector<int>> const& getLastHamiltonianCycle() const;
@@ -35,7 +30,6 @@ public:
     }
 
 private:
-    Graph* graph_ = nullptr;
     std::optional<std::vector<int>> last_eulerian_cycle_;
     std::optional<std::vector<int>> last_hamiltonian_cycle_;
     std::optional<std::vector<int>> last_tsp_cycle_;
