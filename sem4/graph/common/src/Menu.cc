@@ -3,98 +3,132 @@
 namespace graph {
 
 Menu::Menu() {
+    initializeActions();
+}
+
+void Menu::initializeActions() {
     actions_[1] = [this]() {
-        bool isDirected = bool(readInt("Ориентированный граф? (1 - да, 0 - нет): "));
-        int numVertices = readInt("Количество вершин: ");
-        int numEdges = readInt("Количество рёбер: ");
-        graph_ = gen_.generateAcyclicGraph(numVertices, numEdges, isDirected);
+        bool is_directed = static_cast<bool>(readInt("Ориентированный граф? (1 - да, 0 - нет): "));
+        int num_vertices = readInt("Количество вершин: ");
+        int num_edges = readInt("Количество рёбер: ");
+        graph_ = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed);
         std::cout << "[OK] Граф сгенерирован\n";
         graph_->printGraphInfo();
     };
     actions_[2] = [this]() {
-        checkAndRun(graph_, [&]() {
-            Visualizer::drawGraph(*graph_, "assets/png/graph.png", "Сгенерированный граф");
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                Visualizer::drawGraph(*graph_, "assets/png/graph.png", "Сгенерированный граф");
+            },
+            no_graph_msg_);
     };
     actions_[3] = [this]() {
-        checkAndRun(graph_, [&]() {
-            Visualizer::drawAdjacencyMatrix(*graph_, "assets/png/adjacency.png", "Матрица смежности");
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                Visualizer::drawAdjacencyMatrix(*graph_, "assets/png/adjacency.png",
+                                                "Матрица смежности");
+            },
+            no_graph_msg_);
     };
     actions_[4] = [this]() {
-        checkAndRun(graph_, [&]() {
-            Visualizer::drawWeightMatrix(*graph_, "assets/png/weights.png", "Матрица весов");
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                Visualizer::drawWeightMatrix(*graph_, "assets/png/weights.png", "Матрица весов");
+            },
+            no_graph_msg_);
     };
     actions_[11] = [this]() {
-        checkAndRun(graph_, [&]() {
-            int pathLength = readInt("Длина пути: ");
-            lab1Runner_.setGraph(graph_.get());
-            lab1Runner_.runShimbellMethod(pathLength);
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                int path_length = readInt("Длина пути: ");
+                lab1_runner_.setGraph(graph_.get());
+                lab1_runner_.runShimbellMethod(path_length);
+            },
+            no_graph_msg_);
     };
     actions_[12] = [this]() {
-        checkAndRun(graph_, [&]() {
-            int from = readInt("Начальная вершина: ");
-            int to = readInt("Конечная вершина: ");
-            lab1Runner_.setGraph(graph_.get());
-            int result = lab1Runner_.countPaths(from, to);
-            std::cout << "Количество путей: " << result << "\n";
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                int from = readInt("Начальная вершина: ");
+                int to = readInt("Конечная вершина: ");
+                lab1_runner_.setGraph(graph_.get());
+                int result = lab1_runner_.countPaths(from, to);
+                std::cout << "Количество путей: " << result << "\n";
+            },
+            no_graph_msg_);
     };
     actions_[13] = [this]() {
-        checkAndRun(graph_, [&]() {
-            const auto& allPaths = lab1Runner_.getAllPaths();
-            if (!allPaths.empty()) {
-                Visualizer::drawGraphWithPaths(*graph_, allPaths, "assets/png/paths.png", "Найденные пути");
-            } else {
-                std::cout << "[FAIL] Сначала найдите пути (пункт 12)\n";
-            }
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto const& all_paths = lab1_runner_.getAllPaths();
+                if (!all_paths.empty()) {
+                    Visualizer::drawGraphWithPaths(*graph_, all_paths, "assets/png/paths.png",
+                                                   "Найденные пути");
+                } else {
+                    std::cout << "[FAIL] Сначала найдите пути (пункт 12)\n";
+                }
+            },
+            no_graph_msg_);
     };
     actions_[14] = [this]() {
-        checkAndRun(graph_, [&]() {
-            auto shimbell = lab1Runner_.getLastShimbell();
-            if (shimbell) {
-                Visualizer::drawShimbellMatrix(shimbell->minDistances, "assets/png/shimbell.png", "Мин матрица Шимбелла");
-                Visualizer::drawShimbellMatrix(shimbell->maxDistances, "assets/png/shimbell_max.png", "Макс матрица Шимбелла");
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto const* const shimbell = lab1_runner_.getLastShimbell();
+                if (shimbell) {
+                    Visualizer::drawShimbellMatrix(
+                        shimbell->min_distances, "assets/png/shimbell.png", "Мин матрица Шимбелла");
+                    Visualizer::drawShimbellMatrix(shimbell->max_distances,
+                                                   "assets/png/shimbell_max.png",
+                                                   "Макс матрица Шимбелла");
 
-            } else {
-                std::cout << "[FAIL] Сначала вычислите матрицу Шимбелла (пункт 11)\n";
-            }
-        }, noGraphMsg_);
+                } else {
+                    std::cout << "[FAIL] Сначала вычислите матрицу Шимбелла (пункт 11)\n";
+                }
+            },
+            no_graph_msg_);
     };
     actions_[31] = [this]() {
-        int numVertices = readInt("Количество вершин: ");
-        int numEdges = readInt("Количество рёбер: ");
-        flowNet_ = gen_.generateFlowNetwork(numVertices, numEdges);
-        lab3Runner_.setNetwork(flowNet_.get());
-        lastMaxFlow_ = 0.0;
-        std::cout << "[OK] Сеть потоков сгенерирована: Вершин: "
-                << flowNet_->vertexCount() << ", Рёбер: " << flowNet_->edgeCount() / 2 << "\n";
+        int num_vertices = readInt("Количество вершин: ");
+        int num_edges = readInt("Количество рёбер: ");
+        flow_net_ = gen_.generateFlowNetwork(num_vertices, num_edges);
+        lab3_runner_.setNetwork(flow_net_.get());
+        last_max_flow_ = 0.0;
+        std::cout << "[OK] Сеть потоков сгенерирована: Вершин: " << flow_net_->vertexCount()
+                  << ", Рёбер: " << flow_net_->edgeCount() / 2 << "\n";
     };
     actions_[32] = [this]() {
-        checkAndRun(flowNet_, [&]() {
-            int source = readInt("Исток: ");
-            int sink = readInt("Сток: ");
-            lastMaxFlow_ = lab3Runner_.findMaxFlow(source, sink);
-            std::cout << "Максимальный поток: " << lastMaxFlow_ << "\n";
-        }, noFlowMsg_);
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                int source = readInt("Исток: ");
+                int sink = readInt("Сток: ");
+                last_max_flow_ = lab3_runner_.findMaxFlow(source, sink);
+                std::cout << "Максимальный поток: " << last_max_flow_ << "\n";
+            },
+            no_flow_msg_);
     };
     actions_[33] = [this]() {
-        if (flowNet_ && lastMaxFlow_ > 0.0) {
+        if (flow_net_ && last_max_flow_ > 0.0) {
             int source = readInt("Исток: ");
             int sink = readInt("Сток: ");
-            double defaultTarget = (2.0 / 3.0) * lastMaxFlow_;
-            std::cout << "Целевой поток [2/3 максимального = " << defaultTarget << "], использовать его? (1 - да, 0 - нет): ";
-            bool useDefault = bool(readInt(""));
-            double targetFlow = 0.0;
-            if (useDefault == 1) {
-                targetFlow = defaultTarget;
+            double default_target = (2.0 / 3.0) * last_max_flow_;
+            std::cout << "Целевой поток [2/3 максимального = " << default_target
+                      << "], использовать его? (1 - да, 0 - нет): ";
+            bool use_default = static_cast<bool>(readInt(""));
+            double target_flow = 0.0;
+            if (use_default == 1) {
+                target_flow = default_target;
             } else {
-                targetFlow = static_cast<double>(readInt("Введите целевой поток: "));
+                target_flow = static_cast<double>(readInt("Введите целевой поток: "));
             }
-            auto result = lab3Runner_.findMinCostFlow(source, sink, targetFlow);
+            auto result = lab3_runner_.findMinCostFlow(source, sink, target_flow);
             std::cout << "\n=== Результат ===\n";
             std::cout << "Минимальная стоимость: " << result.cost << "\n";
             std::cout << "Достигнутый поток: " << result.flow << "\n";
@@ -104,104 +138,136 @@ Menu::Menu() {
             } else {
                 std::cout << "[WARN] Путь не найден\n";
             }
-        } else if (!flowNet_) {
-            std::cout << "[FAIL] " << noFlowMsg_ << "\n";
+        } else if (!flow_net_) {
+            std::cout << "[FAIL] " << no_flow_msg_ << "\n";
         } else {
-            std::cout << "[FAIL] " << noMaxFlowMsg_ << "\n";
+            std::cout << "[FAIL] " << no_max_flow_msg_ << "\n";
         }
     };
     actions_[34] = [this]() {
-        checkAndRun(flowNet_, [&]() {
-            Visualizer::drawFlowNetwork(*flowNet_, "assets/png/flow.png", "Сеть потоков");
-        }, noFlowMsg_);
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                Visualizer::drawFlowNetwork(*flow_net_, "assets/png/flow.png", "Сеть потоков");
+            },
+            no_flow_msg_);
     };
     actions_[35] = [this]() {
-        checkAndRun(flowNet_, [&]() {
-            auto result = lab3Runner_.getLastMinCostResult();
-            if (!result.path.empty()) {
-                Visualizer::drawFlowNetworkWithPath(*flowNet_, result.path,
-                    "assets/png/min_cost_flow_path.png", "Путь минимальной стоимости");
-            } else {
-                std::cout << "[FAIL] " << noMinCostMsg_ << "\n";
-            }
-        }, noFlowMsg_);
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                auto result = lab3_runner_.getLastMinCostResult();
+                if (!result.path.empty()) {
+                    Visualizer::drawFlowNetworkWithPath(*flow_net_, result.path,
+                                                        "assets/png/min_cost_flow_path.png",
+                                                        "Путь минимальной стоимости");
+                } else {
+                    std::cout << "[FAIL] " << no_min_cost_msg_ << "\n";
+                }
+            },
+            no_flow_msg_);
     };
     actions_[36] = [this]() {
-        checkAndRun(flowNet_, [&]() {
-            Visualizer::drawCapacityMatrix(*flowNet_,
-                "assets/png/capacity_matrix.png", "Матрица пропускных способностей");
-        }, noFlowMsg_);
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                Visualizer::drawCapacityMatrix(*flow_net_, "assets/png/capacity_matrix.png",
+                                               "Матрица пропускных способностей");
+            },
+            no_flow_msg_);
     };
     actions_[37] = [this]() {
-        checkAndRun(flowNet_, [&]() {
-            Visualizer::drawCostMatrix(*flowNet_,
-                "assets/png/cost_matrix.png", "Матрица стоимостей");
-        }, noFlowMsg_);
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                Visualizer::drawCostMatrix(*flow_net_, "assets/png/cost_matrix.png",
+                                           "Матрица стоимостей");
+            },
+            no_flow_msg_);
     };
     actions_[38] = [this]() {
-        if (flowNet_) {
+        if (flow_net_) {
             try {
                 Animator::animateFlowGrowth();
-            } catch (const std::exception& e) {
+            } catch (std::exception const& e) {
                 std::cout << "[FAIL] " << e.what() << "\n";
-                std::cout << "[INFO] " << noMaxFlowMsg_ << "\n";
+                std::cout << "[INFO] " << no_max_flow_msg_ << "\n";
             }
         } else {
-            std::cout << "[FAIL] " << noFlowMsg_ << "\n";
+            std::cout << "[FAIL] " << no_flow_msg_ << "\n";
         }
     };
     actions_[51] = [this]() {
-        checkAndRun(graph_, [&]() {
-            lab5Runner_.setGraph(graph_.get());
-            lab5Runner_.checkEulerian();
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab5_runner_.setGraph(graph_.get());
+                lab5_runner_.checkEulerian();
+            },
+            no_graph_msg_);
     };
     actions_[52] = [this]() {
-        checkAndRun(graph_, [&]() {
-            lab5Runner_.setGraph(graph_.get());
-            lab5Runner_.checkHamiltonian();
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab5_runner_.setGraph(graph_.get());
+                lab5_runner_.checkHamiltonian();
+            },
+            no_graph_msg_);
     };
     actions_[53] = [this]() {
-        checkAndRun(graph_, [&]() {
-            lab5Runner_.setGraph(graph_.get());
-            lab5Runner_.solveTSP();
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab5_runner_.setGraph(graph_.get());
+                lab5_runner_.solveTSP();
+            },
+            no_graph_msg_);
     };
     actions_[54] = [this]() {
-        checkAndRun(graph_, [&]() {
-            auto tsp = lab5Runner_.getLastTSPCycle();
-            if (tsp && !tsp->empty()) {
-                Visualizer::drawGraphWithPath(*graph_, *tsp,
-                    "assets/png/tsp_cycle.png", "TSP-цикл");
-            } else {
-                std::cout << "[FAIL] " << noTSPMsg_ << "\n";
-            }
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto tsp = lab5_runner_.getLastTSPCycle();
+                if (tsp && !tsp->empty()) {
+                    Visualizer::drawGraphWithPath(*graph_, *tsp, "assets/png/tsp_cycle.png",
+                                                  "TSP-цикл");
+                } else {
+                    std::cout << "[FAIL] " << no_tsp_msg_ << "\n";
+                }
+            },
+            no_graph_msg_);
     };
     actions_[55] = [this]() {
-        checkAndRun(graph_, [&]() {
-            auto hamilton = lab5Runner_.getLastHamiltonianCycle();
-            auto addedEdges = lab5Runner_.getLastHamiltonianAddedEdges();
-            if (hamilton && !hamilton->empty()) {
-                Visualizer::drawGraphWithPath(*graph_, *hamilton, addedEdges,
-                    "assets/png/hamilton_cycle.png", "Гамильтонов цикл");
-            } else {
-                std::cout << "[FAIL] " << noHamiltonMsg_ << "\n";
-            }
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto hamilton = lab5_runner_.getLastHamiltonianCycle();
+                auto added_edges = lab5_runner_.getLastHamiltonianAddedEdges();
+                if (hamilton && !hamilton->empty()) {
+                    Visualizer::drawGraphWithPath(*graph_, *hamilton, added_edges,
+                                                  "assets/png/hamilton_cycle.png",
+                                                  "Гамильтонов цикл");
+                } else {
+                    std::cout << "[FAIL] " << no_hamilton_msg_ << "\n";
+                }
+            },
+            no_graph_msg_);
     };
     actions_[56] = [this]() {
-        checkAndRun(graph_, [&]() {
-            auto euler = lab5Runner_.getLastEulerianCycle();
-            auto addedEdges = lab5Runner_.getLastEulerianAddedEdges();
-            if (euler && !euler->empty()) {
-                Visualizer::drawGraphWithPath(*graph_, *euler, addedEdges,
-                    "assets/png/euler_cycle.png", "Эйлеров цикл");
-            } else {
-                std::cout << "[FAIL] " << noEulerMsg_ << "\n";
-            }
-        }, noGraphMsg_);
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto euler = lab5_runner_.getLastEulerianCycle();
+                auto added_edges = lab5_runner_.getLastEulerianAddedEdges();
+                if (euler && !euler->empty()) {
+                    Visualizer::drawGraphWithPath(*graph_, *euler, added_edges,
+                                                  "assets/png/euler_cycle.png", "Эйлеров цикл");
+                } else {
+                    std::cout << "[FAIL] " << no_euler_msg_ << "\n";
+                }
+            },
+            no_graph_msg_);
     };
 }
 
@@ -250,9 +316,9 @@ void Menu::handleChoice(int choice) {
         } else {
             std::cout << "Неверный выбор.\n";
         }
-    } catch (const std::exception& e) {
+    } catch (std::exception const& e) {
         std::cerr << "[ERROR] " << e.what() << "\n";
     }
 }
 
-} // namespace graph
+}  // namespace graph

@@ -1,13 +1,14 @@
 #pragma once
 
-#include <Graph.h>
 #include <memory>
 #include <optional>
 #include <vector>
 
+#include <Graph.h>
+
 namespace lab5 {
 
-using namespace graph;
+using graph::Graph;
 
 class Runner {
 public:
@@ -16,26 +17,30 @@ public:
 
     void setGraph(Graph* graph) { graph_ = graph; }
     Graph* getGraph() { return graph_; }
-    const Graph* getGraph() const { return graph_; }
+    Graph const* getGraph() const { return graph_; }
 
     void checkEulerian();
     void checkHamiltonian();
     void solveTSP();
 
-    const std::optional<std::vector<int>>& getLastEulerianCycle() const;
-    const std::optional<std::vector<int>>& getLastHamiltonianCycle() const;
-    const std::optional<std::vector<int>>& getLastTSPCycle() const;
+    std::optional<std::vector<int>> const& getLastEulerianCycle() const;
+    std::optional<std::vector<int>> const& getLastHamiltonianCycle() const;
+    std::optional<std::vector<int>> const& getLastTSPCycle() const;
 
-    const std::vector<std::pair<int, int>>& getLastEulerianAddedEdges() const { return lastEulerianAddedEdges_; }
-    const std::vector<std::pair<int, int>>& getLastHamiltonianAddedEdges() const { return lastHamiltonianAddedEdges_; }
+    std::vector<std::pair<int, int>> const& getLastEulerianAddedEdges() const {
+        return last_eulerian_added_edges_;
+    }
+    std::vector<std::pair<int, int>> const& getLastHamiltonianAddedEdges() const {
+        return last_hamiltonian_added_edges_;
+    }
 
 private:
     Graph* graph_ = nullptr;
-    std::optional<std::vector<int>> lastEulerianCycle_;
-    std::optional<std::vector<int>> lastHamiltonianCycle_;
-    std::optional<std::vector<int>> lastTSPCycle_;
-    std::vector<std::pair<int, int>> lastEulerianAddedEdges_;
-    std::vector<std::pair<int, int>> lastHamiltonianAddedEdges_;
+    std::optional<std::vector<int>> last_eulerian_cycle_;
+    std::optional<std::vector<int>> last_hamiltonian_cycle_;
+    std::optional<std::vector<int>> last_tsp_cycle_;
+    std::vector<std::pair<int, int>> last_eulerian_added_edges_;
+    std::vector<std::pair<int, int>> last_hamiltonian_added_edges_;
 };
 
-} // namespace lab5
+}  // namespace lab5

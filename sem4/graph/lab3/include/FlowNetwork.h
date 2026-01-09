@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphBase.h"
+
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -18,7 +19,7 @@ struct FlowEdge {
     FlowEdge() = default;
     FlowEdge(int f, int t, double cap, double c = 0.0, double fl = 0.0)
         : from(f), to(t), capacity(cap), cost(c), flow(fl) {}
-    bool operator<(const FlowEdge& other) const { return capacity < other.capacity; }
+    bool operator<(FlowEdge const& other) const { return capacity < other.capacity; }
 };
 
 class FlowVertex {
@@ -36,7 +37,7 @@ private:
 
 class FlowNetwork : public GraphBase<FlowVertex, FlowEdge> {
 public:
-    FlowNetwork(bool isDirected = true) : GraphBase(isDirected) {}
+    explicit FlowNetwork(bool isDirected = true) : GraphBase(isDirected) {}
 
     bool addEdge(int from, int to, double capacity, double cost = 0.0);
 
@@ -52,5 +53,4 @@ public:
     void printCosts() const;
 };
 
-} // namespace graph
-
+}  // namespace graph

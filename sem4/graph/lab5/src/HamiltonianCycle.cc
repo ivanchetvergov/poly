@@ -1,25 +1,26 @@
 #include "HamiltonianCycle.h"
-#include <algorithm>
 
 namespace graph {
 
 bool HamiltonianCycle::isHamiltonian() {
-    auto vertices = m_graph.vertexIds();
-    if (vertices.empty()) return false;
+    auto vertices = m_graph_.vertexIds();
+    if (vertices.empty())
+        return false;
 
     std::vector<int> path = {vertices[0]};
-    std::vector<bool> visited(m_graph.vertexCount(), false);
+    std::vector<bool> visited(m_graph_.vertexCount(), false);
     visited[0] = true;
 
     return hasHamiltonianCycle(path, visited, 1);
 }
 
 std::optional<std::vector<int>> HamiltonianCycle::findCycle() {
-    auto vertices = m_graph.vertexIds();
-    if (vertices.empty()) return std::nullopt;
+    auto vertices = m_graph_.vertexIds();
+    if (vertices.empty())
+        return std::nullopt;
 
     std::vector<int> path = {vertices[0]};
-    std::vector<bool> visited(m_graph.vertexCount(), false);
+    std::vector<bool> visited(m_graph_.vertexCount(), false);
     visited[0] = true;
 
     if (hasHamiltonianCycle(path, visited, 1)) {
@@ -31,41 +32,38 @@ std::optional<std::vector<int>> HamiltonianCycle::findCycle() {
 }
 
 void HamiltonianCycle::makeHamiltonian() {
-    auto vertices = m_graph.vertexIds();
+    auto vertices = m_graph_.vertexIds();
     int n = static_cast<int>(vertices.size());
 
-    m_addedEdges.clear();
+    m_added_edges_.clear();
 
     for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {
             int v1 = vertices[i];
             int v2 = vertices[j];
 
-            if (m_graph.degree(v1) < n / 2 || m_graph.degree(v2) < n / 2) {
-                if (!m_graph.hasEdge(v1, v2)) {
-                    m_graph.addEdge(v1, v2, 1.0);
-                    m_addedEdges.push_back({v1, v2});
+            if (m_graph_.degree(v1) < n / 2 || m_graph_.degree(v2) < n / 2) {
+                if (!m_graph_.hasEdge(v1, v2)) {
+                    m_graph_.addEdge(v1, v2, 1.0);
+                    m_added_edges_.emplace_back(v1, v2);
                 }
             }
         }
     }
 }
 
-bool HamiltonianCycle::hasHamiltonianCycle(
-    std::vector<int>& path,
-    std::vector<bool>& visited,
-    const int pos)
-{
-    const auto& vertices = m_graph.vertexIds();
-    const int n = static_cast<int>(m_graph.vertexCount());
+bool HamiltonianCycle::hasHamiltonianCycle(std::vector<int>& path, std::vector<bool>& visited,
+                                           int const pos) {
+    auto const& vertices = m_graph_.vertexIds();
+    int const n = static_cast<int>(m_graph_.vertexCount());
 
     if (pos == n) {
-        return m_graph.hasEdge(path.back(), path[0]);
+        return m_graph_.hasEdge(path.back(), path[0]);
     }
 
     for (int i = 0; i < n; ++i) {
-        const int v = vertices[i];
-        if (!visited[i] && m_graph.hasEdge(path.back(), v)) {
+        int const v = vertices[i];
+        if (!visited[i] && m_graph_.hasEdge(path.back(), v)) {
             path.push_back(v);
             visited[i] = true;
 
@@ -81,4 +79,4 @@ bool HamiltonianCycle::hasHamiltonianCycle(
     return false;
 }
 
-} // namespace graph
+}  // namespace graph

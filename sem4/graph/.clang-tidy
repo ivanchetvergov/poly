@@ -29,6 +29,7 @@ Checks: >
   -misc-const-correctness,
   -misc-header-include-cycle,
   -misc-include-cleaner,
+  -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
   -modernize-avoid-c-arrays,
   -modernize-concat-nested-namespaces,
@@ -43,13 +44,23 @@ Checks: >
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
-  -readability-named-parameter,
+  -modernize-use-nodiscard,
+  -readability-static-accessed-through-instance,
+  -readability-convert-member-functions-to-static,
+  -misc-use-anonymous-namespace,
+  -readability-avoid-nested-conditional-operator,
+  -readability-function-size,
+  -modernize-use-starts-ends-with,
+  -modernize-use-ranges,
+  -readability-redundant-casting,
+  -bugprone-unused-local-non-trivial-variable,
+  -readability-container-contains,  -readability-named-parameter,
   -readability-redundant-declaration
 
 # Warnings as errors: off for development, enable in CI
 WarningsAsErrors: ''
 
-HeaderFilterRegex: '(common|lab[0-9]+)/include/.*\.h$'
+HeaderFilterRegex: '^(?!.*venv).*\.(h|hpp)$'
 
 CheckOptions:
   # Naming conventions

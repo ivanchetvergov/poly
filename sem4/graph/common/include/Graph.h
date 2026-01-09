@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphBase.h"
+
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -15,7 +16,7 @@ struct EdgeData {
 
     EdgeData() = default;
     EdgeData(int f, int t, double w) : from(f), to(t), weight(w) {}
-    bool operator<(const EdgeData& other) const { return weight < other.weight; }
+    bool operator<(EdgeData const& other) const { return weight < other.weight; }
 };
 
 class Vertex {
@@ -33,7 +34,7 @@ private:
 
 class Graph : public GraphBase<Vertex, EdgeData> {
 public:
-    Graph(bool isDirected = false) : GraphBase(isDirected) {}
+    explicit Graph(bool isDirected = false) : GraphBase(isDirected) {}
 
     bool addEdge(int from, int to, double weight);
 
@@ -41,8 +42,7 @@ public:
     [[nodiscard]] std::vector<std::pair<int, double>> neighbors(int id) const;
     [[nodiscard]] std::vector<int> getNeighbors(int id) const;
 
-
     void printGraphInfo() const;
 };
 
-} // namespace graph
+}  // namespace graph

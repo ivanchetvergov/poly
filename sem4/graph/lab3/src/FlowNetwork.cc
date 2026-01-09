@@ -1,8 +1,8 @@
 #include "FlowNetwork.h"
-#include <Generator.h>
 
 #include <algorithm>
-#include <numeric>
+
+#include <Generator.h>
 
 namespace graph {
 
@@ -15,14 +15,14 @@ std::vector<int> FlowVertex::neighbors() const {
 }
 
 bool FlowNetwork::addEdge(int from, int to, double capacity, double cost) {
-    FlowEdge forwardEdge(from, to, capacity, cost, 0.0);
-    FlowEdge backwardEdge(to, from, 0.0, -cost, 0.0);
+    FlowEdge forward_edge(from, to, capacity, cost, 0.0);
+    FlowEdge backward_edge(to, from, 0.0, -cost, 0.0);
 
-    bool added = GraphBase::addEdge(from, to, forwardEdge);
+    bool added = GraphBase::addEdge(from, to, forward_edge);
     if (added) {
-        GraphBase::addEdge(to, from, backwardEdge);
+        GraphBase::addEdge(to, from, backward_edge);
         if (hasVertex(to)) {
-            m_vertices[to]->addNeighbor(from);
+            m_vertices_[to]->addNeighbor(from);
         }
     }
 
@@ -49,22 +49,22 @@ double FlowNetwork::getResidualCapacity(int from, int to) const {
 }
 
 void FlowNetwork::setFlow(int from, int to, double flow) {
-    auto edge = getEdgeMutable(from, to);
+    auto* edge = getEdgeMutable(from, to);
     if (edge) {
         edge->flow = flow;
     }
 }
 
 void FlowNetwork::addFlow(int from, int to, double flow) {
-    auto edgeForward = getEdgeMutable(from, to);
-    auto edgeBackward = getEdgeMutable(to, from);
+    auto* edge_forward = getEdgeMutable(from, to);
+    auto* edge_backward = getEdgeMutable(to, from);
 
-    if (edgeForward) {
-        edgeForward->flow += flow;
+    if (edge_forward) {
+        edge_forward->flow += flow;
     }
-    if (edgeBackward) {
-        edgeBackward->flow -= flow;
+    if (edge_backward) {
+        edge_backward->flow -= flow;
     }
 }
 
-} // namespace graph
+}  // namespace graph

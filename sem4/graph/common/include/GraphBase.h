@@ -7,20 +7,19 @@
 
 namespace graph {
 
-
-template<typename VertexT, typename EdgeT>
+template <typename VertexT, typename EdgeT>
 class GraphBase {
 public:
-    GraphBase(bool isDirected = false) : isDirected_(isDirected) {}
+    explicit GraphBase(bool isDirected = false) : is_directed_(isDirected) {}
     virtual ~GraphBase() = default;
 
     bool addVertex(int id);
     [[nodiscard]] bool hasVertex(int id) const noexcept;
-    [[nodiscard]] std::optional<const VertexT*> getVertex(int id) const;
+    [[nodiscard]] std::optional<VertexT const*> getVertex(int id) const;
     [[nodiscard]] size_t vertexCount() const noexcept;
     [[nodiscard]] std::vector<int> vertexIds() const;
 
-    bool addEdge(int from, int to, const EdgeT& edge);
+    bool addEdge(int from, int to, EdgeT const& edge);
     [[nodiscard]] bool hasEdge(int from, int to) const;
     [[nodiscard]] std::optional<EdgeT> getEdge(int from, int to) const;
     EdgeT* getEdgeMutable(int from, int to);
@@ -29,16 +28,16 @@ public:
 
     [[nodiscard]] std::vector<int> neighbors(int id) const;
     [[nodiscard]] int degree(int v) const;
-    [[nodiscard]] bool isDirected() const noexcept { return isDirected_; }
+    [[nodiscard]] bool isDirected() const noexcept { return is_directed_; }
 
 protected:
-    std::unordered_map<int, std::unique_ptr<VertexT>> m_vertices;
-    std::unordered_map<long long, EdgeT> m_edges;
-    bool isDirected_ = false;
+    std::unordered_map<int, std::unique_ptr<VertexT>> m_vertices_;
+    std::unordered_map<int64_t, EdgeT> m_edges_;
+    bool is_directed_ = false;
 
-    long long makeKey(int from, int to) const;
+    int64_t makeKey(int from, int to) const;
 };
 
-} // namespace graph
+}  // namespace graph
 
 #include "../src/GraphBase.tpp"

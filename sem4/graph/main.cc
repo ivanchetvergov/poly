@@ -1,7 +1,9 @@
 #include <iostream>
+
 #include <Menu.h>
 
-using namespace graph;
+using graph::Menu;
+using graph::readInt;
 
 int main() {
     Menu menu;

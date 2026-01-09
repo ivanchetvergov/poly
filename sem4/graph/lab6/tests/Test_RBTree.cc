@@ -1,18 +1,19 @@
-#include <gtest/gtest.h>
 #include "RBTree.h"
+
+#include <gtest/gtest.h>
 
 using namespace dict;
 
 TEST(RBTreeTest, InsertAndSearch) {
     RBTree tree;
     EXPECT_FALSE(tree.search("hello"));
-    
+
     tree.insert("hello");
     EXPECT_TRUE(tree.search("hello"));
-    
+
     tree.insert("world");
     EXPECT_TRUE(tree.search("world"));
-    
+
     tree.insert("hello");
     EXPECT_TRUE(tree.search("hello"));
 }
@@ -22,7 +23,7 @@ TEST(RBTreeTest, Remove) {
     tree.insert("alpha");
     tree.insert("beta");
     tree.insert("gamma");
-    
+
     EXPECT_TRUE(tree.search("beta"));
     EXPECT_TRUE(tree.remove("beta"));
     EXPECT_FALSE(tree.search("beta"));
@@ -34,7 +35,7 @@ TEST(RBTreeTest, Clear) {
     tree.insert("x");
     tree.insert("y");
     tree.insert("z");
-    
+
     tree.clear();
     EXPECT_FALSE(tree.search("x"));
     EXPECT_FALSE(tree.search("y"));
@@ -48,7 +49,7 @@ TEST(RBTreeTest, MultipleInsertions) {
     tree.insert("bird");
     tree.insert("fish");
     tree.insert("elephant");
-    
+
     EXPECT_TRUE(tree.search("dog"));
     EXPECT_TRUE(tree.search("cat"));
     EXPECT_TRUE(tree.search("bird"));
@@ -70,9 +71,9 @@ TEST(RBTreeTest, FileOperations) {
     tree.insert("apple");
     tree.insert("banana");
     tree.insert("cherry");
-    
+
     EXPECT_TRUE(tree.saveToFile("test_rbtree.txt"));
-    
+
     RBTree tree2;
     EXPECT_TRUE(tree2.loadFromFile("test_rbtree.txt"));
     EXPECT_TRUE(tree2.search("apple"));

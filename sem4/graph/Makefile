@@ -38,11 +38,17 @@ clean:
 	rm -rf build
 	for d in $(LABS); do rm -rf $$d/build; done
 
-fix-code:
-	@echo "Applying clang-tidy fixes..."
-	find . -name "*.cc" -o -name "*.h" | xargs clang-tidy --fix
+check: main
+	@echo "Running clang-tidy analysis (read-only)..."
+	@if [ ! -f build/compile_commands.json ]; then \
+		echo "Error: compile_commands.json not found. Run 'make' first."; \
+		exit 1; \
+	fi
+	@find . \( -name "*.cc" -o -name "*.h" -o -name "*.tpp" \) -not -path "*/build/*" -not -path "*/venv/*" -not -path "*/lab6/*" | xargs clang-tidy -p build --system-headers --header-filter='^(?!.*(/opt/homebrew|/usr|/System|/Library|/lab6)).*\.(cc|h|tpp)$$' 2>&1 | grep -v "^/opt/homebrew" | grep -v "^/usr" | grep -v "^/System" | grep -v "^/Library" | grep -v "^/Users/.*/venv/" || true
+
+format:
 	@echo "Applying clang-format..."
-	find . -name "*.cc" -o -name "*.h" | xargs clang-format -i
+	find . \( -name "*.cc" -o -name "*.h" -o -name "*.tpp" \) -not -path "*/build/*" | xargs clang-format -i
 
 help:
 	@echo "Доступные цели:"
@@ -57,8 +63,9 @@ help:
 	@echo "  run-lab3   - запустить lab3 (./lab3/build/graph_lab3)"
 	@echo "  run-lab5   - запустить lab5 (./lab5/build/graph_lab5)"
 	@echo "  run-lab6   - запустить lab6 (./lab6/build/graph_lab6)"
-	@echo "  fix-code   - применить clang-tidy --fix и clang-format ко всем .cc и .h файлам"
+	@echo "  check      - запустить clang-tidy анализ (только чтение)"
+	@echo "  format     - применить clang-format ко всем файлам"
 	@echo "  clean      - удалить все build директории"
 	@echo "  help       - показать это сообщение"
 
-.PHONY: all main $(LABS) run run-lab1 run-lab3 run-lab5 run-lab6 clean fix-code help
+.PHONY: all main $(LABS) run run-lab1 run-lab3 run-lab5 run-lab6 clean check format help

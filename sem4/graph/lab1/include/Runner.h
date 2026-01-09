@@ -2,19 +2,21 @@
 
 #include "Graph.h"
 #include "ShimbellMethod.h"
+
 #include <memory>
 #include <optional>
 #include <vector>
 
 namespace lab1 {
 
-using namespace graph;
+using graph::Graph;
+using graph::ShimbellResult;
 
 struct PathResult {
     int from;
     int to;
     std::vector<int> path;
-    int pathCount;
+    int path_count;
 };
 
 class Runner {
@@ -23,21 +25,21 @@ public:
     explicit Runner(Graph* graph) : graph_(graph) {}
 
     void setGraph(Graph* graph) { graph_ = graph; }
-    const Graph* getGraph() const;
+    Graph const* getGraph() const;
 
     void runShimbellMethod(int pathLength);
-    const ShimbellResult* getLastShimbell() const;
+    ShimbellResult const* getLastShimbell() const;
 
     int countPaths(int from, int to);
 
-    const std::optional<PathResult>& getLastPath() const;
-    const std::vector<std::vector<int>>& getAllPaths() const;
+    std::optional<PathResult> const& getLastPath() const;
+    std::vector<std::vector<int>> const& getAllPaths() const;
 
 private:
     Graph* graph_ = nullptr;
-    std::optional<PathResult> lastPath_;
-    std::optional<ShimbellResult> lastShimbell_;
-    std::vector<std::vector<int>> allPaths_;
+    std::optional<PathResult> last_path_;
+    std::optional<ShimbellResult> last_shimbell_;
+    std::vector<std::vector<int>> all_paths_;
 };
 
-} // namespace lab1
+}  // namespace lab1

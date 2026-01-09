@@ -45,8 +45,8 @@ graph/
 template<typename VertexT, typename EdgeT>
 class GraphBase {
     bool isDirected_;
-    unordered_map<int, unique_ptr<VertexT>> m_vertices;
-    unordered_map<string, EdgeT> m_edges;  // ключ = makeKey(from, to)
+    unordered_map<int, unique_ptr<VertexT>> m_vertices_;
+    unordered_map<string, EdgeT> m_edges_;  // ключ = makeKey(from, to)
 };
 ```
 

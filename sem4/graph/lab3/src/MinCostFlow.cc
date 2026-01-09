@@ -1,47 +1,49 @@
 #include "MinCostFlow.h"
-#include <PathUtils.h>
+
 #include <algorithm>
 #include <limits>
+
+#include <PathUtils.h>
 
 namespace graph {
 
 namespace {
-    void resetFlows(FlowNetwork& network) {
-        for (int u : network.vertexIds()) {
-            for (int v : network.neighbors(u)) {
-                network.setFlow(u, v, 0.0);
-            }
+void resetFlows(FlowNetwork& network) {
+    for (int u : network.vertexIds()) {
+        for (int v : network.neighbors(u)) {
+            network.setFlow(u, v, 0.0);
         }
     }
-} // anonymous namespace
+}
+}  // anonymous namespace
 
-bool MinCostFlow::bellmanFord(int source, int sink,
-                                std::unordered_map<int, double>& dist,
-                                std::unordered_map<int, int>& parent) {
+bool MinCostFlow::bellmanFord(int source, int sink, std::unordered_map<int, double>& dist,
+                              std::unordered_map<int, int>& parent) {
     dist.clear();
     parent.clear();
 
-    for (int v : m_network.vertexIds()) {
+    for (int v : m_network_.vertexIds()) {
         dist[v] = std::numeric_limits<double>::infinity();
     }
     dist[source] = 0.0;
 
-    int n = static_cast<int>(m_network.vertexCount());
+    int n = static_cast<int>(m_network_.vertexCount());
 
     for (int i = 0; i < n - 1; ++i) {
         bool updated = false;
 
-        for (int u : m_network.vertexIds()) {
-            if (dist[u] == std::numeric_limits<double>::infinity()) continue;
+        for (int u : m_network_.vertexIds()) {
+            if (dist[u] == std::numeric_limits<double>::infinity())
+                continue;
 
-            for (int v : m_network.neighbors(u)) {
-                double residual = m_network.getResidualCapacity(u, v);
+            for (int v : m_network_.neighbors(u)) {
+                double residual = m_network_.getResidualCapacity(u, v);
 
                 if (residual > 0) {
-                    double newDist = dist[u] + m_network.getCost(u, v);
+                    double new_dist = dist[u] + m_network_.getCost(u, v);
 
-                    if (newDist < dist[v]) {
-                        dist[v] = newDist;
+                    if (new_dist < dist[v]) {
+                        dist[v] = new_dist;
                         parent[v] = u;
                         updated = true;
                     }
@@ -49,19 +51,21 @@ bool MinCostFlow::bellmanFord(int source, int sink,
             }
         }
 
-        if (!updated) break;
+        if (!updated)
+            break;
     }
 
-    for (int u : m_network.vertexIds()) {
-        if (dist[u] == std::numeric_limits<double>::infinity()) continue;
+    for (int u : m_network_.vertexIds()) {
+        if (dist[u] == std::numeric_limits<double>::infinity())
+            continue;
 
-        for (int v : m_network.neighbors(u)) {
-            double residual = m_network.getResidualCapacity(u, v);
+        for (int v : m_network_.neighbors(u)) {
+            double residual = m_network_.getResidualCapacity(u, v);
 
             if (residual > 0) {
-                double newDist = dist[u] + m_network.getCost(u, v);
+                double new_dist = dist[u] + m_network_.getCost(u, v);
 
-                if (newDist < dist[v]) {
+                if (new_dist < dist[v]) {
                     return false;
                 }
             }
@@ -74,40 +78,39 @@ bool MinCostFlow::bellmanFord(int source, int sink,
 MinCostFlow::Result MinCostFlow::findMinCostFlow(int source, int sink, double targetFlow) {
     Result result;
 
-    resetFlows(m_network);
+    resetFlows(m_network_);
 
-    double currentFlow = 0.0;
-    double totalCost = 0.0;
+    double current_flow = 0.0;
+    double total_cost = 0.0;
     std::unordered_map<int, double> dist;
     std::unordered_map<int, int> parent;
 
-    std::vector<int> lastPath;
+    std::vector<int> last_path;
 
-    while (currentFlow < targetFlow && bellmanFord(source, sink, dist, parent)) {
-        auto calcResidual = [this](int u, int v) {
-            return m_network.getResidualCapacity(u, v);
-        };
+    while (current_flow < targetFlow && bellmanFord(source, sink, dist, parent)) {
+        auto calc_residual = [this](int u, int v) { return m_network_.getResidualCapacity(u, v); };
 
-        double pathFlow = std::min(targetFlow - currentFlow,
-                                   PathUtils<double>::getMinPathValue(source, sink, parent, calcResidual));
+        double path_flow =
+            std::min(targetFlow - current_flow,
+                     PathUtils<double>::getMinPathValue(source, sink, parent, calc_residual));
 
-        lastPath = PathUtils<double>::reconstructPath(source, sink, parent);
+        last_path = PathUtils<double>::reconstructPath(source, sink, parent);
 
         PathUtils<double>::forEachEdgeInPath(source, sink, parent,
-            [this, &totalCost, pathFlow](int u, int v) {
-                m_network.addFlow(u, v, pathFlow);
-                totalCost += pathFlow * m_network.getCost(u, v);
-            });
+                                             [this, &total_cost, path_flow](int u, int v) {
+                                                 m_network_.addFlow(u, v, path_flow);
+                                                 total_cost += path_flow * m_network_.getCost(u, v);
+                                             });
 
-        currentFlow += pathFlow;
+        current_flow += path_flow;
     }
 
-    result.flow = currentFlow;
-    result.cost = totalCost;
-    result.success = (currentFlow == targetFlow);
-    result.path = lastPath;
+    result.flow = current_flow;
+    result.cost = total_cost;
+    result.success = (current_flow == targetFlow);
+    result.path = last_path;
 
     return result;
 }
 
-} // namespace graph
+}  // namespace graph

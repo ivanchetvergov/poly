@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Graph.h>
 #include <limits>
 #include <vector>
+
+#include <Graph.h>
 
 namespace graph {
 
@@ -14,20 +15,16 @@ public:
         bool found{false};
     };
 
-    explicit TSPSolver(const Graph& graph) : m_graph(graph) {}
+    explicit TSPSolver(Graph const& graph) : m_graph_(graph) {}
 
     [[nodiscard]] std::vector<Solution> findAllCycles(int maxResults = 100);
     [[nodiscard]] Solution findBestCycle();
 
 private:
-    const Graph& m_graph;
+    Graph const& m_graph_;
 
-    void findAllHamiltonianCycles(
-        std::vector<Solution>& solutions,
-        std::vector<int>& path,
-        std::vector<bool>& visited,
-        const double currentCost,
-        const int maxResults);
+    void findAllHamiltonianCycles(std::vector<Solution>& solutions, std::vector<int>& path,
+                                  std::vector<bool>& visited, double currentCost, int maxResults);
 };
 
-} // namespace graph
+}  // namespace graph

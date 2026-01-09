@@ -1,26 +1,24 @@
 #pragma once
 
-#include <stdexcept>
 #include <algorithm>
+#include <stdexcept>
 
 namespace graph {
 
 template <typename GraphT, typename AddEdgeFunc, typename WeightGenFunc>
-std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(
-    int numVertices, int numEdges,
-    AddEdgeFunc addEdge,
-    WeightGenFunc genWeight,
-    bool isDirected)
-{
+std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(int numVertices, int numEdges,
+                                                           AddEdgeFunc addEdge,
+                                                           WeightGenFunc genWeight,
+                                                           bool isDirected) {
     if (numVertices <= 0) {
         throw std::invalid_argument("Количество вершин должно быть положительным");
     }
 
-    int minEdges = numVertices - 1;
-    numEdges = std::max(numEdges, minEdges);
+    int min_edges = numVertices - 1;
+    numEdges = std::max(numEdges, min_edges);
 
-    int maxEdges = numVertices * (numVertices - 1) / 2;
-    numEdges = std::min(numEdges, maxEdges);
+    int max_edges = numVertices * (numVertices - 1) / 2;
+    numEdges = std::min(numEdges, max_edges);
 
     auto graph = std::make_unique<GraphT>(isDirected);
 
@@ -37,15 +35,15 @@ std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(
     for (int from = 0; from < numVertices - 1; ++from) {
         for (int to = from + 1; to < numVertices; ++to) {
             if (!graph->hasEdge(from, to)) {
-                candidates.push_back({from, to});
+                candidates.emplace_back(from, to);
             }
         }
     }
 
     std::shuffle(candidates.begin(), candidates.end(), rng_);
 
-    int toAdd = numEdges - (numVertices - 1);
-    for (int i = 0; i < toAdd && i < static_cast<int>(candidates.size()); ++i) {
+    int to_add = numEdges - (numVertices - 1);
+    for (int i = 0; i < to_add && i < static_cast<int>(candidates.size()); ++i) {
         auto [from, to] = candidates[i];
         addEdge(*graph, from, to, genWeight());
     }
@@ -53,4 +51,4 @@ std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(
     return graph;
 }
 
-} // namespace graph
+}  // namespace graph

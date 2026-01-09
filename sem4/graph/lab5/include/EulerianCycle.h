@@ -1,15 +1,16 @@
 #pragma once
 
-#include <Graph.h>
 #include <memory>
 #include <optional>
 #include <vector>
+
+#include <Graph.h>
 
 namespace graph {
 
 class EulerianCycle {
 public:
-    explicit EulerianCycle(Graph& graph) : m_graph(graph) {}
+    explicit EulerianCycle(Graph& graph) : m_graph_(graph) {}
 
     [[nodiscard]] bool isEulerian() const;
     [[nodiscard]] bool isSemiEulerian() const;
@@ -18,13 +19,15 @@ public:
     void makeEulerian();
     [[nodiscard]] std::optional<std::vector<int>> findCycle();
 
-    [[nodiscard]] const std::vector<std::pair<int, int>>& getAddedEdges() const { return m_addedEdges; }
+    [[nodiscard]] std::vector<std::pair<int, int>> const& getAddedEdges() const {
+        return m_added_edges_;
+    }
 
 private:
-    Graph& m_graph;
-    std::vector<std::pair<int, int>> m_addedEdges;
+    Graph& m_graph_;
+    std::vector<std::pair<int, int>> m_added_edges_;
 
     [[nodiscard]] std::optional<std::vector<int>> findEulerianCycle(int start);
 };
 
-} // namespace graph
+}  // namespace graph

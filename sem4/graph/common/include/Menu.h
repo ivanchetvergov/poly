@@ -1,17 +1,19 @@
 #pragma once
 
-#include <iostream>
-#include <memory>
-#include <functional>
-#include <map>
-#include <Graph.h>
-#include <Generator.h>
-#include <Visualizer.h>
-#include <Animator.h>
-#include <Utils.h>
 #include "../../lab1/include/Runner.h"
 #include "../../lab3/include/Runner.h"
 #include "../../lab5/include/Runner.h"
+
+#include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
+
+#include <Animator.h>
+#include <Generator.h>
+#include <Graph.h>
+#include <Utils.h>
+#include <Visualizer.h>
 
 namespace graph {
 
@@ -22,23 +24,24 @@ public:
     void handleChoice(int choice);
 
 private:
+    void initializeActions();
     std::unique_ptr<Graph> graph_;
-    std::unique_ptr<FlowNetwork> flowNet_;
+    std::unique_ptr<FlowNetwork> flow_net_;
     Generator gen_;
-    lab1::Runner lab1Runner_;
-    lab3::Runner lab3Runner_;
-    lab5::Runner lab5Runner_;
-    double lastMaxFlow_ = 0.0;
+    lab1::Runner lab1_runner_;
+    lab3::Runner lab3_runner_;
+    lab5::Runner lab5_runner_;
+    double last_max_flow_ = 0.0;
 
-    const char* noGraphMsg_ = "Сначала сгенерируйте граф (пункт 1)";
-    const char* noFlowMsg_ = "Сначала сгенерируйте сеть потоков (пункт 31)";
-    const char* noMaxFlowMsg_ = "Сначала найдите максимальный поток (пункт 32)";
-    const char* noMinCostMsg_ = "Сначала найдите путь минимальной стоимости (пункт 33)";
-    const char* noTSPMsg_ = "Сначала найдите TSP-цикл (пункт 53)";
-    const char* noHamiltonMsg_ = "Сначала найдите Гамильтонов цикл (пункт 52)";
-    const char* noEulerMsg_ = "Сначала найдите Эйлеров цикл (пункт 51)";
+    char const* no_graph_msg_ = "Сначала сгенерируйте граф (пункт 1)";
+    char const* no_flow_msg_ = "Сначала сгенерируйте сеть потоков (пункт 31)";
+    char const* no_max_flow_msg_ = "Сначала найдите максимальный поток (пункт 32)";
+    char const* no_min_cost_msg_ = "Сначала найдите путь минимальной стоимости (пункт 33)";
+    char const* no_tsp_msg_ = "Сначала найдите TSP-цикл (пункт 53)";
+    char const* no_hamilton_msg_ = "Сначала найдите Гамильтонов цикл (пункт 52)";
+    char const* no_euler_msg_ = "Сначала найдите Эйлеров цикл (пункт 51)";
 
     std::map<int, std::function<void()>> actions_;
 };
 
-} // namespace graph
+}  // namespace graph

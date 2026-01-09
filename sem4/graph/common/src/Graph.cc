@@ -1,6 +1,5 @@
 #include "Graph.h"
-#include <algorithm>
-#include <iomanip>
+
 #include <iostream>
 
 namespace graph {
@@ -17,8 +16,8 @@ bool Graph::addEdge(int from, int to, double weight) {
     EdgeData edge(from, to, weight);
     bool added = GraphBase::addEdge(from, to, edge);
 
-    if (added && !isDirected_ && hasVertex(to)) {
-        this->m_vertices[to]->addNeighbor(from);
+    if (added && !is_directed_ && hasVertex(to)) {
+        this->m_vertices_[to]->addNeighbor(from);
     }
 
     return added;
@@ -26,10 +25,10 @@ bool Graph::addEdge(int from, int to, double weight) {
 
 std::optional<double> Graph::getEdgeWeight(int from, int to) const {
     auto edge = getEdge(from, to);
-    if (!edge) return std::nullopt;
+    if (!edge)
+        return std::nullopt;
     return edge->weight;
 }
-
 
 std::vector<std::pair<int, double>> Graph::neighbors(int id) const {
     auto neighs = GraphBase::neighbors(id);
@@ -53,4 +52,4 @@ void Graph::printGraphInfo() const {
     std::cout << "Количество рёбер: " << edgeCount() << "\n";
 }
 
-} // namespace graph
+}  // namespace graph

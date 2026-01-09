@@ -6,7 +6,7 @@ namespace graph {
 
 class MinCostFlow {
 public:
-    explicit MinCostFlow(FlowNetwork& network) : m_network(network) {}
+    explicit MinCostFlow(FlowNetwork& network) : m_network_(network) {}
 
     struct Result {
         double flow{0.0};
@@ -18,11 +18,10 @@ public:
     [[nodiscard]] Result findMinCostFlow(int source, int sink, double targetFlow);
 
 private:
-    FlowNetwork& m_network;
+    FlowNetwork& m_network_;
 
-    [[nodiscard]] bool bellmanFord(int source, int sink,
-                                    std::unordered_map<int, double>& dist,
-                                    std::unordered_map<int, int>& parent);
+    [[nodiscard]] bool bellmanFord(int source, int sink, std::unordered_map<int, double>& dist,
+                                   std::unordered_map<int, int>& parent);
 };
 
-} // namespace graph
+}  // namespace graph

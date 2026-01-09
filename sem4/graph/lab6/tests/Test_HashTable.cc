@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
 #include "HashTable.h"
+
+#include <gtest/gtest.h>
 
 using namespace dict;
 
@@ -48,7 +49,7 @@ TEST(HashTableTest, CollisionHandling) {
     EXPECT_TRUE(table.search("c"));
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

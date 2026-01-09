@@ -1,14 +1,14 @@
 #pragma once
 
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
-#include <cstdlib>
 
 namespace graph {
 
-inline int readInt(const char* prompt) {
+inline int readInt(char const* prompt) {
     int value;
     for (;;) {
         std::cout << prompt;
@@ -22,10 +22,9 @@ inline int readInt(const char* prompt) {
     }
 }
 
-template<typename T>
-bool checkAndRun(const std::unique_ptr<T>& ptr,
-    std::function<void()> action, const char* errorMsg)
-{
+template <typename T>
+bool checkAndRun(std::unique_ptr<T> const& ptr, std::function<void()> action,
+                 char const* errorMsg) {
     if (ptr) {
         action();
         return true;
@@ -34,25 +33,25 @@ bool checkAndRun(const std::unique_ptr<T>& ptr,
     return false;
 }
 
-inline void runPythonScript(const std::string& scriptName, const std::vector<std::string>& args) {
-    std::string fullScriptName = scriptName;
+inline void runPythonScript(std::string const& scriptName, std::vector<std::string> const& args) {
+    std::string full_script_name = scriptName;
     if (scriptName.find("plot_") == 0) {
-        fullScriptName = "visualization/" + scriptName;
+        full_script_name = "visualization/" + scriptName;
     }
-    std::string module = "scripts." + fullScriptName;
-    size_t dotPos = module.find_last_of('.');
-    if (dotPos != std::string::npos) {
-        module = module.substr(0, dotPos);
+    std::string module = "scripts." + full_script_name;
+    size_t dot_pos = module.find_last_of('.');
+    if (dot_pos != std::string::npos) {
+        module = module.substr(0, dot_pos);
     }
     std::replace(module.begin(), module.end(), '/', '.');
     std::string cmd = "./venv/bin/python -m " + module;
-    for (const auto& arg : args) {
+    for (auto const& arg : args) {
         cmd += " " + arg;
     }
     int res = system(cmd.c_str());
     if (res != 0) {
-        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: " << fullScriptName << "\n";
+        std::cerr << "[FAIL] Не удалось запустить Python-скрипт: " << full_script_name << "\n";
     }
 }
 
-} // namespace graph
+}  // namespace graph

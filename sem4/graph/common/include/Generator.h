@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Graph.h"
+
+#include <functional>
 #include <memory>
 #include <optional>
 #include <random>
-#include <functional>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace graph {
 
@@ -27,17 +28,14 @@ public:
 
 private:
     template <typename GraphT, typename AddEdgeFunc, typename WeightGenFunc>
-    std::unique_ptr<GraphT> generateAcyclicTemplate(
-        int numVertices, int numEdges,
-        AddEdgeFunc addEdge,
-        WeightGenFunc genWeight,
-        bool isDirected);
+    std::unique_ptr<GraphT> generateAcyclicTemplate(int numVertices, int numEdges,
+                                                    AddEdgeFunc addEdge, WeightGenFunc genWeight,
+                                                    bool isDirected);
 
     std::mt19937 rng_;
-    std::normal_distribution<double> normalDist_;
-
+    std::normal_distribution<double> normal_dist_;
 };
 
-} // namespace graph
+}  // namespace graph
 
 #include "../src/Generator.tpp"

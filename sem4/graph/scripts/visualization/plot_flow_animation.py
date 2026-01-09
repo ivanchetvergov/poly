@@ -19,10 +19,10 @@ def read_snapshots(filename='assets/txt/flow_snapshots.txt'):
 
         for _ in range(num_snapshots):
             step, total_flow = map(float, f.readline().strip().split())
-            num_edges = int(f.readline().strip())
+            num_edges_ = int(f.readline().strip())
 
             edges = []
-            for _ in range(num_edges):
+            for _ in range(num_edges_):
                 u, v, flow, capacity = f.readline().strip().split()
                 edges.append((int(u), int(v), float(flow), float(capacity)))
 

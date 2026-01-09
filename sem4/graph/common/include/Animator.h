@@ -7,9 +7,9 @@ namespace graph {
 class Animator {
 public:
     static void animateFlowGrowth(
-        const std::string& snapshotsFile = "assets/txt/flow_snapshots.txt",
-        const std::string& outputFile = "assets/gif/flow_animation.gif",
-        const std::string& graphType = "directed");
+        std::string const& snapshotsFile = "assets/txt/flow_snapshots.txt",
+        std::string const& outputFile = "assets/gif/flow_animation.gif",
+        std::string const& graphType = "directed");
 };
 
-} // namespace graph
+}  // namespace graph

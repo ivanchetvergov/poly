@@ -1,17 +1,19 @@
 #include "../include/Runner.h"
-#include "../include/ShimbellMethod.h"
+
 #include "../include/PathCounter.h"
+#include "../include/ShimbellMethod.h"
+
+#include <iostream>
+
 #include <Generator.h>
 #include <PathUtils.h>
-#include <queue>
-#include <unordered_map>
-#include <unordered_set>
-#include <algorithm>
-#include <iostream>
 
 namespace lab1 {
 
-const Graph* Runner::getGraph() const {
+using graph::PathCounter;
+using graph::ShimbellMethod;
+
+Graph const* Runner::getGraph() const {
     return graph_;
 }
 
@@ -21,7 +23,7 @@ void Runner::runShimbellMethod(int pathLength) {
     }
 
     ShimbellMethod shimbell(*graph_);
-    lastShimbell_ = shimbell.compute(pathLength);
+    last_shimbell_ = shimbell.compute(pathLength);
 }
 
 int Runner::countPaths(int from, int to) {
@@ -34,28 +36,28 @@ int Runner::countPaths(int from, int to) {
     }
 
     PathCounter counter(*graph_);
-    allPaths_ = counter.getAllPaths(from, to);
+    all_paths_ = counter.getAllPaths(from, to);
     int count = counter.getPathCount(from, to);
 
     std::vector<int> path;
-    if (!allPaths_.empty()) {
-        path = allPaths_[0];
+    if (!all_paths_.empty()) {
+        path = all_paths_[0];
     }
 
-    lastPath_ = PathResult{from, to, path, count};
+    last_path_ = PathResult{.from=from, .to=to, .path=path, .path_count=count};
     return count;
 }
 
-const std::optional<PathResult>& Runner::getLastPath() const {
-    return lastPath_;
+std::optional<PathResult> const& Runner::getLastPath() const {
+    return last_path_;
 }
 
-const std::vector<std::vector<int>>& Runner::getAllPaths() const {
-    return allPaths_;
+std::vector<std::vector<int>> const& Runner::getAllPaths() const {
+    return all_paths_;
 }
 
-const graph::ShimbellResult* Runner::getLastShimbell() const {
-    return lastShimbell_ ? &(*lastShimbell_) : nullptr;
+graph::ShimbellResult const* Runner::getLastShimbell() const {
+    return last_shimbell_ ? &(*last_shimbell_) : nullptr;
 }
 
-} // namespace lab1
+}  // namespace lab1

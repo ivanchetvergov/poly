@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../../lab3/include/FlowNetwork.h"
+
 #include <memory>
 
 namespace lab3 {
 
-using namespace graph;
+using graph::FlowNetwork;
 
 struct MinCostResult {
     double cost;
@@ -19,19 +20,19 @@ public:
     explicit Runner(FlowNetwork* network) : network_(network) {}
 
     void setNetwork(FlowNetwork* network) { network_ = network; }
-    const FlowNetwork* getNetwork() const;
+    FlowNetwork const* getNetwork() const;
 
     [[nodiscard]] double findMaxFlow(int source, int sink);
     [[nodiscard]] MinCostResult findMinCostFlow(int source, int sink, double targetFlow);
 
-    [[nodiscard]] double getLastMaxFlow() const { return lastMaxFlow_; }
-    [[nodiscard]] MinCostResult getLastMinCostResult() const { return lastMinCostResult_; }
+    [[nodiscard]] double getLastMaxFlow() const { return last_max_flow_; }
+    [[nodiscard]] MinCostResult getLastMinCostResult() const { return last_min_cost_result_; }
 
 private:
     FlowNetwork* network_ = nullptr;
 
-    double lastMaxFlow_ = 0.0;
-    MinCostResult lastMinCostResult_{0.0, 0.0, {}};
+    double last_max_flow_ = 0.0;
+    MinCostResult last_min_cost_result_{0.0, 0.0, {}};
 };
 
-} // namespace lab3
+}  // namespace lab3

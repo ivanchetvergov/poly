@@ -1,46 +1,47 @@
 #include "EulerianCycle.h"
-#include <CollectionUtils.h>
-#include <algorithm>
+
 #include <set>
 #include <stack>
-#include <unordered_set>
+
+#include <CollectionUtils.h>
 
 namespace graph {
 
 bool EulerianCycle::isEulerian() const {
-    auto oddVertices = getOddDegreeVertices();
-    return oddVertices.empty();
+    auto odd_vertices = getOddDegreeVertices();
+    return odd_vertices.empty();
 }
 
 bool EulerianCycle::isSemiEulerian() const {
-    auto oddVertices = getOddDegreeVertices();
-    return oddVertices.size() == 2;
+    auto odd_vertices = getOddDegreeVertices();
+    return odd_vertices.size() == 2;
 }
 
 std::vector<int> EulerianCycle::getOddDegreeVertices() const {
-    std::vector<int> oddVertices;
-    for (int v : m_graph.vertexIds()) {
-        if (m_graph.degree(v) % 2 != 0) {
-            oddVertices.push_back(v);
+    std::vector<int> odd_vertices;
+    for (int v : m_graph_.vertexIds()) {
+        if (m_graph_.degree(v) % 2 != 0) {
+            odd_vertices.push_back(v);
         }
     }
-    return oddVertices;
+    return odd_vertices;
 }
 
 void EulerianCycle::makeEulerian() {
-    auto oddVertices = getOddDegreeVertices();
+    auto odd_vertices = getOddDegreeVertices();
 
-    if (oddVertices.empty()) return;
+    if (odd_vertices.empty())
+        return;
 
-    m_addedEdges.clear();
+    m_added_edges_.clear();
 
-    for (size_t i = 0; i + 1 < oddVertices.size(); i += 2) {
-        int v1 = oddVertices[i];
-        int v2 = oddVertices[i + 1];
+    for (size_t i = 0; i + 1 < odd_vertices.size(); i += 2) {
+        int v1 = odd_vertices[i];
+        int v2 = odd_vertices[i + 1];
 
-        if (!m_graph.hasEdge(v1, v2)) {
-            m_graph.addEdge(v1, v2, 1.0);
-            m_addedEdges.push_back({v1, v2});
+        if (!m_graph_.hasEdge(v1, v2)) {
+            m_graph_.addEdge(v1, v2, 1.0);
+            m_added_edges_.emplace_back(v1, v2);
         }
     }
 }
@@ -50,14 +51,15 @@ std::optional<std::vector<int>> EulerianCycle::findCycle() {
         return std::nullopt;
     }
 
-    auto vertices = m_graph.vertexIds();
-    if (vertices.empty()) return std::nullopt;
+    auto vertices = m_graph_.vertexIds();
+    if (vertices.empty())
+        return std::nullopt;
 
     int start = vertices[0];
     if (isSemiEulerian()) {
-        auto oddVertices = getOddDegreeVertices();
-        if (!oddVertices.empty()) {
-            start = oddVertices[0];
+        auto odd_vertices = getOddDegreeVertices();
+        if (!odd_vertices.empty()) {
+            start = odd_vertices[0];
         }
     }
 
@@ -71,11 +73,11 @@ std::optional<std::vector<int>> EulerianCycle::findCycle() {
 }
 
 std::optional<std::vector<int>> EulerianCycle::findEulerianCycle(int start) {
-    std::unordered_map<int, std::multiset<int>> adjCopy;
+    std::unordered_map<int, std::multiset<int>> adj_copy;
 
-    for (int v : m_graph.vertexIds()) {
-        for (const auto& [u, weight] : m_graph.neighbors(v)) {
-            adjCopy[v].insert(u);
+    for (int v : m_graph_.vertexIds()) {
+        for (auto const& [u, weight] : m_graph_.neighbors(v)) {
+            adj_copy[v].insert(u);
         }
     }
 
@@ -86,11 +88,11 @@ std::optional<std::vector<int>> EulerianCycle::findEulerianCycle(int start) {
     int current = start;
 
     while (!stack.empty()) {
-        if (!adjCopy[current].empty()) {
+        if (!adj_copy[current].empty()) {
             stack.push(current);
-            int next = *adjCopy[current].begin();
-            adjCopy[current].erase(adjCopy[current].begin());
-            adjCopy[next].erase(adjCopy[next].find(current));
+            int next = *adj_copy[current].begin();
+            adj_copy[current].erase(adj_copy[current].begin());
+            adj_copy[next].erase(adj_copy[next].find(current));
             current = next;
         } else {
             path.push_back(current);
@@ -103,4 +105,4 @@ std::optional<std::vector<int>> EulerianCycle::findEulerianCycle(int start) {
     return path;
 }
 
-} // namespace graph
+}  // namespace graph
