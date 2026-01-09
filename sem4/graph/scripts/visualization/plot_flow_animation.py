@@ -125,8 +125,8 @@ def animate_flow_growth(snapshots, output_file='assets/gif/flow_animation.gif',
 if __name__ == '__main__':
     args = sys.argv[1:]
 
-    input_file = 'assets/txt/flow_snapshots.txt'
-    output_file = 'assets/gif/flow_animation.gif'
+    input_file = 'assets/txt/32_flow_snapshots.txt'
+    output_file = 'assets/gif/37_flow_animation.gif'
     directed = True
     show = False
 

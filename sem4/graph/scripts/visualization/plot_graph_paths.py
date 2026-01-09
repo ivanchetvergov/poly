@@ -1,12 +1,36 @@
 import sys
 from matplotlib.lines import Line2D
 import matplotlib.cm as cm
-from typing import List, Typle, Set
+from typing import List, Tuple, Set, Dict
 
 from ..core.graph_loader import GraphLoader
 from ..core.renderer import Renderer
 from ..core.config import node_cfg, edge_cfg, legend_cfg
 from ..core.helpers import get_path_edges, normalize_edge, read_paths
+
+
+def get_edge_colors_and_widths(G, directed, paths, added_edges, all_path_edges, colors):
+    """Calculate edge colors and widths based on their role."""
+    edge_colors = []
+    edge_widths = []
+
+    for u, v in G.edges():
+        edge = normalize_edge(u, v, directed)
+        if edge in added_edges or (v, u) in added_edges:
+            # Selected edges (independent/cover)
+            edge_colors.append(edge_cfg.highlight_edge_color)
+            edge_widths.append(edge_cfg.added_edge_width * edge_cfg.highlight_edge_width_multiplier)
+        elif edge in all_path_edges:
+            # Path edges
+            edge_colors.append(all_path_edges[edge][0][1])
+            width = edge_cfg.path_edge_width if len(paths) == 1 else edge_cfg.path_edge_width * 0.7
+            edge_widths.append(width)
+        else:
+            # Background edges
+            edge_colors.append(edge_cfg.background_edge_color)
+            edge_widths.append(edge_cfg.default_edge_width * edge_cfg.background_edge_width_multiplier)
+
+    return edge_colors, edge_widths
 
 
 def main():
@@ -16,7 +40,7 @@ def main():
     directed = len(sys.argv) > 4 and sys.argv[4].lower() == 'directed'
     title = (sys.argv[5].strip('"') if len(sys.argv) > 5
              else f'Пути в графе ({"directed" if directed else "undirected"})')
-    added_edges_file = 'assets/txt/added_edges.txt'
+    added_edges_file = sys.argv[6] if len(sys.argv) > 6 else 'assets/txt/added_edges.txt'
 
     loader = GraphLoader()
     G = loader.load_graph(graph_file, directed)
@@ -27,7 +51,10 @@ def main():
     renderer.setup_plot()
     pos = renderer.compute_layout(G)
 
-    if len(paths) == 1:
+    # Handle empty paths case
+    if not paths or all(len(p) == 0 for p in paths):
+        colors = []
+    elif len(paths) == 1:
         colors = [edge_cfg.path_edge_color]
     else:
         colors = cm.rainbow([i / len(paths) for i in range(len(paths))])
@@ -40,22 +67,12 @@ def main():
                 all_path_edges[edge] = []
             all_path_edges[edge].append((idx, colors[idx]))
 
-    edge_colors = []
-    edge_widths = []
-    for u, v in G.edges():
-        edge = normalize_edge(u, v, directed)
-        if edge in added_edges or (v, u) in added_edges:    # Eurlian and Hamilton
-            edge_colors.append(edge_cfg.added_edge_color)
-            edge_widths.append(edge_cfg.added_edge_width)
-        elif edge in all_path_edges:                        # for paths
-            edge_colors.append(all_path_edges[edge][0][1])
-            edge_widths.append(edge_cfg.path_edge_width if len(paths) == 1 else 3.0)
-        else:                                               # common edges
-            edge_colors.append(edge_cfg.default_edge_color)
-            edge_widths.append(edge_cfg.default_edge_width)
+    edge_colors, edge_widths = get_edge_colors_and_widths(
+        G, directed, paths, added_edges, all_path_edges, colors
+    )
 
     renderer.draw_edges(G, pos, directed, edge_color=edge_colors, width=edge_widths,
-                       alpha=edge_cfg.path_edge_alpha)
+                       alpha=edge_cfg.background_edge_alpha)
 
     all_path_nodes = set()
     for path in paths:
