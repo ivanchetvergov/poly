@@ -19,6 +19,8 @@ class NodeConfig:
     node_edge_width: float = 2.0
     path_node_color: str = 'orange'
     flow_node_color: str = 'lightblue'
+    highlight_node_color: str = '#8A2BE2'
+    default_node_color: str = '#4682B4'
 
 
 @dataclass(frozen=True)
@@ -37,6 +39,11 @@ class EdgeConfig:
     flow_edge_alpha: float = 0.8
     added_edge_color: str = '#C71585'
     added_edge_width: float = 5.0
+    highlight_edge_color: str = '#DC143C'
+    highlight_edge_width_multiplier: float = 1.5
+    background_edge_color: str = '#B0B0B0'
+    background_edge_width_multiplier: float = 0.6
+    background_edge_alpha: float = 0.7
     edge_width_base: float = 1.5
     flow_multiplier: float = 0.5
     graph_edge_base: float = 0.7

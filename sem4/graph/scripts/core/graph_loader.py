@@ -8,12 +8,18 @@ class GraphLoader:
 
         with open(filename, 'r') as f:
             for line in f:
-                parts = line.strip().split()
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                parts = line.split()
                 if len(parts) < 2:
                     continue
-                u, v = int(parts[0]), int(parts[1])
-                weight = float(parts[2]) if len(parts) > 2 else 1.0
-                G.add_edge(u, v, weight=weight)
+                try:
+                    u, v = int(parts[0]), int(parts[1])
+                    weight = float(parts[2]) if len(parts) > 2 else 1.0
+                    G.add_edge(u, v, weight=weight)
+                except ValueError:
+                    continue
 
         return G
 
@@ -43,10 +49,33 @@ class GraphLoader:
             with open(filename, 'r') as f:
                 added = set()
                 for line in f:
-                    parts = line.strip().split()
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    parts = line.split()
                     if len(parts) >= 2:
-                        u, v = int(parts[0]), int(parts[1])
-                        added.add((u, v))
+                        try:
+                            u, v = int(parts[0]), int(parts[1])
+                            added.add((u, v))
+                        except ValueError:
+                            continue
                 return added
         except FileNotFoundError:
             return set()
+
+    @staticmethod
+    def load_colors(filename: str) -> dict:
+        try:
+            colors = {}
+            with open(filename, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        node, color = int(parts[0]), int(parts[1])
+                        colors[node] = color
+            return colors
+        except (FileNotFoundError, ValueError) as e:
+            return {}

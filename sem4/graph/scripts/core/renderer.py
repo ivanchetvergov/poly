@@ -18,7 +18,7 @@ class Renderer:
     def compute_layout(self, G: nx.Graph) -> Dict:
         return nx.spring_layout(G, seed=plot_cfg.seed, k=1.5, iterations=50)
 
-    def draw_nodes(self, G: nx.Graph, pos: Dict, node_colors=None):
+    def draw_nodes(self, G: nx.Graph, pos: Dict, node_colors=None, **kwargs):
         if node_colors is None:
             node_colors = node_cfg.node_color
 
@@ -28,7 +28,8 @@ class Renderer:
             node_size=node_cfg.node_size,
             edgecolors=node_cfg.node_edge_color,
             linewidths=node_cfg.node_edge_width,
-            ax=self.ax
+            ax=self.ax,
+            **kwargs
         )
 
     def draw_edges(self, G: nx.Graph, pos: Dict, directed: bool = False, **kwargs):
