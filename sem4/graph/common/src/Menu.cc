@@ -197,6 +197,76 @@ void Menu::initializeActions() {
             std::cout << "[FAIL] " << no_flow_msg_ << "\n";
         }
     };
+    actions_[41] = [this]() {
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab4_runner_.setGraph(graph_.get());
+                int count = lab4_runner_.countSpanningTrees();
+                std::cout << "Количество остовных деревьев: " << count << "\n";
+            },
+            no_graph_msg_);
+    };
+    actions_[42] = [this]() {
+        checkAndRun(
+            graph_,
+            [&]() {
+                std::vector<int> set;
+                int n = readInt("Размер множества: ");
+                for (int i = 0; i < n; ++i) {
+                    set.push_back(readInt(("Вершина " + std::to_string(i + 1) + ": ").c_str()));
+                }
+                lab4_runner_.setGraph(graph_.get());
+                auto result = lab4_runner_.checkIndependentSet(set);
+                std::cout << "Независимое множество: " << (result.is_independent ? "Да" : "Нет") << "\n";
+            },
+            no_graph_msg_);
+    };
+    actions_[43] = [this]() {
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab4_runner_.setGraph(graph_.get());
+                auto result = lab4_runner_.findChromaticNumber();
+                std::cout << "Хроматическое число: " << result.chromatic_number << "\n";
+                if (!result.coloring.empty()) {
+                    std::cout << "Раскраска: ";
+                    for (size_t i = 0; i < result.coloring.size(); ++i) {
+                        std::cout << "v" << i << ":" << result.coloring[i] << " ";
+                    }
+                    std::cout << "\n";
+                }
+            },
+            no_graph_msg_);
+    };
+    actions_[44] = [this]() {
+        checkAndRun(
+            graph_,
+            [&]() {
+                lab4_runner_.setGraph(graph_.get());
+                auto result = lab4_runner_.findMaxIndependentSet();
+                std::cout << "Максимальное независимое множество: ";
+                for (int v : result.independent_set) {
+                    std::cout << v << " ";
+                }
+                std::cout << "\n";
+            },
+            no_graph_msg_);
+    };
+    actions_[45] = [this]() {
+        checkAndRun(
+            graph_,
+            [&]() {
+                auto const& result = lab4_runner_.getLastCombinatorics();
+                if (result && !result->coloring.empty()) {
+                    Visualizer::drawColoredGraph(*graph_, result->coloring, "assets/png/coloring.png",
+                                                 "Раскраска графа");
+                } else {
+                    std::cout << "[FAIL] Сначала найдите хроматическое число (пункт 43)\n";
+                }
+            },
+            no_graph_msg_);
+    };
     actions_[51] = [this]() {
         checkAndRun(
             graph_,
@@ -303,7 +373,13 @@ void Menu::show() const {
     std::cout << "54 - Визуализировать TSP-цикл\n";
     std::cout << "55 - Визуализировать Гамильтонов цикл\n";
     std::cout << "56 - Визуализировать Эйлеров цикл\n";
-
+    std::cout << "\n[Lab 4 - Остовы и комбинаторика]\n";
+    std::cout << "40 - Число остовных деревьев (Кирхгоф)\n";
+    std::cout << "41 - Максимальное независимое множество вершин\n";
+    std::cout << "42 - Максимальное независимое множество ребер\n";
+    std::cout << "43 - Минимальное вершинное покрытие\n";
+    std::cout << "44 - Минимальное реберное покрытие\n";
+    std::cout << "45 - Минимальная раскраска графа\n";
     std::cout << "\n0 - Выход\n";
 }
 

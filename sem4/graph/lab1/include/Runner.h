@@ -22,21 +22,16 @@ struct PathResult {
 class Runner {
 public:
     Runner() = default;
-    explicit Runner(Graph* graph) : graph_(graph) {}
 
-    void setGraph(Graph* graph) { graph_ = graph; }
-    Graph const* getGraph() const;
-
-    void runShimbellMethod(int pathLength);
+    void runShimbellMethod(Graph const& graph, int pathLength);
     ShimbellResult const* getLastShimbell() const;
 
-    int countPaths(int from, int to);
+    int countPaths(Graph const& graph, int from, int to);
 
     std::optional<PathResult> const& getLastPath() const;
     std::vector<std::vector<int>> const& getAllPaths() const;
 
 private:
-    Graph* graph_ = nullptr;
     std::optional<PathResult> last_path_;
     std::optional<ShimbellResult> last_shimbell_;
     std::vector<std::vector<int>> all_paths_;

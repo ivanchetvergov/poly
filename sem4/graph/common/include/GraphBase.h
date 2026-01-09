@@ -13,6 +13,9 @@ public:
     explicit GraphBase(bool isDirected = false) : is_directed_(isDirected) {}
     virtual ~GraphBase() = default;
 
+    GraphBase(GraphBase const&) = delete;
+    GraphBase& operator=(GraphBase const&) = delete;
+
     bool addVertex(int id);
     [[nodiscard]] bool hasVertex(int id) const noexcept;
     [[nodiscard]] std::optional<VertexT const*> getVertex(int id) const;

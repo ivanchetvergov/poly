@@ -102,4 +102,16 @@ void Visualizer::exportFlow(FlowNetwork const& network, std::string const& filen
     }
 }
 
+void Visualizer::exportColors(std::vector<int> const& colors, std::string const& filename) {
+    std::ofstream out(filename);
+    if (!out) {
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        return;
+    }
+    for (size_t i = 0; i < colors.size(); ++i) {
+        out << i << " " << colors[i] << "\n";
+    }
+    out.close();
+}
+
 }  // namespace graph

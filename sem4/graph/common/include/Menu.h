@@ -2,6 +2,7 @@
 
 #include "../../lab1/include/Runner.h"
 #include "../../lab3/include/Runner.h"
+#include "../../lab4/include/Runner.h"
 #include "../../lab5/include/Runner.h"
 
 #include <functional>
@@ -30,6 +31,7 @@ private:
     Generator gen_;
     lab1::Runner lab1_runner_;
     lab3::Runner lab3_runner_;
+    lab4::Runner lab4_runner_;
     lab5::Runner lab5_runner_;
     double last_max_flow_ = 0.0;
 

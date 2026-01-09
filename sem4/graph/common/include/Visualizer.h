@@ -61,7 +61,12 @@ public:
                                std::string const& outputFile = "assets/png/cost_matrix.png",
                                std::string const& title = "");
 
+    static void drawColoredGraph(Graph const& graph, std::vector<int> const& colors,
+                                 std::string const& outputFile = "assets/png/colored_graph.png",
+                                 std::string const& title = "");
+
 private:
+    static void exportColors(std::vector<int> const& colors, std::string const& filename);
     static void exportEdges(Graph const& graph, std::string const& filename);
     static void exportPath(std::vector<int> const& path, std::string const& filename);
     static void exportPaths(std::vector<std::vector<int>> const& paths,

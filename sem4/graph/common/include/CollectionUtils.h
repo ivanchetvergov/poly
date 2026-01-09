@@ -72,9 +72,4 @@ public:
     }
 };
 
-template <typename Map, typename Key>
-static bool hasKey(Map const& map, Key const& key) {
-    return map.find(key) != map.end();
-}
-
 }  // namespace graph

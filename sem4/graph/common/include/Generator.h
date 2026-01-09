@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Graph.h"
-
 #include <functional>
 #include <memory>
 #include <optional>
@@ -12,6 +10,7 @@
 namespace graph {
 
 class FlowNetwork;
+class Graph;
 
 class Generator {
 public:

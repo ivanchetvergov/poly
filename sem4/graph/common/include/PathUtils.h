@@ -51,6 +51,7 @@ public:
         std::reverse(path.begin(), path.end());
         return path;
     }
+
 };
 
 }  // namespace graph

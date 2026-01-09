@@ -159,4 +159,15 @@ void Visualizer::drawCostMatrix(FlowNetwork const& network, std::string const& o
     drawMatrixHelper(matrix, "assets/txt/matrix.txt", outputFile, title, "Матрица стоимостей");
 }
 
+void Visualizer::drawColoredGraph(Graph const& graph, std::vector<int> const& colors,
+                                  std::string const& outputFile, std::string const& title) {
+    exportEdges(graph, "assets/txt/graph.txt");
+    exportColors(colors, "assets/txt/colors.txt");
+    std::string graph_type = graph.isDirected() ? "directed" : "undirected";
+    drawGraphHelper("plot_colored_graph.py", "assets/txt/graph.txt", outputFile, graph_type, title,
+                    "Раскраска графа");
+}
+
+
+
 }  // namespace graph
