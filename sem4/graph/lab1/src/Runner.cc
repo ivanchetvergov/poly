@@ -13,29 +13,17 @@ namespace lab1 {
 using graph::PathCounter;
 using graph::ShimbellMethod;
 
-Graph const* Runner::getGraph() const {
-    return graph_;
-}
-
-void Runner::runShimbellMethod(int pathLength) {
-    if (!graph_) {
-        throw std::runtime_error("Graph not set");
-    }
-
-    ShimbellMethod shimbell(*graph_);
+void Runner::runShimbellMethod(Graph const& graph, int pathLength) {
+    ShimbellMethod shimbell(graph);
     last_shimbell_ = shimbell.compute(pathLength);
 }
 
-int Runner::countPaths(int from, int to) {
-    if (!graph_) {
-        throw std::runtime_error("Graph not set");
-    }
-
-    if (!graph_->hasVertex(from) || !graph_->hasVertex(to)) {
+int Runner::countPaths(Graph const& graph, int from, int to) {
+    if (!graph.hasVertex(from) || !graph.hasVertex(to)) {
         throw std::invalid_argument("Vertex does not exist");
     }
 
-    PathCounter counter(*graph_);
+    PathCounter counter(graph);
     all_paths_ = counter.getAllPaths(from, to);
     int count = counter.getPathCount(from, to);
 
