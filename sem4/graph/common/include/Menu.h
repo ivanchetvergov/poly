@@ -38,7 +38,6 @@ private:
     char const* no_graph_msg_ = "Сначала сгенерируйте граф (пункт 1)";
     char const* no_flow_msg_ = "Сначала сгенерируйте сеть потоков (пункт 31)";
     char const* no_max_flow_msg_ = "Сначала найдите максимальный поток (пункт 32)";
-    char const* no_min_cost_msg_ = "Сначала найдите путь минимальной стоимости (пункт 33)";
     char const* no_tsp_msg_ = "Сначала найдите TSP-цикл (пункт 53)";
     char const* no_hamilton_msg_ = "Сначала найдите Гамильтонов цикл (пункт 52)";
     char const* no_euler_msg_ = "Сначала найдите Эйлеров цикл (пункт 51)";

@@ -9,6 +9,7 @@ add_library(graph_common STATIC
     src/Generator.cc
     src/Visualizer.cc
     src/VisualizerHelpers.cc
+    src/DrawDataConfig.cc
     src/Menu.cc
     src/Animator.cc
 )

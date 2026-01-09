@@ -8,10 +8,10 @@
 
 namespace graph {
 
-void Visualizer::exportEdges(Graph const& graph, std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportEdges(Graph const& graph, DrawData const& data) {
+    std::ofstream out(data.txtFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtFile << "\n";
         return;
     }
     for (auto const& edge : graph.edges()) {
@@ -19,29 +19,35 @@ void Visualizer::exportEdges(Graph const& graph, std::string const& filename) {
     }
 }
 
-void Visualizer::exportPath(std::vector<int> const& path, std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportPath(DrawData const& data) {
+    std::ofstream out(data.txtPathsFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtPathsFile << "\n";
         return;
     }
-    for (size_t i = 0; i < path.size(); ++i) {
-        out << path[i];
-        if (i + 1 < path.size())
+    for (size_t i = 0; i < data.path.size(); ++i) {
+        out << data.path[i];
+        if (i + 1 < data.path.size())
             out << " ";
     }
     out << "\n";
 }
 
-void Visualizer::exportPaths(std::vector<std::vector<int>> const& paths,
-                             std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportPaths(DrawData const& data) {
+    std::ofstream out(data.txtPathsFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtPathsFile << "\n";
         return;
     }
-    out << paths.size() << "\n";
-    for (auto const& path : paths) {
+    std::vector<std::vector<int>> non_empty_paths;
+    for (auto const& path : data.paths) {
+        if (!path.empty()) {
+            non_empty_paths.push_back(path);
+        }
+    }
+
+    out << non_empty_paths.size() << "\n";
+    for (auto const& path : non_empty_paths) {
         for (size_t i = 0; i < path.size(); ++i) {
             out << path[i];
             if (i + 1 < path.size())
@@ -51,23 +57,21 @@ void Visualizer::exportPaths(std::vector<std::vector<int>> const& paths,
     }
 }
 
-void Visualizer::exportAddedEdges(std::vector<std::pair<int, int>> const& addedEdges,
-                                  std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportAddedEdges(DrawData const& data) {
+    std::ofstream out(data.txtGraphFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtGraphFile << "\n";
         return;
     }
-    for (auto const& [u, v] : addedEdges) {
+    for (auto const& [u, v] : data.addedEdges) {
         out << u << " " << v << "\n";
     }
 }
 
-void Visualizer::exportMatrix(std::vector<std::vector<double>> const& matrix,
-                              std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportMatrix(std::vector<std::vector<double>> const& matrix, DrawData const& data) {
+    std::ofstream out(data.txtFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtFile << "\n";
         return;
     }
     for (auto const& row : matrix) {
@@ -80,10 +84,10 @@ void Visualizer::exportMatrix(std::vector<std::vector<double>> const& matrix,
     }
 }
 
-void Visualizer::exportFlow(FlowNetwork const& network, std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportFlow(FlowNetwork const& network, DrawData const& data) {
+    std::ofstream out(data.txtFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtFile << "\n";
         return;
     }
     auto vertices = network.vertexIds();
@@ -102,14 +106,14 @@ void Visualizer::exportFlow(FlowNetwork const& network, std::string const& filen
     }
 }
 
-void Visualizer::exportColors(std::vector<int> const& colors, std::string const& filename) {
-    std::ofstream out(filename);
+void Visualizer::exportColors(DrawData const& data, std::vector<int> const& vertices) {
+    std::ofstream out(data.txtColorsFile);
     if (!out) {
-        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << filename << "\n";
+        std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtColorsFile << "\n";
         return;
     }
-    for (size_t i = 0; i < colors.size(); ++i) {
-        out << i << " " << colors[i] << "\n";
+    for (size_t i = 0; i < data.colors.size(); ++i) {
+        out << vertices[i] << " " << data.colors[i] << "\n";
     }
     out.close();
 }
