@@ -17,8 +17,8 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .paths = {}
     }},
     {2, {
-        .pngFile = "assets/png/03_adjacency_matrix.png",
-        .txtFile = "assets/txt/03_adjacency_matrix.txt",
+        .pngFile = "assets/png/02_adjacency_matrix.png",
+        .txtFile = "assets/txt/02_adjacency_matrix.txt",
         .txtColorsFile = "",
         .txtPathsFile = "",
         .txtGraphFile = "",
@@ -30,8 +30,8 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .paths = {}
     }},
     {3, {
-        .pngFile = "assets/png/04_weight_matrix.png",
-        .txtFile = "assets/txt/04_weight_matrix.txt",
+        .pngFile = "assets/png/03_weight_matrix.png",
+        .txtFile = "assets/txt/03_weight_matrix.txt",
         .txtColorsFile = "",
         .txtPathsFile = "",
         .txtGraphFile = "",
@@ -42,12 +42,12 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
-    {13, {
-        .pngFile = "assets/png/13_paths.png",
-        .txtFile = "",
+    {12, {
+        .pngFile = "assets/png/12_paths.png",
+        .txtFile = "assets/txt/12_graph.txt",
         .txtColorsFile = "",
-        .txtPathsFile = "assets/txt/13_paths.txt",
-        .txtGraphFile = "assets/txt/13_graph.txt",
+        .txtPathsFile = "assets/txt/12_paths.txt",
+        .txtGraphFile = "",
         .gifFile = "",
         .title = "Найденные пути",
         .colors = {},
@@ -55,14 +55,27 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
-    {14, {
-        .pngFile = "assets/png/14_shimbell_min.png",
-        .txtFile = "assets/txt/14_shimbell_min.txt",
+    {13, {
+        .pngFile = "assets/png/13_shimbell_min.png",
+        .txtFile = "assets/txt/13_shimbell_min.txt",
         .txtColorsFile = "",
         .txtPathsFile = "",
         .txtGraphFile = "",
         .gifFile = "",
-        .title = "Матрица Шимбелла",
+        .title = "Матрица минимальных расстояний Шимбелла",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {14, {
+        .pngFile = "assets/png/13_shimbell_max.png",
+        .txtFile = "assets/txt/13_shimbell_max.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "Матрица максимальных расстояний Шимбелла",
         .colors = {},
         .path = {},
         .addedEdges = {},
@@ -94,11 +107,11 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
-    {34, {
-        .pngFile = "assets/png/34_min_cost_flow_path.png",
-        .txtFile = "assets/txt/34_flow.txt",
+    {33, {
+        .pngFile = "assets/png/33_min_cost_flow_path.png",
+        .txtFile = "assets/txt/33_flow.txt",
         .txtColorsFile = "",
-        .txtPathsFile = "assets/txt/34_path.txt",
+        .txtPathsFile = "assets/txt/33_path.txt",
         .txtGraphFile = "",
         .gifFile = "",
         .title = "Путь минимальной стоимости",
@@ -107,9 +120,9 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
-    {35, {
-        .pngFile = "assets/png/35_capacity_matrix.png",
-        .txtFile = "assets/txt/35_capacity_matrix.txt",
+    {34, {
+        .pngFile = "assets/png/34_capacity_matrix.png",
+        .txtFile = "assets/txt/34_capacity_matrix.txt",
         .txtColorsFile = "",
         .txtPathsFile = "",
         .txtGraphFile = "",
@@ -120,9 +133,9 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
-    {36, {
-        .pngFile = "assets/png/36_cost_matrix.png",
-        .txtFile = "assets/txt/36_cost_matrix.txt",
+    {35, {
+        .pngFile = "assets/png/35_cost_matrix.png",
+        .txtFile = "assets/txt/35_cost_matrix.txt",
         .txtColorsFile = "",
         .txtPathsFile = "",
         .txtGraphFile = "",
@@ -177,7 +190,7 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .txtFile = "assets/txt/45_graph.txt",
         .txtColorsFile = "",
         .txtPathsFile = "assets/txt/45_paths.txt",
-        .txtGraphFile = "",
+        .txtGraphFile = "assets/txt/45_added_edges.txt",
         .gifFile = "",
         .title = "Минимальное реберное покрытие",
         .colors = {},
@@ -186,19 +199,6 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .paths = {}
     }},
     {46, {
-        .pngFile = "assets/png/46_coloring.png",
-        .txtFile = "assets/txt/46_graph.txt",
-        .txtColorsFile = "assets/txt/46_colors.txt",
-        .txtPathsFile = "",
-        .txtGraphFile = "",
-        .gifFile = "",
-        .title = "Раскраска графа",
-        .colors = {},
-        .path = {},
-        .addedEdges = {},
-        .paths = {}
-    }},
-    {47, {
         .pngFile = "assets/png/46_coloring.png",
         .txtFile = "assets/txt/46_graph.txt",
         .txtColorsFile = "assets/txt/46_colors.txt",

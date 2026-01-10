@@ -69,7 +69,7 @@ class Renderer:
         )
 
     def add_legend(self, elements: List):
-        self.ax.legend(handles=elements, loc='upper left', fontsize=plot_cfg.fontsize)
+        self.ax.legend(handles=elements, loc='best', fontsize=plot_cfg.fontsize)
 
     def finalize(self, output_file: str, title: Optional[str] = None, show: bool = True):
         if title:
@@ -81,7 +81,7 @@ class Renderer:
             )
         self.ax.axis('off')
         plt.tight_layout()
-        plt.savefig(output_file, bbox_inches='tight')
+        plt.savefig(output_file, bbox_inches='tight', dpi=plot_cfg.dpi)
         if show:
             plt.show()
         plt.close()

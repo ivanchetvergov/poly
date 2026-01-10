@@ -114,7 +114,7 @@ def animate_flow_growth(snapshots, output_file='assets/gif/flow_animation.gif',
         repeat_delay=animation_cfg.animation_repeat_delay
     )
 
-    anim.save(output_file, writer='pillow', fps=1)
+    anim.save(output_file, writer='pillow', fps=animation_cfg.fps, dpi=animation_cfg.dpi)
     print(f"Анимация сохранена: {output_file}")
 
     if show:

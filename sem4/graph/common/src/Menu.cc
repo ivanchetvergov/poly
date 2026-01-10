@@ -28,7 +28,7 @@ void Menu::initializeActions() {
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(2);
                 Visualizer::drawAdjacencyMatrix(*graph_, data);
-                std::cout << "[OK] Матрица смежности сохранена в assets/png/03_adjacency_matrix.png\n";
+                std::cout << "[OK] Матрица смежности сохранена в assets/png/02_adjacency_matrix.png\n";
             },
             no_graph_msg_);
     };
@@ -38,18 +38,19 @@ void Menu::initializeActions() {
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(3);
                 Visualizer::drawWeightMatrix(*graph_, data);
-                std::cout << "[OK] Матрица весов сохранена в assets/png/04_weight_matrix.png\n";
+                std::cout << "[OK] Матрица весов сохранена в assets/png/03_weight_matrix.png\n";
             },
             no_graph_msg_);
     };
     actions_[11] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                int path_length = readInt("Длина пути: ");
-                lab1_runner_.runShimbellMethod(*graph_, path_length);
-            },
-            no_graph_msg_);
+    checkAndRun(
+        graph_,
+        [&]() {
+            int path_length = readInt("Длина пути: ");
+            lab1_runner_.runShimbellMethod(*graph_, path_length);
+            std::cout << "[OK] Метод Шимбелла выполнен\n";
+        },
+        no_graph_msg_);
     };
     actions_[12] = [this]() {
         checkAndRun(
@@ -59,6 +60,13 @@ void Menu::initializeActions() {
                 int to = readInt("Конечная вершина: ");
                 int result = lab1_runner_.countPaths(*graph_, from, to);
                 std::cout << "Количество путей: " << result << "\n";
+                auto const& all_paths = lab1_runner_.getAllPaths();
+                if (!all_paths.empty()) {
+                    auto data = DrawDataConfig::getConfigs().at(12);
+                    data.paths = all_paths;
+                    Visualizer::drawGraphWithPaths(*graph_, data);
+                    std::cout << "[OK] Пути сохранены в assets/png/12_paths.png\n";
+                }
             },
             no_graph_msg_);
     };
@@ -66,37 +74,15 @@ void Menu::initializeActions() {
         checkAndRun(
             graph_,
             [&]() {
-                auto const& all_paths = lab1_runner_.getAllPaths();
-                if (!all_paths.empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(13);
-                    data.paths = {all_paths[0]};
-                    Visualizer::drawGraphWithPaths(*graph_, data);
-                    std::cout << "[OK] Путь сохранен в assets/png/13_paths.png\n";
-                } else {
-                    std::cout << "[FAIL] Сначала найдите пути (пункт 12)\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[14] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
                 auto const* const shimbell = lab1_runner_.getLastShimbell();
                 if (shimbell) {
-                    auto dataMin = DrawDataConfig::getConfigs().at(14);
-                    dataMin.title = "Мин матрица Шимбелла";
-                    dataMin.pngFile = "assets/png/14_shimbell_min.png";
-                    dataMin.txtFile = "assets/txt/14_shimbell_min.txt";
+                    auto dataMin = DrawDataConfig::getConfigs().at(13);
+                    Visualizer::drawShimbellMatrix(shimbell->min_distances, dataMin);
 
                     auto dataMax = DrawDataConfig::getConfigs().at(14);
-                    dataMax.title = "Макс матрица Шимбелла";
-                    dataMax.pngFile = "assets/png/14_shimbell_max.png";
-                    dataMax.txtFile = "assets/txt/14_shimbell_max.txt";
-
-                    Visualizer::drawShimbellMatrix(shimbell->min_distances, dataMin);
                     Visualizer::drawShimbellMatrix(shimbell->max_distances, dataMax);
 
+                    std::cout << "[OK] Матрицы Шимбелла сохранены в assets/png/13_shimbell_min.png и 13_shimbell_max.png\n";
                 } else {
                     std::cout << "[FAIL] Сначала вычислите матрицу Шимбелла (пункт 11)\n";
                 }
@@ -144,8 +130,7 @@ void Menu::initializeActions() {
             std::cout << "Минимальная стоимость: " << result.cost << "\n";
             std::cout << "Достигнутый поток: " << result.flow << "\n";
             if (!result.path.empty()) {
-                std::cout << "Длина пути: " << result.path.size() << " узлов\n";
-                auto data = DrawDataConfig::getConfigs().at(34);
+                auto data = DrawDataConfig::getConfigs().at(33);
                 data.path = result.path;
                 Visualizer::drawFlowNetworkWithPath(*flow_net_, data);
             } else {
@@ -157,35 +142,23 @@ void Menu::initializeActions() {
             std::cout << "[FAIL] " << no_max_flow_msg_ << "\n";
         }
     };
+    actions_[34] = [this]() {
+        checkAndRun(
+            flow_net_,
+            [&]() {
+                auto data = DrawDataConfig::getConfigs().at(34);
+                Visualizer::drawCapacityMatrix(*flow_net_, data);
+            },
+            no_flow_msg_);
+    };
     actions_[35] = [this]() {
         checkAndRun(
             flow_net_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(35);
-                Visualizer::drawCapacityMatrix(*flow_net_, data);
-            },
-            no_flow_msg_);
-    };
-    actions_[36] = [this]() {
-        checkAndRun(
-            flow_net_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(36);
                 Visualizer::drawCostMatrix(*flow_net_, data);
             },
             no_flow_msg_);
-    };
-    actions_[37] = [this]() {
-        if (flow_net_) {
-            try {
-                Animator::animateFlowGrowth();
-            } catch (std::exception const& e) {
-                std::cout << "[FAIL] " << e.what() << "\n";
-                std::cout << "[INFO] " << no_max_flow_msg_ << "\n";
-            }
-        } else {
-            std::cout << "[FAIL] " << no_flow_msg_ << "\n";
-        }
     };
     actions_[41] = [this]() {
         checkAndRun(
@@ -243,10 +216,6 @@ void Menu::initializeActions() {
             [&]() {
                 auto result = lab4_runner_.findMinVertexCover(*graph_);
                 std::cout << "Минимальное вершинное покрытие (размер " << result.vertex_cover.size() << "): ";
-                for (int v : result.vertex_cover) {
-                    std::cout << v << " ";
-                }
-                std::cout << "\n";
 
                 auto data = DrawDataConfig::getConfigs().at(44);
                 std::vector<int> colors(graph_->vertexCount(), 0);
@@ -265,10 +234,6 @@ void Menu::initializeActions() {
             [&]() {
                 auto result = lab4_runner_.findMinEdgeCover(*graph_);
                 std::cout << "Минимальное реберное покрытие (размер " << result.edge_cover.size() << "): ";
-                for (auto const& [u, v] : result.edge_cover) {
-                    std::cout << "(" << u << "," << v << ") ";
-                }
-                std::cout << "\n";
 
                 auto data = DrawDataConfig::getConfigs().at(45);
                 data.addedEdges = result.edge_cover;
@@ -375,16 +340,14 @@ void Menu::show() const {
     std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
     std::cout << "11 - Метод Шимбелла\n";
     std::cout << "12 - Подсчёт количества маршрутов\n";
-    std::cout << "13 - Визуализировать найденный путь\n";
-    std::cout << "14 - Визуализировать матрицу Шимбелла\n";
+    std::cout << "13 - Визуализировать матрицу Шимбелла\n";
 
     std::cout << "\n[Lab 3 - Потоки]\n";
     std::cout << "31 - Сгенерировать сеть потоков\n";
     std::cout << "32 - Поиск максимального потока\n";
-    std::cout << "33 - Поиск потока минимальной стоимости\n";
-    std::cout << "34 - Визуализировать путь минимальной стоимости\n";
-    std::cout << "35 - Визуализировать матрицу пропускных способностей\n";
-    std::cout << "36 - Визуализировать матрицу стоимостей\n";
+    std::cout << "33 - Визуализировать путь минимальной стоимости\n";
+    std::cout << "34 - Визуализировать матрицу пропускных способностей\n";
+    std::cout << "35 - Визуализировать матрицу стоимостей\n";
 
     std::cout << "\n[Lab 4 - Остовы и комбинаторика]\n";
     std::cout << "41 - Число остовных деревьев (Кирхгоф)\n";

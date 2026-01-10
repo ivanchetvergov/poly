@@ -58,6 +58,10 @@ void Visualizer::exportPaths(DrawData const& data) {
 }
 
 void Visualizer::exportAddedEdges(DrawData const& data) {
+    if (data.txtGraphFile.empty()) {
+        std::cerr << "[FAIL] txtGraphFile не указан в конфигурации\n";
+        return;
+    }
     std::ofstream out(data.txtGraphFile);
     if (!out) {
         std::cerr << "[FAIL] Не удалось открыть файл для записи: " << data.txtGraphFile << "\n";

@@ -9,6 +9,7 @@ class PlotConfig:
     fontsize: int = 10
     title_font_size: int = 15
     title_font_weight: str = 'bold'
+    dpi: str = 300
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,8 @@ class MatrixConfig:
 class AnimationConfig:
     animation_interval: int = 500
     animation_repeat_delay: int = 1000
+    dpi: int = 300
+    fps: int = 2
 
 
 plot_cfg = PlotConfig()
