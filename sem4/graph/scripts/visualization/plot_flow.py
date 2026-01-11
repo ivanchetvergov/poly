@@ -12,6 +12,7 @@ def main():
     flow_file = sys.argv[1]
     output_file = sys.argv[2]
     directed = True if len(sys.argv) <= 3 else sys.argv[3].lower() == 'directed'
+    title = ' '.join(sys.argv[4:]) if len(sys.argv) > 4 else f'Сеть потоков'
 
     loader = GraphLoader()
     G = loader.load_flow_network(flow_file, directed)
@@ -59,7 +60,6 @@ def main():
     ]
     renderer.add_legend(legend)
 
-    title = f'Сеть потоков: толщина = поток, цвет = загрузка ({"directed" if directed else "undirected"})'
     renderer.finalize(output_file, title)
 
 

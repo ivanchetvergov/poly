@@ -36,7 +36,7 @@ void PathCounter::backtrackAllPaths(
     if (current == target) {
         allPaths.push_back(currentPath);
     } else {
-        for (auto const& [neighborId, weight] : m_graph_.neighbors(current)) {
+        for (auto const& [neighborId, _] : m_graph_.neighbors(current)) {
             if (!visited[neighborId]) {
                 backtrackAllPaths(neighborId, target, visited, currentPath, allPaths);
             }

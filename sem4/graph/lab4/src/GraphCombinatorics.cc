@@ -12,48 +12,65 @@ VerticesSet GraphCombinatorics::findMaxIndependentSetVertices(Graph const& graph
     auto vertices = graph.vertexIds();
     size_t n = vertices.size();
 
-    if (n < 10) {
-        VerticesSet current, best;
-        backtrackIndependentSet(graph, 0, vertices, current, best);
+    if (n < 15) {
+        // перебор всех подмножеств вершин O(2^n * n^2)
+        VerticesSet best;
+        for (int mask = 0; mask < (1 << n); ++mask) {
+            VerticesSet subset;
+            for (size_t i = 0; i < n; ++i) {
+                if (mask & (1 << i)) {
+                    subset.push_back(vertices[i]);
+                }
+            }
+            if (isIndependentSet(graph, subset) && subset.size() > best.size()) {
+                best = subset;
+            }
+        }
         return best;
     }
 
-    std::sort(vertices.begin(), vertices.end(),
-              [&](int a, int b) { return graph.degree(a) > graph.degree(b); });
-
+    // TODO: для n >= 15 жадный алгоритм:
+    // sort вершин по степени (квазилинейно) затем перебор вершин O(n * m)
     VerticesSet independent_set;
-    std::unordered_set<int> selected;
-
-    for (int vertex : vertices) {
-        bool canAdd = true;
-        for (int neighbor : graph.getNeighbors(vertex)) {
-            if (selected.count(neighbor)) {
-                canAdd = false;
-                break;
-            }
-        }
-        if (canAdd) {
-            independent_set.push_back(vertex);
-            selected.insert(vertex);
-        }
-    }
     return independent_set;
 }
 
 EdgesSet GraphCombinatorics::findMaxIndependentSetEdges(Graph const& graph) {
-    EdgesSet matching;
-    std::unordered_set<int> used_vertices;
-
     auto edges = graph.edges();
-    for (auto const& edge : edges) {
-        int u = edge.from;
-        int v = edge.to;
-        if (used_vertices.count(u) == 0 && used_vertices.count(v) == 0) {
-            matching.emplace_back(u, v);
-            used_vertices.insert(u);
-            used_vertices.insert(v);
+    size_t m = edges.size();
+
+    if (m < 30) {
+        // перебор всех подмножеств рёбер: O(2^m * m)
+        EdgesSet best;
+        for (int mask = 0; mask < (1 << m); ++mask) {
+            EdgesSet subset;
+            std::unordered_set<int> used_vertices;
+            bool valid = true;
+
+            for (size_t i = 0; i < m; ++i) {
+                if (mask & (1 << i)) {
+                    int u = edges[i].from;
+                    int v = edges[i].to;
+                    if (used_vertices.count(u) || used_vertices.count(v)) {
+                        valid = false;
+                        break;
+                    }
+                    subset.push_back({u, v});
+                    used_vertices.insert(u);
+                    used_vertices.insert(v);
+                }
+            }
+
+            if (valid && subset.size() > best.size()) {
+                best = subset;
+            }
         }
+        return best;
     }
+
+    // TODO: для m >= 30 жадный алгоритм:
+    // - sort рёбер степени (квазилинейно) и затем за линию по ребрам O(m)
+    EdgesSet matching;
     return matching;
 }
 
@@ -80,12 +97,10 @@ EdgesSet GraphCombinatorics::findMinEdgeCover(Graph const& graph) {
     }
 
     EdgesSet cover = matching;
-    // Cover remaining vertices
     for (int vertex : graph.vertexIds()) {
         if (coveredVertices.count(vertex) == 0) {
             auto neighbors = graph.getNeighbors(vertex);
             if (!neighbors.empty()) {
-                // Add edge to first neighbor
                 int neighbor = neighbors[0];
                 cover.emplace_back(vertex, neighbor);
                 coveredVertices.insert(vertex);
@@ -100,68 +115,28 @@ VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph) {
     auto vertices = graph.vertexIds();
     size_t n = vertices.size();
 
-    // Create mapping from vertex ID to index
     std::unordered_map<int, int> vertex_to_index;
     for (size_t i = 0; i < vertices.size(); ++i) {
         vertex_to_index[vertices[i]] = i;
     }
 
-    if (n < 10) {
+    if (n < 15) {
         VerticesSet colors(n, -1);
         VerticesSet best_colors(n, -1);
-        int bestColors = static_cast<int>(n);
-        backtrackColoring(graph, 0, vertices, colors, bestColors, best_colors, vertex_to_index);
+
+        for (int max_colors = 1; max_colors <= static_cast<int>(n); ++max_colors) {
+            std::fill(colors.begin(), colors.end(), -1);
+            backtrackColoring(graph, 0, vertices, colors, max_colors, best_colors, vertex_to_index);
+            if (best_colors[0] != -1) {
+                return best_colors;
+            }
+        }
         return best_colors;
     }
 
+    // TODO: жадный алгоритм
     VerticesSet colors(n, -1);
-    std::sort(vertices.begin(), vertices.end(),
-              [&graph](int a, int b) { return graph.degree(a) > graph.degree(b); });
-
-    for (int vertex : vertices) {
-        std::unordered_set<int> used_colors;
-        for (auto const& [neighbor, weight] : graph.neighbors(vertex)) {
-            int neighbor_idx = vertex_to_index[neighbor];
-            if (colors[neighbor_idx] != -1) {
-                used_colors.insert(colors[neighbor_idx]);
-            }
-        }
-        int color = 0;
-        while (used_colors.count(color)) {
-            ++color;
-        }
-        colors[vertex_to_index[vertex]] = color;
-    }
     return colors;
-}
-
-
-
-void GraphCombinatorics::backtrackIndependentSet(Graph const& graph, int index,
-                                                  VerticesSet const& vertices,
-                                                  VerticesSet& current, VerticesSet& best) {
-    if (index == static_cast<int>(vertices.size())) {
-        if (current.size() > best.size() && isIndependentSet(graph, current)) {
-            best = current;
-        }
-        return;
-    }
-
-    int vertex = vertices[index];
-    backtrackIndependentSet(graph, index + 1, vertices, current, best);
-
-    bool canAdd = true;
-    for (int v : current) {
-        if (graph.hasEdge(vertex, v)) {
-            canAdd = false;
-            break;
-        }
-    }
-    if (canAdd) {
-        current.push_back(vertex);
-        backtrackIndependentSet(graph, index + 1, vertices, current, best);
-        current.pop_back();
-    }
 }
 
 void GraphCombinatorics::backtrackColoring(Graph const& graph, int index,

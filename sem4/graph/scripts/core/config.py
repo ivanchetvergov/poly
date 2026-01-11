@@ -9,7 +9,7 @@ class PlotConfig:
     fontsize: int = 10
     title_font_size: int = 15
     title_font_weight: str = 'bold'
-    dpi: str = 300
+    dpi: int = 300
 
 
 @dataclass(frozen=True)

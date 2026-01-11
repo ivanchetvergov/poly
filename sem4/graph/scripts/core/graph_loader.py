@@ -54,11 +54,8 @@ class GraphLoader:
                         continue
                     parts = line.split()
                     if len(parts) >= 2:
-                        try:
-                            u, v = int(parts[0]), int(parts[1])
-                            added.add((u, v))
-                        except ValueError:
-                            continue
+                        u, v = int(parts[0]), int(parts[1])
+                        added.add((u, v))
                 return added
         except FileNotFoundError:
             return set()

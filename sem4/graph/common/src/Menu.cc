@@ -1,5 +1,7 @@
 #include "Menu.h"
 #include "DrawDataConfig.h"
+#include <iomanip>
+#include <sstream>
 
 namespace graph {
 
@@ -106,6 +108,9 @@ void Menu::initializeActions() {
                 last_max_flow_ = lab3_runner_.findMaxFlow(*flow_net_, source, sink);
                 std::cout << "Максимальный поток: " << last_max_flow_ << "\n";
                 auto data = DrawDataConfig::getConfigs().at(32);
+                std::stringstream ss;
+                ss << std::fixed << std::setprecision(2) << last_max_flow_;
+                data.title = "Максимальный поток: " + ss.str();
                 Visualizer::drawFlowNetwork(*flow_net_, data);
                 Animator::animateFlowGrowth();
             },
@@ -205,6 +210,7 @@ void Menu::initializeActions() {
                 auto data = DrawDataConfig::getConfigs().at(43);
                 data.addedEdges = result.independent_edges;
                 data.paths = {{}};
+                data.title = "Максимальное независимое множество рёбер (найдено " + std::to_string(result.independent_edges.size()) + ")";
                 Visualizer::drawGraphWithPath(*graph_, data);
                 std::cout << "[OK] Независимые рёбра сохранены в assets/png/43_independent_edges.png\n";
             },

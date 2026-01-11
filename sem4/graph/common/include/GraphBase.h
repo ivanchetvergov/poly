@@ -34,11 +34,12 @@ public:
     [[nodiscard]] bool isDirected() const noexcept { return is_directed_; }
 
 protected:
-    std::unordered_map<int, std::unique_ptr<VertexT>> m_vertices_;
-    std::unordered_map<int64_t, EdgeT> m_edges_;
+    std::unordered_map<uint64_t, std::unique_ptr<VertexT>> m_vertices_;
+    std::unordered_map<uint64_t, EdgeT> m_edges_;
     bool is_directed_ = false;
 
-    int64_t makeKey(int from, int to) const;
+private:
+    uint64_t makeKey(int from, int to) const;
 };
 
 }  // namespace graph

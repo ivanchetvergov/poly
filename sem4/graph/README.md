@@ -232,27 +232,27 @@ TSP работает только на малых графах (n < 10), ина�
 
 ## Визуализация
 
-#### plot_graph.py
+### plot_graph.py
 
 Рисует граф через `networkx.draw()`. Читает из txt: вершины и рёбра с весами.
 
-#### plot_graph_paths.py
+### plot_graph_paths.py
 
 Граф с выделенными путями (для маршрутов и циклов).
 
-#### plot_matrix.py
+### plot_matrix.py
 
 Матрицы через `seaborn.heatmap()` (Шимбелл, пропускные способности).
 
-#### plot_flow.py
+### plot_flow.py
 
 Сети потоков: толщина рёбер = поток, цвет = загрузка.
 
-#### plot_colored_graph.py
+### plot_colored_graph.py
 
 Раскраска графов: вершины разных цветов для множеств/покрытий.
 
-#### plot_flow_animation.py
+### plot_flow_animation.py
 
 Анимация роста потока: кадры с увеличивающимся потоком, сохранение в GIF.
 

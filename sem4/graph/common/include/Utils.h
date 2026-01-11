@@ -33,6 +33,7 @@ bool checkAndRun(std::unique_ptr<T> const& ptr, std::function<void()> action,
     return false;
 }
 
+inline std::string venvPath = "/Users/ivan/myvenv/bin/python";
 inline void runPythonScript(std::string const& scriptName, std::vector<std::string> const& args) {
     std::string full_script_name = scriptName;
     if (scriptName.find("plot_") == 0) {
@@ -44,7 +45,7 @@ inline void runPythonScript(std::string const& scriptName, std::vector<std::stri
         module = module.substr(0, dot_pos);
     }
     std::replace(module.begin(), module.end(), '/', '.');
-    std::string cmd = "./venv/bin/python -m " + module;
+    std::string cmd = venvPath + " -m " + module;
     for (auto const& arg : args) {
         cmd += " " + arg;
     }

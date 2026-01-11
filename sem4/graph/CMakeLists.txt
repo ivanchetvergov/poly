@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME}
     main.cc
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE graph_common graph_flow graph_lab1_lib graph_lab4_lib graph_lab5_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE graph_flow graph_lab1_lib graph_lab4_lib graph_lab5_lib)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 # Custom target to auto-fix code with clang-tidy and clang-format

@@ -109,11 +109,11 @@ std::vector<EdgeT> GraphBase<VertexT, EdgeT>::edges() const {
 }
 
 template <typename VertexT, typename EdgeT>
-int64_t GraphBase<VertexT, EdgeT>::makeKey(int from, int to) const {
+uint64_t GraphBase<VertexT, EdgeT>::makeKey(int from, int to) const {
     if (!is_directed_ && from > to) {
         std::swap(from, to);
     }
-    return (static_cast<int64_t>(from) << 32) | static_cast<uint32_t>(to);
+    return (static_cast<uint64_t>(from) << 32) | static_cast<uint32_t>(to);
 }
 
 }  // namespace graph
