@@ -23,6 +23,7 @@ struct DrawData {
 
 };
 
+
 class Visualizer {
     using DistanceMatrix = std::vector<std::vector<std::optional<double>>>;
 
