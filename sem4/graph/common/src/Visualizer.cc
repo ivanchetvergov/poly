@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
 namespace graph {
 
@@ -19,16 +20,15 @@ static void drawGraphHelper(std::string const& scriptName, std::string const& da
     runPythonScript(scriptName, args);
 }
 
-void Visualizer::drawMatrixHelper(std::vector<std::vector<double>> const& matrix, DrawData const& data,
-                             std::string const& defaultTitle) {
+void Visualizer::drawMatrixHelper(std::vector<std::vector<double>> const& matrix,
+                                        DrawData const& data,
+                                        std::string const& defaultTitle) {
     exportMatrix(matrix, data);
 
     std::string matrix_title = data.title.empty() ? defaultTitle : data.title;
     std::vector<std::string> args = {data.txtFile, data.pngFile, "\"" + matrix_title + "\""};
     runPythonScript("plot_matrix.py", args);
 }
-
-// ============================================================================
 
 void Visualizer::drawGraph(Graph const& graph, DrawData const& data) {
     exportEdges(graph, data);
@@ -89,8 +89,7 @@ void Visualizer::drawWeightMatrix(Graph const& graph, DrawData const& data) {
 void Visualizer::drawShimbellMatrix(DistanceMatrix const& shimMatrix, DrawData const& data) {
     size_t n = shimMatrix.size();
     std::vector<int> indices(static_cast<size_t>(n));
-    for (size_t i = 0; i < n; ++i)
-        indices[i] = static_cast<int>(i);
+    std::iota(indices.begin(), indices.end(), 0);
 
     auto matrix = CollectionUtils::makeMatrix<double>(indices, indices, [&](int i, int j) {
         return shimMatrix[i][j].has_value() ? shimMatrix[i][j].value() : -1e9;

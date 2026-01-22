@@ -12,6 +12,7 @@ add_library(graph_common STATIC
     src/DrawDataConfig.cc
     src/Menu.cc
     src/Animator.cc
+    src/FileHandler.cc
 )
 
 target_include_directories(graph_common PUBLIC
