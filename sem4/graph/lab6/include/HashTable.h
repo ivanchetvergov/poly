@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "FileHandler.h"
+#include "../../common/include/FileHandler.h"
 
 namespace dict {
 
@@ -29,10 +29,7 @@ public:
     [[nodiscard]] size_t capacity() const noexcept { return m_capacity; }
     void printTable() const;
 
-    bool exportForVisualization(std::string const& filename) const;
-
-    bool loadFromFile(std::string const& filename);
-    bool saveToFile(std::string const& filename) const;
+    [[nodiscard]] std::string getVisualizationData() const;
 
 private:
     std::vector<std::unique_ptr<HashNode>> m_table;

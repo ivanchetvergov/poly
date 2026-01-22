@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 
-#include "FileHandler.h"
+#include "../../common/include/FileHandler.h"
 
 namespace dict {
 
@@ -31,10 +31,7 @@ public:
 
     void printTree() const;
 
-    bool exportForVisualization(std::string const& filename) const;
-
-    bool loadFromFile(std::string const& filename);
-    bool saveToFile(std::string const& filename) const;
+    [[nodiscard]] std::vector<std::tuple<std::string, std::string, std::string>> getVisualizationData() const;
 
 private:
     std::unique_ptr<RBNode> m_root;

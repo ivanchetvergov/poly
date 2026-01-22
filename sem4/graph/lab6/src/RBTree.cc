@@ -1,8 +1,11 @@
 #include "RBTree.h"
+#include "FileHandler.h"
 
 #include <fstream>
 #include <functional>
 #include <iostream>
+
+using graph::FileHandler;
 
 namespace dict {
 
@@ -173,18 +176,18 @@ void RBTree::printTree() const {
     std::cout << std::endl;
 }
 
-bool RBTree::exportForVisualization(std::string const& filename) const {
-    std::string content;
-    std::function<void(std::unique_ptr<RBNode> const&, std::string const&)> traverse =
-        [&](std::unique_ptr<RBNode> const& node, std::string const& parent) {
+std::vector<std::tuple<std::string, std::string, std::string>> RBTree::getVisualizationData() const {
+    std::vector<std::tuple<std::string, std::string, std::string>> nodes;
+    std::function<void(std::unique_ptr<RBNode> const&, std::string)> traverse =
+        [&](std::unique_ptr<RBNode> const& node, std::string parent) {
             if (!node) return;
             std::string color = (node->color == RED) ? "RED" : "BLACK";
-            content += node->key + " " + parent + " " + color + "\n";
+            nodes.emplace_back(node->key, parent, color);
             traverse(node->left, node->key);
             traverse(node->right, node->key);
         };
-    traverse(m_root, "null");
-    return FileHandler::saveToFile(filename, content);
+    traverse(m_root, "root");
+    return nodes;
 }
 
 void RBTree::deleteFixup(RBNode* pt) {
@@ -360,50 +363,6 @@ void RBTree::rotateRight(RBNode* pt) {
     pt->parent = (pt->parent ? (pt == pt->parent->left.get() ? pt->parent->left.get()
                                                              : pt->parent->right.get())
                              : m_root.get());
-}
-
-bool RBTree::loadFromFile(std::string const& filename) {
-    std::vector<std::pair<std::string, int>> pairs;
-    if (!FileHandler::loadKeyValuePairs(filename, pairs)) return false;
-    clear();
-    for (auto const& [key, count] : pairs) {
-        for (int i = 0; i < count; ++i) {
-            insert(key);
-        }
-    }
-    return true;
-}
-
-    return true;
-}
-
-bool RBTree::saveToFile(std::string const& filename) const {
-    std::vector<std::pair<std::string, int>> pairs;
-
-    std::function<void(std::unique_ptr<RBNode> const&)> collectInOrder =
-        [&](std::unique_ptr<RBNode> const& node) {
-            if (!node) return;
-            collectInOrder(node->left);
-            pairs.emplace_back(node->key, node->count);
-            collectInOrder(node->right);
-        };
-
-    collectInOrder(m_root);
-    return FileHandler::saveKeyValuePairs(filename, pairs);
-}
-
-bool RBTree::exportForVisualization(std::string const& filename) const {
-    std::vector<std::tuple<std::string, std::string, std::string>> nodes;
-    std::function<void(std::unique_ptr<RBNode> const&, std::string)> traverse =
-        [&](std::unique_ptr<RBNode> const& node, std::string parent) {
-            if (!node) return;
-            std::string color = (node->color == RED) ? "RED" : "BLACK";
-            nodes.emplace_back(node->key, parent, color);
-            traverse(node->left, node->key);
-            traverse(node->right, node->key);
-        };
-    traverse(m_root, "root");
-    return FileHandler::saveTreeStructure(filename, nodes);
 }
 
 }  // namespace dict

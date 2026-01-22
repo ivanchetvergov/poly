@@ -9,7 +9,6 @@ public:
     TextGenerator();
 
     std::string generate(size_t length = 10'000);
-    bool saveToFile(std::string const& filename, size_t length);
 
 private:
     std::mt19937 m_gen;

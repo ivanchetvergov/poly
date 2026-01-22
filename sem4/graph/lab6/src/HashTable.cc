@@ -1,8 +1,11 @@
 #include "HashTable.h"
+#include "FileHandler.h"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
+
+using graph::FileHandler;
 
 namespace dict {
 
@@ -73,8 +76,8 @@ bool HashTable::search(std::string const& word) const {
 }
 
 void HashTable::clear() {
-    for (size_t i = 0; i < m_capacity; ++i) {
-        m_table[i].reset();
+    for (auto& bucket : m_table) {
+        bucket.reset();
     }
     m_size_ = 0;
 }
@@ -89,38 +92,14 @@ size_t HashTable::hash(std::string const& key) const noexcept {
     return hash % m_capacity;
 }
 
-bool HashTable::loadFromFile(std::string const& filename) {
-    std::vector<std::pair<std::string, int>> pairs;
-    if (!FileHandler::loadKeyValuePairs(filename, pairs)) return false;
-    clear();
-    for (auto const& [key, count] : pairs) {
-        for (int i = 0; i < count; ++i) {
-            insert(key);
-        }
-    }
-    return true;
-}
-
-bool HashTable::saveToFile(std::string const& filename) const {
-    std::vector<std::pair<std::string, int>> pairs;
-    for (size_t i = 0; i < m_capacity; ++i) {
-        auto* curr = m_table[i].get();
-        while (curr) {
-            pairs.emplace_back(curr->key, curr->count);
-            curr = curr->next.get();
-        }
-    }
-    return FileHandler::saveKeyValuePairs(filename, pairs);
-}
-
 void HashTable::printTable() const {
     std::cout << "\n=== Содержимое хеш-таблицы ===" << std::endl;
     std::cout << "Размер: " << m_size_ << ", Емкость: " << m_capacity << std::endl;
     std::cout << "Слова:" << std::endl;
 
     int count = 0;
-    for (size_t i = 0; i < m_capacity; ++i) {
-        auto* curr = m_table[i].get();
+    for (auto& bucket : m_table) {
+        auto* curr = bucket.get();
         while (curr) {
             std::cout << "  " << curr->key << " (" << curr->count << "x)" << std::endl;
             curr = curr->next.get();
@@ -133,19 +112,17 @@ void HashTable::printTable() const {
     }
 }
 
-bool HashTable::exportForVisualization(std::string const& filename) const {
+std::string HashTable::getVisualizationData() const {
     std::string content;
     for (size_t i = 0; i < m_capacity; ++i) {
         auto* curr = m_table[i].get();
-        if (!curr) continue;
-        content += std::to_string(i) + " ";  // bucket_index
         while (curr) {
-            content += curr->key + " " + std::to_string(curr->count) + " ";
+            size_t h = hash(curr->key);
+            content += curr->key + " " + std::to_string(h) + " " + std::to_string(i) + "\n";
             curr = curr->next.get();
         }
-        content += "\n";
     }
-    return FileHandler::saveToFile(filename, content);
+    return content;
 }
 
 }  // namespace dict

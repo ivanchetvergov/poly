@@ -5,7 +5,11 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <subprocess>
+
+#include "../../common/include/Visualizer.h"
+#include "../../common/include/FileHandler.h"
+
+using graph::FileHandler;
 
 namespace dict {
 
@@ -13,27 +17,23 @@ namespace lab6 {
 
 void Runner::runHashTableDemo() {
     std::cout << "=== HashTable Demo ===\n";
-    HashTable ht(20);  // Small capacity for demo
+    HashTable ht(20);
 
-    std::vector<std::string> words = {"apple", "banana", "cherry", "apple", "date", "elderberry"};
+    std::vector<std::string> words = {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
     for (auto const& word : words) {
         ht.insert(word);
     }
 
     ht.printTable();
 
-    std::string txtFile = "assets/txt/hashtable_demo.txt";
-    std::string pngFile = "assets/png/hashtable_demo.png";
-    if (ht.exportForVisualization(txtFile)) {
-        std::cout << "Exported to " << txtFile << "\n";
+    std::string txtFile = "../../assets/txt/hashtable_demo.txt";
+    std::string pngFile = "../../assets/png/hashtable_demo.png";
 
-        std::string cmd = "/Users/ivan/myvenv/bin/python -m scripts.visualization.plot_hashtable " + txtFile + " " + pngFile + " \"HashTable Demo\"";
-        int result = system(cmd.c_str());
-        if (result == 0) {
-            std::cout << "Visualization saved to " << pngFile << "\n";
-        } else {
-            std::cout << "Error in visualization\n";
-        }
+    std::string content = ht.getVisualizationData();
+    if (FileHandler::saveToFile(txtFile, content)) {
+        std::cout << "Exported to " << txtFile << "\n";
+        graph::Visualizer::drawHashTable(txtFile, pngFile, "HashTable Demo");
+        std::cout << "Visualization saved to " << pngFile << "\n";
     } else {
         std::cout << "Export failed\n";
     }
@@ -43,27 +43,20 @@ void Runner::runRBTreeDemo() {
     std::cout << "=== RBTree Demo ===\n";
     RBTree tree;
 
-    std::vector<std::string> words = {"apple", "banana", "cherry", "apple", "date", "elderberry"};
+    std::vector<std::string> words =  {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
     for (auto const& word : words) {
         tree.insert(word);
     }
 
     tree.printTree();
 
-    // Export for visualization
-    std::string txtFile = "assets/txt/rbtree_demo.txt";
-    std::string pngFile = "assets/png/rbtree_demo.png";
-    if (tree.exportForVisualization(txtFile)) {
+    std::string txtFile = "../../assets/txt/rbtree_demo.txt";
+    std::string pngFile = "../../assets/png/rbtree_demo.png";
+    auto nodes = tree.getVisualizationData();
+    if (FileHandler::saveTreeStructure(txtFile, nodes)) {
         std::cout << "Exported to " << txtFile << "\n";
-
-        // Call Python script
-        std::string cmd = "/Users/ivan/myvenv/bin/python -m scripts.visualization.plot_rbtree " + txtFile + " " + pngFile + " \"RBTree Demo\"";
-        int result = system(cmd.c_str());
-        if (result == 0) {
-            std::cout << "Visualization saved to " << pngFile << "\n";
-        } else {
-            std::cout << "Error in visualization\n";
-        }
+        graph::Visualizer::drawRBTree(txtFile, pngFile, "RBTree Demo");
+        std::cout << "Visualization saved to " << pngFile << "\n";
     } else {
         std::cout << "Export failed\n";
     }
@@ -75,9 +68,12 @@ void Runner::runTextGeneratorDemo() {
     std::string text = gen.generate(100);
     std::cout << "Generated text: " << text.substr(0, 50) << "...\n";
 
-    std::string file = "assets/txt/generated_text.txt";
-    if (gen.saveToFile(file, 100)) {
+    std::string file = "../../assets/txt/generated_text.txt";
+    std::string pngFile = "../../assets/png/text_stats.png";
+    if (FileHandler::saveToFile(file, text)) {
         std::cout << "Saved to " << file << "\n";
+        graph::Visualizer::drawTextStats(file, pngFile, "Text Statistics");
+        std::cout << "Visualization saved to " << pngFile << "\n";
     } else {
         std::cout << "Save failed\n";
     }
