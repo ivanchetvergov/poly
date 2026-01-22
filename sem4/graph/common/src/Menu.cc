@@ -1,5 +1,7 @@
 #include "Menu.h"
 #include "DrawDataConfig.h"
+#include "FileHandler.h"
+#include "Visualizer.h"
 #include <iomanip>
 #include <sstream>
 
@@ -19,7 +21,8 @@ void Menu::initializeActions() {
             graph_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(1);
-                Visualizer::drawGraph(*graph_, data);
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                Visualizer::draw(data, graph_->isDirected(), VisualizationType::Graph);
                 std::cout << "[OK] Граф отрисован в assets/png/01_graph.png\n";
             },
             no_graph_msg_);
@@ -29,7 +32,8 @@ void Menu::initializeActions() {
             graph_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(2);
-                Visualizer::drawAdjacencyMatrix(*graph_, data);
+                FileHandler::saveAdjacencyMatrix(data.txtFile, *graph_);
+                Visualizer::drawMatrix(data, "Матрица смежности");
                 std::cout << "[OK] Матрица смежности сохранена в assets/png/02_adjacency_matrix.png\n";
             },
             no_graph_msg_);
@@ -39,7 +43,8 @@ void Menu::initializeActions() {
             graph_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(3);
-                Visualizer::drawWeightMatrix(*graph_, data);
+                FileHandler::saveWeightMatrix(data.txtFile, *graph_);
+                Visualizer::drawMatrix(data, "Матрица весов");
                 std::cout << "[OK] Матрица весов сохранена в assets/png/03_weight_matrix.png\n";
             },
             no_graph_msg_);
@@ -66,7 +71,9 @@ void Menu::initializeActions() {
                 if (!all_paths.empty()) {
                     auto data = DrawDataConfig::getConfigs().at(12);
                     data.paths = all_paths;
-                    Visualizer::drawGraphWithPaths(*graph_, data);
+                    FileHandler::saveGraph(data.txtFile, *graph_);
+                    FileHandler::savePaths(data.txtPathsFile, data.paths);
+                    Visualizer::drawPaths(data, graph_->isDirected(), VisualizationType::Graph);
                     std::cout << "[OK] Пути сохранены в assets/png/12_paths.png\n";
                 }
             },
@@ -79,10 +86,12 @@ void Menu::initializeActions() {
                 auto const* const shimbell = lab1_runner_.getLastShimbell();
                 if (shimbell) {
                     auto dataMin = DrawDataConfig::getConfigs().at(13);
-                    Visualizer::drawShimbellMatrix(shimbell->min_distances, dataMin);
+                    FileHandler::saveDistanceMatrix(dataMin.txtFile, shimbell->min_distances);
+                    Visualizer::drawMatrix(dataMin, "Матрица Шимбелла (минимум)");
 
                     auto dataMax = DrawDataConfig::getConfigs().at(14);
-                    Visualizer::drawShimbellMatrix(shimbell->max_distances, dataMax);
+                    FileHandler::saveDistanceMatrix(dataMax.txtFile, shimbell->max_distances);
+                    Visualizer::drawMatrix(dataMax, "Матрица Шимбелла (максимум)");
 
                     std::cout << "[OK] Матрицы Шимбелла сохранены в assets/png/13_shimbell_min.png и 13_shimbell_max.png\n";
                 } else {
@@ -97,7 +106,8 @@ void Menu::initializeActions() {
         flow_net_ = gen_.generateFlowNetwork(num_vertices, num_edges);
         last_max_flow_ = 0.0;
         auto data = DrawDataConfig::getConfigs().at(31);
-        Visualizer::drawFlowNetwork(*flow_net_, data);
+        FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
+        Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
     };
     actions_[32] = [this]() {
         checkAndRun(
@@ -111,8 +121,9 @@ void Menu::initializeActions() {
                 std::stringstream ss;
                 ss << std::fixed << std::setprecision(2) << last_max_flow_;
                 data.title = "Максимальный поток: " + ss.str();
-                Visualizer::drawFlowNetwork(*flow_net_, data);
-                Animator::animateFlowGrowth();
+                FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
+                Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
+                Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::Animation);
             },
             no_flow_msg_);
     };
@@ -120,6 +131,7 @@ void Menu::initializeActions() {
         if (flow_net_ && last_max_flow_ > 0.0) {
             int source = readInt("Исток: ");
             int sink = readInt("Сток: ");
+
             double default_target = (2.0 / 3.0) * last_max_flow_;
             std::cout << "Целевой поток [2/3 максимального = " << default_target
                       << "], использовать его? (1 - да, 0 - нет): ";
@@ -130,6 +142,7 @@ void Menu::initializeActions() {
             } else {
                 target_flow = static_cast<double>(readInt("Введите целевой поток: "));
             }
+
             auto result = lab3_runner_.findMinCostFlow(*flow_net_, source, sink, target_flow);
             std::cout << "\n=== Результат ===\n";
             std::cout << "Минимальная стоимость: " << result.cost << "\n";
@@ -137,7 +150,9 @@ void Menu::initializeActions() {
             if (!result.path.empty()) {
                 auto data = DrawDataConfig::getConfigs().at(33);
                 data.path = result.path;
-                Visualizer::drawFlowNetworkWithPath(*flow_net_, data);
+                FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
+                FileHandler::savePath(data.txtPathsFile, data.path);
+                Visualizer::drawPaths(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
             } else {
                 std::cout << "[WARN] Путь не найден\n";
             }
@@ -152,7 +167,8 @@ void Menu::initializeActions() {
             flow_net_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(34);
-                Visualizer::drawCapacityMatrix(*flow_net_, data);
+                FileHandler::saveCapacityMatrix(data.txtFile, *flow_net_);
+                Visualizer::drawMatrix(data, "Матрица пропускных способностей");
             },
             no_flow_msg_);
     };
@@ -161,7 +177,8 @@ void Menu::initializeActions() {
             flow_net_,
             [&]() {
                 auto data = DrawDataConfig::getConfigs().at(35);
-                Visualizer::drawCostMatrix(*flow_net_, data);
+                FileHandler::saveCostMatrix(data.txtFile, *flow_net_);
+                Visualizer::drawMatrix(data, "Матрица стоимостей");
             },
             no_flow_msg_);
     };
@@ -191,7 +208,11 @@ void Menu::initializeActions() {
                     colors[v] = 1;
                 }
                 data.colors = colors;
-                Visualizer::drawColoredGraph(*graph_, data);
+                std::vector<int> vertices(graph_->vertexCount());
+                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = static_cast<int>(i);
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+                Visualizer::drawColoredGraph(data, graph_->isDirected());
                 std::cout << "[OK] Независимое множество сохранено в assets/png/42_independent_set.png\n";
             },
             no_graph_msg_);
@@ -211,7 +232,11 @@ void Menu::initializeActions() {
                 data.addedEdges = result.independent_edges;
                 data.paths = {{}};
                 data.title = "Максимальное независимое множество рёбер (найдено " + std::to_string(result.independent_edges.size()) + ")";
-                Visualizer::drawGraphWithPath(*graph_, data);
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+                DrawData pathsData = data;
+                pathsData.paths = {data.path};
+                Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
                 std::cout << "[OK] Независимые рёбра сохранены в assets/png/43_independent_edges.png\n";
             },
             no_graph_msg_);
@@ -229,7 +254,11 @@ void Menu::initializeActions() {
                     colors[v] = 1;
                 }
                 data.colors = colors;
-                Visualizer::drawColoredGraph(*graph_, data);
+                std::vector<int> vertices(graph_->vertexCount());
+                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = static_cast<int>(i);
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+                Visualizer::drawColoredGraph(data, graph_->isDirected());
                 std::cout << "[OK] Вершинное покрытие сохранено в assets/png/44_vertex_cover.png\n";
             },
             no_graph_msg_);
@@ -244,7 +273,11 @@ void Menu::initializeActions() {
                 auto data = DrawDataConfig::getConfigs().at(45);
                 data.addedEdges = result.edge_cover;
                 data.paths = {{}};
-                Visualizer::drawGraphWithPath(*graph_, data);
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+                DrawData pathsData = data;
+                pathsData.paths = {data.path};
+                Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
                 std::cout << "[OK] Реберное покрытие сохранено в assets/png/45_edge_cover.png\n";
             },
             no_graph_msg_);
@@ -254,11 +287,17 @@ void Menu::initializeActions() {
             graph_,
             [&]() {
                 auto result = lab4_runner_.findMinColoring(*graph_);
-                std::cout << "Хроматическое число: " << result.chromatic_number << "\n";
+                std::cout << "Минимальная раскраска графа (число цветов: " << result.chromatic_number << "): ";
+
 
                 auto data = DrawDataConfig::getConfigs().at(46);
                 data.colors = result.coloring;
-                Visualizer::drawColoredGraph(*graph_, data);
+                std::vector<int> vertices(graph_->vertexCount());
+                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = i;
+                FileHandler::saveGraph(data.txtFile, *graph_);
+                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+                Visualizer::drawColoredGraph(data, graph_->isDirected());
+                std::cout << "[OK] Раскраска графа сохранена в assets/png/46_colored_graph.png\n";
             },
             no_graph_msg_);
     };
@@ -270,7 +309,10 @@ void Menu::initializeActions() {
                 if (result && !result->coloring.empty()) {
                     auto data = DrawDataConfig::getConfigs().at(47);
                     data.colors = result->coloring;
-                    Visualizer::drawColoredGraph(*graph_, data);
+                    std::vector<int> vertices(graph_->vertexCount());
+                    for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = i;
+                    FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+                    Visualizer::drawColoredGraph(data, graph_->isDirected());
                 } else {
                     std::cout << "[FAIL] Сначала найдите раскраску (пункт 46)\n";
                 }
@@ -289,7 +331,12 @@ void Menu::initializeActions() {
                     auto data = DrawDataConfig::getConfigs().at(51);
                     data.path = *euler;
                     data.addedEdges = added_edges;
-                    Visualizer::drawGraphWithPath(*graph_, data);
+                    FileHandler::saveGraph(data.txtFile, *graph_);
+                    FileHandler::savePath(data.txtPathsFile, data.path);
+                    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+                    DrawData pathsData = data;
+                    pathsData.paths = {data.path};
+                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
                 } else {
                     std::cout << "[FAIL] " << no_euler_msg_ << "\n";
                 }
@@ -308,7 +355,12 @@ void Menu::initializeActions() {
                     auto data = DrawDataConfig::getConfigs().at(52);
                     data.path = *hamilton;
                     data.addedEdges = added_edges;
-                    Visualizer::drawGraphWithPath(*graph_, data);
+                    FileHandler::saveGraph(data.txtFile, *graph_);
+                    FileHandler::savePath(data.txtPathsFile, data.path);
+                    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+                    DrawData pathsData = data;
+                    pathsData.paths = {data.path};
+                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
                 } else {
                     std::cout << "[FAIL] " << no_hamilton_msg_ << "\n";
                 }
@@ -325,7 +377,11 @@ void Menu::initializeActions() {
                 if (tsp && !tsp->empty()) {
                     auto data = DrawDataConfig::getConfigs().at(53);
                     data.path = *tsp;
-                    Visualizer::drawGraphWithPath(*graph_, data);
+                    FileHandler::saveGraph(data.txtFile, *graph_);
+                    FileHandler::savePath(data.txtPathsFile, data.path);
+                    DrawData pathsData = data;
+                    pathsData.paths = {data.path};
+                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
                 } else {
                     std::cout << "[FAIL] " << no_tsp_msg_ << "\n";
                 }

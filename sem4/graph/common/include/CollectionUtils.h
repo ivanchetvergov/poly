@@ -25,6 +25,11 @@ public:
         return matrix;
     }
 
+    template <typename T, typename Getter>
+    static Matrix<T> makeSquareMatrix(std::vector<int> const& ids, Getter getter) {
+        return makeMatrix<T>(ids, ids, getter);
+    }
+
     template <typename CompareFunc>
     static Matrix<std::optional<double>> multiplyOptionalMatrix(
         Matrix<std::optional<double>> const& a, Matrix<std::optional<double>> const& b,

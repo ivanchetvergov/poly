@@ -6,148 +6,119 @@
 
 #include "../../lab3/include/FlowNetwork.h"
 
-#include <fstream>
 #include <iostream>
 #include <numeric>
 
+using Args = std::vector<std::string>;
+
 namespace graph {
 
-static void drawGraphHelper(std::string const& scriptName, std::string const& dataFile,
-                            std::string const& outputFile, std::string const& graphType,
-                            std::string const& title, std::string const& defaultTitle) {
-    std::string graph_title = title.empty() ? defaultTitle : title;
-    std::vector<std::string> args = {dataFile, outputFile, graphType, "\"" + graph_title + "\""};
-    runPythonScript(scriptName, args);
-}
-
-void Visualizer::drawMatrixHelper(std::vector<std::vector<double>> const& matrix,
-                                        DrawData const& data,
-                                        std::string const& defaultTitle) {
-    exportMatrix(matrix, data);
-
+void Visualizer::drawMatrix(DrawData const& data, std::string const& defaultTitle) {
     std::string matrix_title = data.title.empty() ? defaultTitle : data.title;
     std::vector<std::string> args = {data.txtFile, data.pngFile, "\"" + matrix_title + "\""};
     runPythonScript("plot_matrix.py", args);
 }
 
-void Visualizer::drawGraph(Graph const& graph, DrawData const& data) {
-    exportEdges(graph, data);
-    std::string graph_type = graph.isDirected() ? "directed" : "undirected";
-    std::string graph_title = data.title.empty() ? "Граф (" + graph_type + ")" : data.title;
+void Visualizer::draw(DrawData const& data, bool directed, VisualizationType type) {
+    std::string graphType = directed ? "directed" : "undirected";
+    std::string type_str;
+    std::string default_title;
+    bool is_network = false;
 
-    drawGraphHelper("plot_graph.py", data.txtFile, data.pngFile, graph_type, graph_title,
-                    "Граф (" + graph_type + ")");
-}
-
-void Visualizer::drawGraphWithPath(Graph const& graph, DrawData const& data) {
-    if (!data.addedEdges.empty()) {
-        exportAddedEdges(data);
+    switch (type) {
+        case VisualizationType::Graph:
+            type_str = "graph";
+            default_title = "Граф (" + graphType + ")";
+            is_network = true;
+            break;
+        case VisualizationType::FlowNetwork:
+            type_str = "flow";
+            default_title = "Сеть потоков(" + graphType + ")";
+            is_network = true;
+            break;
+        case VisualizationType::Animation: {
+            std::vector<std::string> args = {"--input", "assets/txt/32_flow_snapshots.txt", "--output",
+                                             data.gifFile, "--graph_type", graphType, "--show"};
+            runPythonScript("plot_flow_animation.py", args);
+            break;
+        }
+        default:
+            return;
     }
-    DrawData pathsData = data;
-    pathsData.paths = {data.path};
-    drawGraphWithPaths(graph, pathsData);
-}
 
-void Visualizer::drawGraphWithPaths(Graph const& graph, DrawData const& data) {
-    exportEdges(graph, data);
-    if (!data.addedEdges.empty()) {
-        exportAddedEdges(data);
+    if (is_network) {
+        std::string graph_title = data.title.empty() ? default_title : data.title;
+        Args args = {
+            data.txtFile,
+            data.pngFile,
+            graphType,
+            "\"" + graph_title + "\"",
+            "--type", type_str
+        };
+        runPythonScript("plot_network.py", args);
     }
-    if (!data.txtPathsFile.empty()) {
-        exportPaths(data);
+}
+
+void Visualizer::drawPaths(DrawData const& data, bool directed, VisualizationType type) {
+    std::string graphType = directed ? "directed" : "undirected";
+    std::string type_str;
+    std::string default_title;
+
+    switch (type) {
+        case VisualizationType::Graph:
+            type_str = "graph";
+            default_title = "Все пути (" + graphType + ")";
+            break;
+        case VisualizationType::FlowNetwork:
+            type_str = "flow";
+            default_title = "Сеть потоков с путём (" + graphType + ")";
+            break;
+        default:
+            return;
     }
-    std::string graph_type = graph.isDirected() ? "directed" : "undirected";
-    std::string graph_title = data.title.empty() ? (data.paths.size() == 1 ? "Граф с путём (" + graph_type + ")"
-                                                                : "Все пути (" + graph_type + ")")
-                                           : data.title;
 
-    std::vector<std::string> args = {data.txtFile, data.txtPathsFile, data.pngFile,
-                                     graph_type, "\"" + graph_title + "\"", data.txtGraphFile};
-    runPythonScript("plot_graph_paths.py", args);
+    std::string graph_title = data.title.empty() ? default_title : data.title;
+    Args args = {
+        data.txtFile,
+        data.txtPathsFile,
+        data.pngFile,
+        graphType,
+        "\"" + graph_title + "\"",
+        "--type", type_str
+    };
+    if (!data.txtGraphFile.empty()) {
+        args.push_back("--added_edges_file");
+        args.push_back(data.txtGraphFile);
+    }
+    runPythonScript("plot_paths.py", args);
 }
 
-// ============================================================================
-
-void Visualizer::drawAdjacencyMatrix(Graph const& graph, DrawData const& data) {
-    auto vertices = graph.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(
-        vertices, vertices, [&](int i, int j) { return graph.hasEdge(i, j) ? 1.0 : 0.0; });
-
-    Visualizer::drawMatrixHelper(matrix, data, "Матрица смежности");
-}
-
-void Visualizer::drawWeightMatrix(Graph const& graph, DrawData const& data) {
-    auto vertices = graph.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(vertices, vertices, [&](int i, int j) {
-        auto w = graph.getEdgeWeight(i, j);
-        return w ? *w : 0.0;
-    });
-
-    Visualizer::drawMatrixHelper(matrix, data, "Матрица весов");
-}
-
-void Visualizer::drawShimbellMatrix(DistanceMatrix const& shimMatrix, DrawData const& data) {
-    size_t n = shimMatrix.size();
-    std::vector<int> indices(static_cast<size_t>(n));
-    std::iota(indices.begin(), indices.end(), 0);
-
-    auto matrix = CollectionUtils::makeMatrix<double>(indices, indices, [&](int i, int j) {
-        return shimMatrix[i][j].has_value() ? shimMatrix[i][j].value() : -1e9;
-    });
-
-    Visualizer::drawMatrixHelper(matrix, data, "Матрица Шимбелла");
-}
-
-// ============================================================================
-
-void Visualizer::drawFlowNetwork(FlowNetwork const& network, DrawData const& data) {
-    exportFlow(network, data);
-    std::string graph_type = network.isDirected() ? "directed" : "undirected";
-    std::string graph_title = data.title.empty() ? "Сеть потоков: толщина = поток, цвет = загрузка (" + graph_type + ")" : data.title;
-
-    drawGraphHelper("plot_flow.py", data.txtFile, data.pngFile, graph_type, graph_title,
-                    "Сеть потоков: толщина = поток, цвет = загрузка (" + graph_type + ")");
-}
-
-void Visualizer::drawFlowNetworkWithPath(FlowNetwork const& network, DrawData const& data) {
-    exportFlow(network, data);
-    exportPath(data);
-    std::string graph_type = network.isDirected() ? "directed" : "undirected";
-
-    std::string graph_title = data.title.empty() ? "Сеть потоков с путём (" + graph_type + ")" : data.title;
-    std::vector<std::string> args = {data.txtFile, data.txtPathsFile, data.pngFile,
-                                     graph_type, "\"" + graph_title + "\""};
-    runPythonScript("plot_flow_path.py", args);
-}
-
-void Visualizer::drawCapacityMatrix(FlowNetwork const& network, DrawData const& data) {
-    auto vertices = network.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(
-        vertices, vertices, [&](int i, int j) { return network.getCapacity(i, j); });
-
-    Visualizer::drawMatrixHelper(matrix, data, "Матрица пропускных способностей");
-}
-
-void Visualizer::drawCostMatrix(FlowNetwork const& network, DrawData const& data) {
-    auto vertices = network.vertexIds();
-    auto matrix = CollectionUtils::makeMatrix<double>(
-        vertices, vertices, [&](int i, int j) { return network.getCost(i, j); });
-
-    Visualizer::drawMatrixHelper(matrix, data, "Матрица стоимостей");
-}
-
-void Visualizer::drawColoredGraph(Graph const& graph, DrawData const& data) {
-    exportEdges(graph, data);
-    exportColors(data, graph.vertexIds());
-
-    std::string graph_type = graph.isDirected() ? "directed" : "undirected";
+void Visualizer::drawColoredGraph(DrawData const& data, bool directed) {
+    std::string graphType = directed ? "directed" : "undirected";
     std::string graph_title = data.title.empty() ? "Раскраска графа" : data.title;
 
-    std::vector<std::string> args = {data.txtFile, data.pngFile, data.txtColorsFile,
-                                     graph_type, "\"" + graph_title + "\""};
+    Args args = {data.txtFile,
+                data.pngFile,
+                data.txtColorsFile,
+                graphType,
+                "\"" + graph_title + "\""
+    };
     runPythonScript("plot_colored_graph.py", args);
 }
 
+void Visualizer::drawHashTable(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
+    Args args = {txtFile, pngFile, "\"" + title + "\""};
+    runPythonScript("plot_hashtable.py", args);
+}
 
+void Visualizer::drawRBTree(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
+    Args args = {txtFile, pngFile, "\"" + title + "\""};
+    runPythonScript("plot_rbtree.py", args);
+}
+
+void Visualizer::drawTextStats(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
+    Args args = {txtFile, pngFile, "\"" + title + "\""};
+    runPythonScript("plot_text_stats.py", args);
+}
 
 }  // namespace graph

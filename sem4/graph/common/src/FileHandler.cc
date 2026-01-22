@@ -1,4 +1,7 @@
 #include "FileHandler.h"
+#include "Graph.h"
+#include "../../lab3/include/FlowNetwork.h"
+#include "CollectionUtils.h"
 
 #include <algorithm>
 #include <string>
@@ -80,6 +83,42 @@ bool FileHandler::saveGraphEdges(std::string const& filename, std::vector<std::t
     return true;
 }
 
+bool FileHandler::saveGraph(std::string const& filename, Graph const& graph) {
+    std::vector<std::tuple<int, int, double>> edges;
+    for (auto const& edge : graph.edges()) {
+        edges.emplace_back(edge.from, edge.to, edge.weight);
+    }
+    return saveGraphEdges(filename, edges);
+}
+
+bool FileHandler::saveAdjacencyMatrix(std::string const& filename, Graph const& graph) {
+    return saveSquareMatrix<int>(filename, graph, [&](int from, int to) { return graph.hasEdge(from, to) ? 1 : 0; });
+}
+
+bool FileHandler::saveWeightMatrix(std::string const& filename, Graph const& graph) {
+    return saveSquareMatrix<double>(filename, graph, [&](int from, int to) { return graph.getEdgeWeight(from, to).value_or(0.0); });
+}
+
+bool FileHandler::saveCapacityMatrix(std::string const& filename, FlowNetwork const& network) {
+    return saveSquareMatrix<double>(filename, network, [&](int from, int to) { return network.getCapacity(from, to); });
+}
+
+bool FileHandler::saveCostMatrix(std::string const& filename, FlowNetwork const& network) {
+    return saveSquareMatrix<double>(filename, network, [&](int from, int to) { return network.getCost(from, to); });
+}
+
+bool FileHandler::saveDistanceMatrix(std::string const& filename, std::vector<std::vector<std::optional<double>>> const& matrix) {
+    std::vector<std::vector<double>> doubleMatrix;
+    for (auto const& row : matrix) {
+        std::vector<double> doubleRow;
+        for (auto const& val : row) {
+            doubleRow.push_back(val.value_or(0.0));
+        }
+        doubleMatrix.push_back(doubleRow);
+    }
+    return saveMatrix(filename, doubleMatrix);
+}
+
 bool FileHandler::savePath(std::string const& filename, std::vector<int> const& path) {
     std::ofstream file(filename);
     if (!file.is_open()) return false;
@@ -137,7 +176,19 @@ bool FileHandler::saveMatrix(std::string const& filename, std::vector<std::vecto
     return true;
 }
 
-bool FileHandler::saveFlowNetwork(std::string const& filename, std::vector<std::tuple<int, int, double, double, double>> const& flows) {
+bool FileHandler::saveFlowNetwork(std::string const& filename, FlowNetwork const& network) {
+    std::vector<std::tuple<int, int, double, double, double>> flows;
+    auto vertices = network.vertexIds();
+    for (int from : vertices) {
+        for (int to : network.neighbors(from)) {
+            double capacity = network.getCapacity(from, to);
+            if (capacity > 0.0) {
+                double flow = network.getFlow(from, to);
+                double cost = network.getCost(from, to);
+                flows.emplace_back(from, to, capacity, flow, cost);
+            }
+        }
+    }
     std::ofstream file(filename);
     if (!file.is_open()) return false;
     for (auto const& [from, to, capacity, flow, cost] : flows) {

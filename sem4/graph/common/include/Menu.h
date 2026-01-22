@@ -10,7 +10,6 @@
 #include <map>
 #include <memory>
 
-#include <Animator.h>
 #include <Generator.h>
 #include <Graph.h>
 #include <Utils.h>

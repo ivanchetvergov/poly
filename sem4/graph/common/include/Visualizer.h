@@ -35,8 +35,11 @@ public:
     static void draw(DrawData const& data, bool directed, VisualizationType type);
     static void drawPaths(DrawData const& data, bool directed, VisualizationType type);
     static void drawColoredGraph(DrawData const& data, bool directed);
-
     static void drawMatrix(DrawData const& data, std::string const& defaultTitle);
+
+    static void drawHashTable(std::string const& txtFile, std::string const& pngFile, std::string const& title);
+    static void drawRBTree(std::string const& txtFile, std::string const& pngFile, std::string const& title);
+    static void drawTextStats(std::string const& txtFile, std::string const& pngFile, std::string const& title);
 
 };
 

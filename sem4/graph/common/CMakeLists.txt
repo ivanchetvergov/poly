@@ -8,15 +8,14 @@ add_library(graph_common STATIC
     src/GraphBase.tpp
     src/Generator.cc
     src/Visualizer.cc
-    src/VisualizerHelpers.cc
     src/DrawDataConfig.cc
     src/Menu.cc
-    src/Animator.cc
     src/FileHandler.cc
 )
 
 target_include_directories(graph_common PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/lab3/include
 )
 
 target_compile_options(graph_common PRIVATE -Wall -Wextra)

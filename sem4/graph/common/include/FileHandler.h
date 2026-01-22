@@ -2,6 +2,7 @@
 
 #include "Graph.h"
 #include "../../lab3/include/FlowNetwork.h"
+#include "CollectionUtils.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -18,7 +19,6 @@ using SparseMatrix = std::vector<std::vector<std::optional<double>>>;
 template <typename T>
 using TMatrix = std::vector<std::vector<T>>;
 
-// enum class MatrixType { Adjacency, Weight, Capacity, Cost };
 
 class FileHandler {
 public:
