@@ -32,7 +32,7 @@ enum class VisualizationType {
 
 class Visualizer {
 public:
-    static void visualize(DrawData const& data, bool directed, VisualizationType type);
+    static void draw(DrawData const& data, bool directed, VisualizationType type);
     static void drawPaths(DrawData const& data, bool directed, VisualizationType type);
     static void drawColoredGraph(DrawData const& data, bool directed);
 
