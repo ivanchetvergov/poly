@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "FileHandler.h"
+
 namespace dict {
 
 struct HashNode {
@@ -26,6 +28,8 @@ public:
     [[nodiscard]] size_t size() const noexcept { return m_size_; }
     [[nodiscard]] size_t capacity() const noexcept { return m_capacity; }
     void printTable() const;
+
+    bool exportForVisualization(std::string const& filename) const;
 
     bool loadFromFile(std::string const& filename);
     bool saveToFile(std::string const& filename) const;

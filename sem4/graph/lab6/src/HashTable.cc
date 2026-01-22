@@ -90,33 +90,27 @@ size_t HashTable::hash(std::string const& key) const noexcept {
 }
 
 bool HashTable::loadFromFile(std::string const& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open())
-        return false;
-
-    std::string word;
-    while (file >> word) {
-        insert(word);
+    std::vector<std::pair<std::string, int>> pairs;
+    if (!FileHandler::loadKeyValuePairs(filename, pairs)) return false;
+    clear();
+    for (auto const& [key, count] : pairs) {
+        for (int i = 0; i < count; ++i) {
+            insert(key);
+        }
     }
-
-    file.close();
     return true;
 }
 
 bool HashTable::saveToFile(std::string const& filename) const {
-    std::ofstream file(filename);
-    if (!file.is_open())
-        return false;
-
+    std::vector<std::pair<std::string, int>> pairs;
     for (size_t i = 0; i < m_capacity; ++i) {
         auto* curr = m_table[i].get();
         while (curr) {
-            file << curr->key << " " << curr->count << "\n";
+            pairs.emplace_back(curr->key, curr->count);
             curr = curr->next.get();
         }
     }
-    file.close();
-    return true;
+    return FileHandler::saveKeyValuePairs(filename, pairs);
 }
 
 void HashTable::printTable() const {
@@ -137,6 +131,21 @@ void HashTable::printTable() const {
     if (count == 0) {
         std::cout << "  (пусто)" << std::endl;
     }
+}
+
+bool HashTable::exportForVisualization(std::string const& filename) const {
+    std::string content;
+    for (size_t i = 0; i < m_capacity; ++i) {
+        auto* curr = m_table[i].get();
+        if (!curr) continue;
+        content += std::to_string(i) + " ";  // bucket_index
+        while (curr) {
+            content += curr->key + " " + std::to_string(curr->count) + " ";
+            curr = curr->next.get();
+        }
+        content += "\n";
+    }
+    return FileHandler::saveToFile(filename, content);
 }
 
 }  // namespace dict

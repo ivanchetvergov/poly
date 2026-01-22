@@ -173,6 +173,20 @@ void RBTree::printTree() const {
     std::cout << std::endl;
 }
 
+bool RBTree::exportForVisualization(std::string const& filename) const {
+    std::string content;
+    std::function<void(std::unique_ptr<RBNode> const&, std::string const&)> traverse =
+        [&](std::unique_ptr<RBNode> const& node, std::string const& parent) {
+            if (!node) return;
+            std::string color = (node->color == RED) ? "RED" : "BLACK";
+            content += node->key + " " + parent + " " + color + "\n";
+            traverse(node->left, node->key);
+            traverse(node->right, node->key);
+        };
+    traverse(m_root, "null");
+    return FileHandler::saveToFile(filename, content);
+}
+
 void RBTree::deleteFixup(RBNode* pt) {
     while (pt != m_root.get() && getColor(pt) == BLACK) {
         if (!pt || !pt->parent)
@@ -349,53 +363,47 @@ void RBTree::rotateRight(RBNode* pt) {
 }
 
 bool RBTree::loadFromFile(std::string const& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open())
-        return false;
-
-    std::string content;
-    std::string word;
-
-    // Читаем весь файл
-    file.seekg(0, std::ios::end);
-    content.resize(file.tellg());
-    file.seekg(0, std::ios::beg);
-    file.read(&content[0], content.size());
-    file.close();
-
-    // Разбиваем на слова по разделителям
-    for (char c : content) {
-        if (c == ' ' || c == ',' || c == '.' || c == '\n' || c == '\r' || c == '\t') {
-            if (!word.empty()) {
-                insert(word);
-                word.clear();
-            }
-        } else {
-            word += c;
+    std::vector<std::pair<std::string, int>> pairs;
+    if (!FileHandler::loadKeyValuePairs(filename, pairs)) return false;
+    clear();
+    for (auto const& [key, count] : pairs) {
+        for (int i = 0; i < count; ++i) {
+            insert(key);
         }
     }
-    if (!word.empty()) {
-        insert(word);
-    }
+    return true;
+}
 
     return true;
 }
 
 bool RBTree::saveToFile(std::string const& filename) const {
-    std::ofstream file(filename);
-    if (!file.is_open())
-        return false;
-    std::function<void(std::unique_ptr<RBNode> const&)> saveInOrder =
+    std::vector<std::pair<std::string, int>> pairs;
+
+    std::function<void(std::unique_ptr<RBNode> const&)> collectInOrder =
         [&](std::unique_ptr<RBNode> const& node) {
-            if (!node)
-                return;
-            saveInOrder(node->left);
-            file << node->key << " " << node->count << "\n";
-            saveInOrder(node->right);
+            if (!node) return;
+            collectInOrder(node->left);
+            pairs.emplace_back(node->key, node->count);
+            collectInOrder(node->right);
         };
-    saveInOrder(m_root);
-    file.close();
-    return true;
+
+    collectInOrder(m_root);
+    return FileHandler::saveKeyValuePairs(filename, pairs);
+}
+
+bool RBTree::exportForVisualization(std::string const& filename) const {
+    std::vector<std::tuple<std::string, std::string, std::string>> nodes;
+    std::function<void(std::unique_ptr<RBNode> const&, std::string)> traverse =
+        [&](std::unique_ptr<RBNode> const& node, std::string parent) {
+            if (!node) return;
+            std::string color = (node->color == RED) ? "RED" : "BLACK";
+            nodes.emplace_back(node->key, parent, color);
+            traverse(node->left, node->key);
+            traverse(node->right, node->key);
+        };
+    traverse(m_root, "root");
+    return FileHandler::saveTreeStructure(filename, nodes);
 }
 
 }  // namespace dict

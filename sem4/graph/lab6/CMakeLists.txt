@@ -20,9 +20,17 @@ add_library(TextGenerator STATIC
     src/TextGenerator.cc
 )
 
+add_library(FileHandler STATIC
+    src/FileHandler.cc
+)
+
+add_library(Runner STATIC
+    src/Runner.cc
+)
+
 add_executable(${PROJECT_NAME}
     main.cc
 )
 
-target_link_libraries(${PROJECT_NAME} HashTable RBTree TextGenerator)
+target_link_libraries(${PROJECT_NAME} HashTable RBTree TextGenerator FileHandler Runner)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
