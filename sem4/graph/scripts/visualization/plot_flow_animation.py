@@ -43,7 +43,7 @@ def create_graph_from_snapshot(snapshot):
 
 
 def animate_flow_growth(snapshots, output_file='assets/gif/flow_animation.gif',
-                       directed=True, show=True):
+                       directed=True, show=False):
     if not snapshots:
         print("Нет snapshots")
         return
@@ -116,9 +116,6 @@ def animate_flow_growth(snapshots, output_file='assets/gif/flow_animation.gif',
 
     anim.save(output_file, writer='pillow', fps=animation_cfg.fps, dpi=animation_cfg.dpi)
     print(f"Анимация сохранена: {output_file}")
-
-    if show:
-        webbrowser.open(f'file://{os.path.abspath(output_file)}')
 
     plt.close()
 
