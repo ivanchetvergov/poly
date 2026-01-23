@@ -11,8 +11,6 @@ graph/
 ├── main.cc                   # Единое меню для всех лаб
 ├── examples.ipynb            # Ноутбук с интеграцией
 ├── requirements.txt          # Python зависимости
-├── TODO                      # Список задач
-├── log.txt                   # Логи от C++ программы (генерируется)
 ├── common/                   # Переиспользуемый код
 │   ├── CMakeLists.txt
 │   ├── README.md
