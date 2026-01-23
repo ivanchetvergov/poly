@@ -13,387 +13,32 @@ Menu::Menu() {
 }
 
 void Menu::initializeActions() {
-    actions_[1] = [this]() {
-        bool is_directed = static_cast<bool>(readInt("Ориентированный граф? (1 - да, 0 - нет): "));
-        int num_vertices = readInt("Количество вершин: ");
-        int num_edges = readInt("Количество рёбер: ");
-        graph_ = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed);
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(1);
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                Visualizer::draw(data, graph_->isDirected(), VisualizationType::Graph);
-                std::cout << "[OK] Граф отрисован в assets/png/01_graph.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[2] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(2);
-                FileHandler::saveAdjacencyMatrix(data.txtFile, *graph_);
-                Visualizer::drawMatrix(data, "Матрица смежности");
-                std::cout << "[OK] Матрица смежности сохранена в assets/png/02_adjacency_matrix.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[3] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(3);
-                FileHandler::saveWeightMatrix(data.txtFile, *graph_);
-                Visualizer::drawMatrix(data, "Матрица весов");
-                std::cout << "[OK] Матрица весов сохранена в assets/png/03_weight_matrix.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[11] = [this]() {
-    checkAndRun(
-        graph_,
-        [&]() {
-            int path_length = readInt("Длина пути: ");
-            lab1_runner_.runShimbellMethod(*graph_, path_length);
-            std::cout << "[OK] Метод Шимбелла выполнен\n";
-        },
-        no_graph_msg_);
-    };
-    actions_[12] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                int from = readInt("Начальная вершина: ");
-                int to = readInt("Конечная вершина: ");
-                int result = lab1_runner_.countPaths(*graph_, from, to);
-                std::cout << "Количество путей: " << result << "\n";
-                auto const& all_paths = lab1_runner_.getAllPaths();
-                if (!all_paths.empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(12);
-                    data.paths = all_paths;
-                    FileHandler::saveGraph(data.txtFile, *graph_);
-                    FileHandler::savePaths(data.txtPathsFile, data.paths);
-                    Visualizer::drawPaths(data, graph_->isDirected(), VisualizationType::Graph);
-                    std::cout << "[OK] Пути сохранены в assets/png/12_paths.png\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[13] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto const* const shimbell = lab1_runner_.getLastShimbell();
-                if (shimbell) {
-                    auto dataMin = DrawDataConfig::getConfigs().at(13);
-                    FileHandler::saveDistanceMatrix(dataMin.txtFile, shimbell->min_distances);
-                    Visualizer::drawMatrix(dataMin, "Матрица Шимбелла (минимум)");
+    actions_[1] = [this]() { graph_ = lab1_runner_.generateGraph(); };
+    actions_[2] = [this]() { lab1_runner_.runVisualizeAdjacencyMatrix(*graph_); };
+    actions_[3] = [this]() { lab1_runner_.runVisualizeWeightMatrix(*graph_); };
+    actions_[11] = [this]() { lab1_runner_.runShimbellMethod(*graph_); };
+    actions_[12] = [this]() { lab1_runner_.runPathsMethod(*graph_); };
 
-                    auto dataMax = DrawDataConfig::getConfigs().at(14);
-                    FileHandler::saveDistanceMatrix(dataMax.txtFile, shimbell->max_distances);
-                    Visualizer::drawMatrix(dataMax, "Матрица Шимбелла (максимум)");
+    actions_[31] = [this]() { lab3_runner_.runGenerateFlowNetwork(); };
+    actions_[32] = [this]() { lab3_runner_.runMaxFlow(); };
+    actions_[33] = [this]() { lab3_runner_.runMinCostFlow(); };
+    actions_[34] = [this]() { lab3_runner_.runVisualizeCapacityMatrix(); };
+    actions_[35] = [this]() { lab3_runner_.runVisualizeCostMatrix(); };
 
-                    std::cout << "[OK] Матрицы Шимбелла сохранены в assets/png/13_shimbell_min.png и 13_shimbell_max.png\n";
-                } else {
-                    std::cout << "[FAIL] Сначала вычислите матрицу Шимбелла (пункт 11)\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[31] = [this]() {
-        int num_vertices = readInt("Количество вершин: ");
-        int num_edges = readInt("Количество рёбер: ");
-        flow_net_ = gen_.generateFlowNetwork(num_vertices, num_edges);
-        last_max_flow_ = 0.0;
-        auto data = DrawDataConfig::getConfigs().at(31);
-        FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
-        Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
-    };
-    actions_[32] = [this]() {
-        checkAndRun(
-            flow_net_,
-            [&]() {
-                int source = readInt("Исток: ");
-                int sink = readInt("Сток: ");
-                last_max_flow_ = lab3_runner_.findMaxFlow(*flow_net_, source, sink);
-                std::cout << "Максимальный поток: " << last_max_flow_ << "\n";
-                auto data = DrawDataConfig::getConfigs().at(32);
-                std::stringstream ss;
-                ss << std::fixed << std::setprecision(2) << last_max_flow_;
-                data.title = "Максимальный поток: " + ss.str();
-                FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
-                Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
-                Visualizer::draw(data, flow_net_->isDirected(), VisualizationType::Animation);
-            },
-            no_flow_msg_);
-    };
-    actions_[33] = [this]() {
-        if (flow_net_ && last_max_flow_ > 0.0) {
-            int source = readInt("Исток: ");
-            int sink = readInt("Сток: ");
+    actions_[41] = [this]() { lab4_runner_.runCountSpanningTrees(*graph_); };
+    actions_[42] = [this]() { lab4_runner_.runFindMaxIndependentSet(*graph_); };
+    actions_[43] = [this]() { lab4_runner_.runFindMaxIndependentSetEdges(*graph_); };
+    actions_[44] = [this]() { lab4_runner_.runFindMinVertexCover(*graph_); };
+    actions_[45] = [this]() { lab4_runner_.runFindMinEdgeCover(*graph_); };
+    actions_[46] = [this]() { lab4_runner_.runFindMinColoring(*graph_); };
+    actions_[51] = [this]() { lab5_runner_.runCheckEulerian(*graph_); };
+    actions_[52] = [this]() { lab5_runner_.runCheckHamiltonian(*graph_); };
+    actions_[53] = [this]() { lab5_runner_.runSolveTSP(*graph_); };
 
-            double default_target = (2.0 / 3.0) * last_max_flow_;
-            std::cout << "Целевой поток [2/3 максимального = " << default_target
-                      << "], использовать его? (1 - да, 0 - нет): ";
-            bool use_default = static_cast<bool>(readInt(""));
-            double target_flow = 0.0;
-            if (use_default == 1) {
-                target_flow = default_target;
-            } else {
-                target_flow = static_cast<double>(readInt("Введите целевой поток: "));
-            }
-
-            auto result = lab3_runner_.findMinCostFlow(*flow_net_, source, sink, target_flow);
-            std::cout << "\n=== Результат ===\n";
-            std::cout << "Минимальная стоимость: " << result.cost << "\n";
-            std::cout << "Достигнутый поток: " << result.flow << "\n";
-            if (!result.path.empty()) {
-                auto data = DrawDataConfig::getConfigs().at(33);
-                data.path = result.path;
-                FileHandler::saveFlowNetwork(data.txtFile, *flow_net_);
-                FileHandler::savePath(data.txtPathsFile, data.path);
-                Visualizer::drawPaths(data, flow_net_->isDirected(), VisualizationType::FlowNetwork);
-            } else {
-                std::cout << "[WARN] Путь не найден\n";
-            }
-        } else if (!flow_net_) {
-            std::cout << "[FAIL] " << no_flow_msg_ << "\n";
-        } else {
-            std::cout << "[FAIL] " << no_max_flow_msg_ << "\n";
-        }
-    };
-    actions_[34] = [this]() {
-        checkAndRun(
-            flow_net_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(34);
-                FileHandler::saveCapacityMatrix(data.txtFile, *flow_net_);
-                Visualizer::drawMatrix(data, "Матрица пропускных способностей");
-            },
-            no_flow_msg_);
-    };
-    actions_[35] = [this]() {
-        checkAndRun(
-            flow_net_,
-            [&]() {
-                auto data = DrawDataConfig::getConfigs().at(35);
-                FileHandler::saveCostMatrix(data.txtFile, *flow_net_);
-                Visualizer::drawMatrix(data, "Матрица стоимостей");
-            },
-            no_flow_msg_);
-    };
-    actions_[41] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                int count = lab4_runner_.countSpanningTrees(*graph_);
-                std::cout << "Количество остовных деревьев: " << count << "\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[42] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto result = lab4_runner_.findMaxIndependentSet(*graph_);
-                std::cout << "Максимальное независимое множество вершин (размер " << result.independent_set.size() << "): ";
-                for (int v : result.independent_set) {
-                    std::cout << v << " ";
-                }
-                std::cout << "\n";
-
-                auto data = DrawDataConfig::getConfigs().at(42);
-                std::vector<int> colors(graph_->vertexCount(), 0);
-                for (int v : result.independent_set) {
-                    colors[v] = 1;
-                }
-                data.colors = colors;
-                std::vector<int> vertices(graph_->vertexCount());
-                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = static_cast<int>(i);
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
-                Visualizer::drawColoredGraph(data, graph_->isDirected());
-                std::cout << "[OK] Независимое множество сохранено в assets/png/42_independent_set.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[43] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto result = lab4_runner_.findMaxIndependentSetEdges(*graph_);
-                std::cout << "Максимальное независимое множество рёбер (размер " << result.independent_edges.size() << "): ";
-                for (auto const& [u, v] : result.independent_edges) {
-                    std::cout << "(" << u << "," << v << ") ";
-                }
-                std::cout << "\n";
-
-                auto data = DrawDataConfig::getConfigs().at(43);
-                data.addedEdges = result.independent_edges;
-                data.paths = {{}};
-                data.title = "Максимальное независимое множество рёбер (найдено " + std::to_string(result.independent_edges.size()) + ")";
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
-                DrawData pathsData = data;
-                pathsData.paths = {data.path};
-                Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
-                std::cout << "[OK] Независимые рёбра сохранены в assets/png/43_independent_edges.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[44] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto result = lab4_runner_.findMinVertexCover(*graph_);
-                std::cout << "Минимальное вершинное покрытие (размер " << result.vertex_cover.size() << "): ";
-
-                auto data = DrawDataConfig::getConfigs().at(44);
-                std::vector<int> colors(graph_->vertexCount(), 0);
-                for (int v : result.vertex_cover) {
-                    colors[v] = 1;
-                }
-                data.colors = colors;
-                std::vector<int> vertices(graph_->vertexCount());
-                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = static_cast<int>(i);
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
-                Visualizer::drawColoredGraph(data, graph_->isDirected());
-                std::cout << "[OK] Вершинное покрытие сохранено в assets/png/44_vertex_cover.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[45] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto result = lab4_runner_.findMinEdgeCover(*graph_);
-                std::cout << "Минимальное реберное покрытие (размер " << result.edge_cover.size() << "): ";
-
-                auto data = DrawDataConfig::getConfigs().at(45);
-                data.addedEdges = result.edge_cover;
-                data.paths = {{}};
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
-                DrawData pathsData = data;
-                pathsData.paths = {data.path};
-                Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
-                std::cout << "[OK] Реберное покрытие сохранено в assets/png/45_edge_cover.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[46] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto result = lab4_runner_.findMinColoring(*graph_);
-                std::cout << "Минимальная раскраска графа (число цветов: " << result.chromatic_number << "): ";
-
-
-                auto data = DrawDataConfig::getConfigs().at(46);
-                data.colors = result.coloring;
-                std::vector<int> vertices(graph_->vertexCount());
-                for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = i;
-                FileHandler::saveGraph(data.txtFile, *graph_);
-                FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
-                Visualizer::drawColoredGraph(data, graph_->isDirected());
-                std::cout << "[OK] Раскраска графа сохранена в assets/png/46_colored_graph.png\n";
-            },
-            no_graph_msg_);
-    };
-    actions_[47] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                auto const& result = lab4_runner_.getLastCombinatorics();
-                if (result && !result->coloring.empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(47);
-                    data.colors = result->coloring;
-                    std::vector<int> vertices(graph_->vertexCount());
-                    for (size_t i = 0; i < graph_->vertexCount(); ++i) vertices[i] = i;
-                    FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
-                    Visualizer::drawColoredGraph(data, graph_->isDirected());
-                } else {
-                    std::cout << "[FAIL] Сначала найдите раскраску (пункт 46)\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[51] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                lab5_runner_.checkEulerian(*graph_);
-
-                auto euler = lab5_runner_.getLastEulerianCycle();
-                auto added_edges = lab5_runner_.getLastEulerianAddedEdges();
-                if (euler && !euler->empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(51);
-                    data.path = *euler;
-                    data.addedEdges = added_edges;
-                    FileHandler::saveGraph(data.txtFile, *graph_);
-                    FileHandler::savePath(data.txtPathsFile, data.path);
-                    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
-                    DrawData pathsData = data;
-                    pathsData.paths = {data.path};
-                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
-                } else {
-                    std::cout << "[FAIL] " << no_euler_msg_ << "\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[52] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                lab5_runner_.checkHamiltonian(*graph_);
-
-                auto hamilton = lab5_runner_.getLastHamiltonianCycle();
-                auto added_edges = lab5_runner_.getLastHamiltonianAddedEdges();
-                if (hamilton && !hamilton->empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(52);
-                    data.path = *hamilton;
-                    data.addedEdges = added_edges;
-                    FileHandler::saveGraph(data.txtFile, *graph_);
-                    FileHandler::savePath(data.txtPathsFile, data.path);
-                    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
-                    DrawData pathsData = data;
-                    pathsData.paths = {data.path};
-                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
-                } else {
-                    std::cout << "[FAIL] " << no_hamilton_msg_ << "\n";
-                }
-            },
-            no_graph_msg_);
-    };
-    actions_[53] = [this]() {
-        checkAndRun(
-            graph_,
-            [&]() {
-                lab5_runner_.solveTSP(*graph_);
-
-                auto tsp = lab5_runner_.getLastTSPCycle();
-                if (tsp && !tsp->empty()) {
-                    auto data = DrawDataConfig::getConfigs().at(53);
-                    data.path = *tsp;
-                    FileHandler::saveGraph(data.txtFile, *graph_);
-                    FileHandler::savePath(data.txtPathsFile, data.path);
-                    DrawData pathsData = data;
-                    pathsData.paths = {data.path};
-                    Visualizer::drawPaths(pathsData, graph_->isDirected(), VisualizationType::Graph);
-                } else {
-                    std::cout << "[FAIL] " << no_tsp_msg_ << "\n";
-                }
-            },
-            no_graph_msg_);
-    };
-
-    actions_[61] = []() { dict::lab6::Runner r; r.runHashTableDemo(); };
-    actions_[62] = []() { dict::lab6::Runner r; r.runRBTreeDemo(); };
-    actions_[63] = []() { dict::lab6::Runner r; r.runHashTableInteractive(); };
-    actions_[64] = []() { dict::lab6::Runner r; r.runRBTreeInteractive(); };
+    actions_[61] = [this]() { lab6_runner_.runHashTableDemo(); };
+    actions_[62] = [this]() { lab6_runner_.runRBTreeDemo(); };
+    actions_[63] = [this]() { lab6_runner_.runHashTableInteractive(); };
+    actions_[64] = [this]() { lab6_runner_.runRBTreeInteractive(); };
 
 }
 
@@ -407,8 +52,7 @@ void Menu::show() const {
 
     std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
     std::cout << "11 - Метод Шимбелла\n";
-    std::cout << "12 - Подсчёт количества маршрутов\n";
-    std::cout << "13 - Визуализировать матрицу Шимбелла\n";
+    std::cout << "12 - Подсчёт путей\n";
 
     std::cout << "\n[Lab 3 - Потоки]\n";
     std::cout << "31 - Сгенерировать сеть потоков\n";
@@ -431,10 +75,10 @@ void Menu::show() const {
     std::cout << "53 - Задача коммивояжера (TSP)\n";
 
     std::cout << "\n[Lab 6 - HashTable and RBTree]\n";
-    std::cout << "61 - HashTable Demo\n";
-    std::cout << "62 - RBTree Demo\n";
-    std::cout << "63 - HashTable Interactive\n";
-    std::cout << "64 - RBTree Interactive\n";
+    std::cout << "61 - HashTable демо\n";
+    std::cout << "62 - RBTree демо\n";
+    std::cout << "63 - HashTable интерактивно\n";
+    std::cout << "64 - RBTree интерактивно\n";
 
     std::cout << "\n0 - Выход\n";
 }

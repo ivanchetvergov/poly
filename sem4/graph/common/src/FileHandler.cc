@@ -108,14 +108,7 @@ bool FileHandler::saveCostMatrix(std::string const& filename, FlowNetwork const&
 }
 
 bool FileHandler::saveDistanceMatrix(std::string const& filename, std::vector<std::vector<std::optional<double>>> const& matrix) {
-    std::vector<std::vector<double>> doubleMatrix;
-    for (auto const& row : matrix) {
-        std::vector<double> doubleRow;
-        for (auto const& val : row) {
-            doubleRow.push_back(val.value_or(0.0));
-        }
-        doubleMatrix.push_back(doubleRow);
-    }
+    auto doubleMatrix = CollectionUtils::convertOptionalMatrixToDouble(matrix, 0.0);
     return saveMatrix(filename, doubleMatrix);
 }
 

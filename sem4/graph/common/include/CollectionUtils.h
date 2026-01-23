@@ -75,6 +75,18 @@ public:
     static bool hasKey(Map const& map, Key const& key) {
         return map.find(key) != map.end();
     }
+
+    static Matrix<double> convertOptionalMatrixToDouble(Matrix<std::optional<double>> const& matrix, double defaultValue = 0.0) {
+        Matrix<double> result(matrix.size(), std::vector<double>(matrix.empty() ? 0 : matrix[0].size(), defaultValue));
+        for (size_t i = 0; i < matrix.size(); ++i) {
+            for (size_t j = 0; j < matrix[i].size(); ++j) {
+                if (matrix[i][j].has_value()) {
+                    result[i][j] = matrix[i][j].value();
+                }
+            }
+        }
+        return result;
+    }
 };
 
 }  // namespace graph
