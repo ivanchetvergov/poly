@@ -42,7 +42,7 @@ def main():
     renderer.setup_plot()
 
     max_len = max(len(node) for node in G.nodes())
-    node_size = 1500 + 200 * max_len
+    node_size = node_cfg.rb_node_size
     nx.draw_networkx_nodes(G, pos, node_color=node_color_list, node_size=node_size)
 
     nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='->', connectionstyle='arc3,rad=0.0')

@@ -15,6 +15,7 @@ class PlotConfig:
 @dataclass(frozen=True)
 class NodeConfig:
     node_size: int = 800
+    rb_node_size: int = 4200
     node_color: str = 'skyblue'
     node_edge_color: str = 'black'
     node_edge_width: float = 2.0
