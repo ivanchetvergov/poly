@@ -27,7 +27,7 @@ graph/
 │   │   ├── Menu.h          # Класс меню для выбора пунктов
 │   │   ├── PathUtils.h     # Template-утилиты для путей (поиск мин, apply)
 │   │   ├── Utils.h         # Меню, чтение инпута, checkAndRun
-│   │   └── Visualizer.h    # Врапер для вызова питоновских скриптов
+│   │   └── Visualizer.h    # Врапер для вызова пайтон скриптов
 │   └── src/
 │       ├── DrawDataConfig.cc # Конфиги путей
 │       ├── FileHandler.cc  # Реализация работы с файлами
