@@ -12,8 +12,8 @@ struct RBNode {
     std::string key;
     int count;
     Color color{RED};
-    std::unique_ptr<RBNode> left{nullptr};
-    std::unique_ptr<RBNode> right{nullptr};
+    RBNode* left{nullptr};
+    RBNode* right{nullptr};
     RBNode* parent{nullptr};
 
     explicit RBNode(std::string const& k, int c = 1) : key(k), count(c) {}
@@ -29,26 +29,26 @@ public:
     bool search(std::string const& word) const;
     void clear();
 
-    void printTree() const;
+    [[nodiscard]] std::string serialize() const;
 
-    [[nodiscard]] std::vector<std::tuple<std::string, std::string, std::string>> getVisualizationData() const;
+    bool validate() const;
 
 private:
-    std::unique_ptr<RBNode> m_root;
+    RBNode* m_root;
 
     RBNode* findNode(std::string const& word) const;
     Color getColor(RBNode* node) const;
     std::pair<RBNode*, RBNode*> findInsertPosition(std::string const& word) const;
-    void clearHelper(std::unique_ptr<RBNode>& node);
+    void destroy(RBNode* node);
 
-    void preOrderVisit(std::unique_ptr<RBNode> const& node) const;
-    void inOrderVisit(std::unique_ptr<RBNode> const& node) const;
-    void postOrderVisit(std::unique_ptr<RBNode> const& node) const;
 
     void rotateLeft(RBNode* pt);
     void rotateRight(RBNode* pt);
     void insertFixup(RBNode* pt);
     void deleteFixup(RBNode* pt);
+
+    RBNode* minimum(RBNode* node) const;
+    void transplant(RBNode* u, RBNode* v);
 };
 
 }  // namespace dict

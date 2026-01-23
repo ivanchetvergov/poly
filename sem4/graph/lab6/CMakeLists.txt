@@ -4,33 +4,15 @@ project(graph_lab6)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
-
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/../common/include)
 
-add_subdirectory(../lab3 lab3_build)
-add_subdirectory(../common common_build)
-
-add_library(HashTable STATIC
+add_library(graph_lab6_lib STATIC
     src/HashTable.cc
-)
-
-add_library(RBTree STATIC
     src/RBTree.cc
-)
-
-add_library(TextGenerator STATIC
     src/TextGenerator.cc
-)
-
-add_library(Runner STATIC
     src/Runner.cc
 )
-
-add_executable(${PROJECT_NAME}
-    main.cc
-)
-
-target_link_libraries(${PROJECT_NAME} HashTable RBTree TextGenerator Runner graph_common graph_flow)
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
+target_include_directories(graph_lab6_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include)
+target_link_libraries(graph_lab6_lib PUBLIC graph_common graph_flow)
+target_compile_options(graph_lab6_lib PRIVATE -Wall -Wextra)

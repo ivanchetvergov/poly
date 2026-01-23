@@ -92,27 +92,7 @@ size_t HashTable::hash(std::string const& key) const noexcept {
     return hash % m_capacity;
 }
 
-void HashTable::printTable() const {
-    std::cout << "\n=== Содержимое хеш-таблицы ===" << std::endl;
-    std::cout << "Размер: " << m_size_ << ", Емкость: " << m_capacity << std::endl;
-    std::cout << "Слова:" << std::endl;
-
-    int count = 0;
-    for (auto& bucket : m_table) {
-        auto* curr = bucket.get();
-        while (curr) {
-            std::cout << "  " << curr->key << " (" << curr->count << "x)" << std::endl;
-            curr = curr->next.get();
-            count++;
-        }
-    }
-
-    if (count == 0) {
-        std::cout << "  (пусто)" << std::endl;
-    }
-}
-
-std::string HashTable::getVisualizationData() const {
+std::string HashTable::serialize() const {
     std::string content;
     for (size_t i = 0; i < m_capacity; ++i) {
         auto* curr = m_table[i].get();

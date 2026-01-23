@@ -12,7 +12,8 @@ class Runner {
 public:
     void runHashTableDemo();
     void runRBTreeDemo();
-    void runTextGeneratorDemo();
+    void runHashTableInteractive();
+    void runRBTreeInteractive();
 };
 
 }  // namespace lab6

@@ -27,9 +27,8 @@ public:
 
     [[nodiscard]] size_t size() const noexcept { return m_size_; }
     [[nodiscard]] size_t capacity() const noexcept { return m_capacity; }
-    void printTable() const;
 
-    [[nodiscard]] std::string getVisualizationData() const;
+    [[nodiscard]] std::string serialize() const;
 
 private:
     std::vector<std::unique_ptr<HashNode>> m_table;

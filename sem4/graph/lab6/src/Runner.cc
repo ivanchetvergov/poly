@@ -8,8 +8,10 @@
 
 #include "../../common/include/Visualizer.h"
 #include "../../common/include/FileHandler.h"
+#include "../../common/include/DrawDataConfig.h"
 
 using graph::FileHandler;
+using graph::DrawDataConfig;
 
 namespace dict {
 
@@ -24,16 +26,15 @@ void Runner::runHashTableDemo() {
         ht.insert(word);
     }
 
-    ht.printTable();
-
     std::string txtFile = "../../assets/txt/hashtable_demo.txt";
     std::string pngFile = "../../assets/png/hashtable_demo.png";
 
-    std::string content = ht.getVisualizationData();
-    if (FileHandler::saveToFile(txtFile, content)) {
-        std::cout << "Exported to " << txtFile << "\n";
-        graph::Visualizer::drawHashTable(txtFile, pngFile, "HashTable Demo");
-        std::cout << "Visualization saved to " << pngFile << "\n";
+    std::string content = ht.serialize();
+    auto data = DrawDataConfig::getConfigs().at(61);
+    if (FileHandler::saveHashTableData(content, data.txtFile)) {
+        std::cout << "Exported to " << data.txtFile << "\n";
+        graph::Visualizer::drawHashTable(data);
+        std::cout << "Visualization saved to " << data.pngFile << "\n";
     } else {
         std::cout << "Export failed\n";
     }
@@ -43,39 +44,147 @@ void Runner::runRBTreeDemo() {
     std::cout << "=== RBTree Demo ===\n";
     RBTree tree;
 
-    std::vector<std::string> words =  {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
+    // std::vector<std::string> words =  {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
+    std::vector<std::string> words = {"Hesse", "Гете", "Hugo", "Достоевский", "Kafka", "Tolstoy", "Camus", "Пушкин",
+        "Orwell", "Чехов", "Balzac", "Гессе", "Dostoevsky", "Flaubert", "Булгаков", "Goethe", "Proust", "Шолохов", "Camus"};
+
+    int step = 0;
+    auto data = DrawDataConfig::getConfigs().at(65);
+    std::string snapshotsFile = data.txtFile;
+    FileHandler::saveToFile(snapshotsFile, "");
+
     for (auto const& word : words) {
         tree.insert(word);
+        // Log snapshot
+        auto nodes = tree.serialize();
+        std::string snapshot = std::to_string(step) + "\n" + nodes + "\n---\n";
+        FileHandler::appendToFile(snapshotsFile, snapshot);
+        step++;
     }
 
-    tree.printTree();
+    if (!tree.validate()) {
+        std::cout << "RBTree is invalid!" << std::endl;
+    }
 
     std::string txtFile = "../../assets/txt/rbtree_demo.txt";
     std::string pngFile = "../../assets/png/rbtree_demo.png";
-    auto nodes = tree.getVisualizationData();
-    if (FileHandler::saveTreeStructure(txtFile, nodes)) {
-        std::cout << "Exported to " << txtFile << "\n";
-        graph::Visualizer::drawRBTree(txtFile, pngFile, "RBTree Demo");
-        std::cout << "Visualization saved to " << pngFile << "\n";
+    auto nodes = tree.serialize();
+    auto pngData = DrawDataConfig::getConfigs().at(62);
+    if (FileHandler::saveRBTreeData(nodes, pngData.txtFile)) {
+        std::cout << "Exported to " << pngData.txtFile << "\n";
+        graph::Visualizer::drawRBTree(pngData, graph::VisualizationType::Graph);
+        std::cout << "Visualization saved to " << pngData.pngFile << "\n";
     } else {
         std::cout << "Export failed\n";
     }
+
+    graph::Visualizer::drawRBTree(data, graph::VisualizationType::Animation);
+    std::cout << "Animation saved to " << data.gifFile << "\n";
 }
 
-void Runner::runTextGeneratorDemo() {
-    std::cout << "=== TextGenerator Demo ===\n";
-    TextGenerator gen;
-    std::string text = gen.generate(100);
-    std::cout << "Generated text: " << text.substr(0, 50) << "...\n";
+void Runner::runHashTableInteractive() {
+    std::cout << "=== HashTable Interactive Mode ===\n";
+    HashTable ht(20);
+    std::string command;
+    while (true) {
+        std::cout << "Enter command (insert <word>, remove <word>, search <word>, draw, exit): ";
+        std::getline(std::cin >> std::ws, command);
+        if (command == "exit") break;
+        if (command.substr(0, 6) == "insert") {
+            std::string word = command.substr(7);
+            ht.insert(word);
+            std::cout << "Inserted: " << word << "\n";
+        } else if (command.substr(0, 6) == "remove") {
+            std::string word = command.substr(7);
+            if (ht.remove(word)) {
+                std::cout << "Removed: " << word << "\n";
+            } else {
+                std::cout << "Not found: " << word << "\n";
+            }
+        } else if (command.substr(0, 6) == "search") {
+            std::string word = command.substr(7);
+            if (ht.search(word)) {
+                std::cout << "Found: " << word << "\n";
+            } else {
+                std::cout << "Not found: " << word << "\n";
+            }
+        } else if (command == "draw") {
+            std::string content = ht.serialize();
+            auto data = DrawDataConfig::getConfigs().at(63);
+            if (FileHandler::saveHashTableData(content, data.txtFile)) {
+                std::cout << "Exported to " << data.txtFile << "\n";
+                graph::Visualizer::drawHashTable(data);
+                std::cout << "Visualization saved to " << data.pngFile << "\n";
+            } else {
+                std::cout << "Export failed\n";
+            }
+        } else {
+            std::cout << "Unknown command\n";
+        }
+    }
+}
 
-    std::string file = "../../assets/txt/generated_text.txt";
-    std::string pngFile = "../../assets/png/text_stats.png";
-    if (FileHandler::saveToFile(file, text)) {
-        std::cout << "Saved to " << file << "\n";
-        graph::Visualizer::drawTextStats(file, pngFile, "Text Statistics");
-        std::cout << "Visualization saved to " << pngFile << "\n";
-    } else {
-        std::cout << "Save failed\n";
+void Runner::runRBTreeInteractive() {
+    std::cout << "=== RBTree Interactive Mode ===\n";
+    RBTree tree;
+    std::string command;
+    int step = 1;
+    auto data = DrawDataConfig::getConfigs().at(65);
+    std::string snapshotsFile = data.txtFile;
+    FileHandler::saveToFile(snapshotsFile, "");
+    while (true) {
+        std::cout << "Enter command (insert <word>, remove <word>, search <word>, validate, draw, gif, exit): ";
+        std::getline(std::cin >> std::ws, command);
+        if (command == "exit") break;
+        if (command.substr(0, 6) == "insert") {
+            std::string word = command.substr(7);
+            tree.insert(word);
+            std::cout << "Inserted: " << word << "\n";
+
+            auto data = tree.serialize();
+            std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
+            FileHandler::appendToFile(snapshotsFile, snapshot);
+            step++;
+        } else if (command.substr(0, 6) == "remove") {
+            std::string word = command.substr(7);
+            if (tree.remove(word)) {
+                std::cout << "Removed: " << word << "\n";
+            } else {
+                std::cout << "Not found: " << word << "\n";
+            }
+        } else if (command.substr(0, 6) == "search") {
+            std::string word = command.substr(7);
+            if (tree.search(word)) {
+                std::cout << "Found: " << word << "\n";
+            } else {
+                std::cout << "Not found: " << word << "\n";
+            }
+        } else if (command == "validate") {
+            if (tree.validate()) {
+                std::cout << "Tree is valid\n";
+            } else {
+                std::cout << "Tree is invalid\n";
+            }
+        } else if (command == "draw") {
+            auto nodes = tree.serialize();
+            auto data = DrawDataConfig::getConfigs().at(64);
+            if (FileHandler::saveRBTreeData(nodes, data.txtFile)) {
+                std::cout << "Exported to " << data.txtFile << "\n";
+                graph::Visualizer::drawRBTree(data, graph::VisualizationType::Graph);
+                std::cout << "Visualization saved to " << data.pngFile << "\n";
+            } else {
+                std::cout << "Export failed\n";
+            }
+        } else if (command == "gif") {
+            if (step > 1) {
+                auto data = DrawDataConfig::getConfigs().at(65);
+                graph::Visualizer::drawRBTree(data, graph::VisualizationType::Animation);
+            } else {
+                std::cout << "No snapshots to animate\n";
+            }
+        } else {
+            std::cout << "Unknown command\n";
+        }
     }
 }
 
