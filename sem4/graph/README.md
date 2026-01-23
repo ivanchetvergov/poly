@@ -6,50 +6,121 @@
 
 ```bash
 graph/
-├── main.cc                  # Единое меню для всех лаб
-├── examples.ipynb           # ноутбук с интеграцией
-├── log.txt                  # Логи от C++ программы
-├── common/                  # Переиспользуемый код
+├── CMakeLists.txt          # Корневой CMake файл
+├── Makefile                # Makefile для сборки
+├── main.cc                 # Единое меню для всех лаб
+├── examples.ipynb          # Ноутбук с интеграцией
+├── requirements.txt        # Python зависимости
+├── TODO                    # Список задач
+├── log.txt                 # Логи от C++ программы (генерируется)
+├── common/                 # Переиспользуемый код
+│   ├── CMakeLists.txt
+│   ├── README.md
+│   ├── build/              # Сборка common
 │   ├── include/
-│   │   ├── Animator.h       # Анимация потоков (GIF)
 │   │   ├── CollectionUtils.h # Хелперы для векторов/мапов
 │   │   ├── DrawDataConfig.h # Конфиги для визуализации (пути к файлам)
-│   │   ├── Generator.h      # Генератор графов (дерево, ацикл, связный)
-│   │   ├── Graph.h          # Обычный граф (взвешенный, ор/неор)
-│   │   ├── GraphBase.h      # Template базовый класс для всех графов
-│   │   ├── Menu.h           # Класс меню для выбора пунктов
-│   │   ├── PathUtils.h      # Template-утилиты для путей (поиск мин, apply)
-│   │   ├── Utils.h          # Меню, чтение инпута, checkAndRun
-│   │   └── Visualizer.h     # Врапер для вызова питоновских скриптов
+│   │   ├── FileHandler.h   # Работа с файлами
+│   │   ├── Generator.h     # Генератор графов (дерево, ацикл, связный)
+│   │   ├── Graph.h         # Обычный граф (взвешенный, ор/неор)
+│   │   ├── GraphBase.h     # Template базовый класс для всех графов
+│   │   ├── Menu.h          # Класс меню для выбора пунктов
+│   │   ├── PathUtils.h     # Template-утилиты для путей (поиск мин, apply)
+│   │   ├── Utils.h         # Меню, чтение инпута, checkAndRun
+│   │   └── Visualizer.h    # Врапер для вызова питоновских скриптов
 │   └── src/
-│       ├── Animator.cc      # Реализация анимации
 │       ├── DrawDataConfig.cc # Конфиги путей
-│       ├── Generator.cc     # Генерация графов
-│       ├── Graph.cc         # Реализация Graph
-│       ├── GraphBase.cc     # Реализация template-методов
-│       ├── Menu.cc          # Логика меню
-│       ├── Utils.cc         # Хелперы
-│       ├── Visualizer.cc    # Экспорт данных
-│       └── VisualizerHelpers.cc # Вспомогательные функции визуализации
-├── lab1/                    # Метод Шимбелла и подсчет путей
-├── lab3/                    # Потоки (Форд-Фалкерсон, минимальная стоимость)
-├── lab4/                    # Остовы и комбинаторика (независимые множества, покрытия)
-├── lab5/                    # Циклы (Эйлер, Гамильтон, TSP)
-├── lab6/                    # Структуры данных (хеш-таблица, RB-дерево)
-├── scripts/                 # Python для визуализации и утилит
-│   ├── core/                # Ядро (инициализация)
-│   ├── tools/               # Инструменты
-│   └── visualization/       # Визуализация
+│       ├── FileHandler.cc  # Реализация работы с файлами
+│       ├── Generator.cc    # Генерация графов
+│       ├── Generator.tpp   # Template реализации
+│       ├── Graph.cc        # Реализация Graph
+│       ├── GraphBase.tpp   # Template реализации GraphBase
+│       ├── Menu.cc         # Логика меню
+│       ├── Utils.cc        # Хелперы
+│       └── Visualizer.cc   # Экспорт данных
+├── examples_files/         # Примеры файлов
+├── lab1/                   # Метод Шимбелла и подсчет путей
+│   ├── CMakeLists.txt
+│   ├── README.md
+│   ├── build/
+│   ├── include/
+│   │   ├── PathCounter.h
+│   │   ├── Runner.h
+│   │   └── ShimbellMethod.h
+│   └── src/
+│       ├── PathCounter.cc
+│       ├── Runner.cc
+│       └── ShimbellMethod.cc
+├── lab2/                   # Обходы и кратчайшие пути
+│   ├── CMakeLists.txt
+│   ├── main.cc
+│   ├── README.md
+│   ├── include/
+│   │   ├── Comparator.h
+│   │   └── Runner.h
+│   └── src/
+│       ├── Comparator.cc
+│       └── Runner.cc
+├── lab3/                   # Потоки (Форд-Фалкерсон, минимальная стоимость)
+│   ├── CMakeLists.txt
+│   ├── README.md
+│   ├── build/
+│   ├── include/
+│   │   ├── FlowNetwork.h
+│   │   ├── MaxFlow.h
+│   │   ├── MinCostFlow.h
+│   │   └── Runner.h
+│   └── src/
+│       ├── FlowNetwork.cc
+│       ├── MaxFlow.cc
+│       ├── MinCostFlow.cc
+│       └── Runner.cc
+├── lab4/                   # Остовы и комбинаторика
+│   ├── CMakeLists.txt
+│   ├── README.md
+│   ├── include/
+│   └── src/
+├── lab5/                   # Циклы (Эйлер, Гамильтон, TSP)
+│   ├── CMakeLists.txt
+│   ├── README.md
+│   ├── build/
+│   ├── include/
+│   └── src/
+├── lab6/                   # Структуры данных (хеш-таблица, RB-дерево)
+│   ├── CMakeLists.txt
+│   ├── main.cc
+│   ├── Makefile
+│   ├── README.md
+│   ├── build/
+│   ├── include/
+│   └── src/
+│   └── tests/
+├── scripts/                # Python для визуализации и утилит
+│   ├── README.md
+│   ├── __pycache__/
+│   ├── core/               # Ядро (инициализация)
+│   └── visualization/      # Визуализация
 │       ├── plot_colored_graph.py   # Раскраска графов
 │       ├── plot_flow.py            # Сети потоков
 │       ├── plot_flow_animation.py  # Анимация потоков
 │       ├── plot_graph.py           # Графы через networkx
 │       ├── plot_graph_paths.py     # Графы с путями
 │       └── plot_matrix.py          # Матрицы через seaborn
+├── build/                  # Сборка всего проекта
+│   ├── cmake_install.cmake
+│   ├── CMakeCache.txt
+│   ├── compile_commands.json
+│   ├── graph_main
+│   ├── CMakeFiles/
+│   ├── common/
+│   ├── lab1/
+│   ├── lab3/
+│   ├── lab5/
+│   └── lab6/
 └── assets/
-    ├── png/                 # Готовые картинки
-    ├── txt/                 # Промежуточные данные для Python
-    └── gif/                 # Анимации (потоки)
+    ├── png/                # Готовые картинки
+    ├── txt/                # Промежуточные данные для Python
+    └── gif/                # Анимации (потоки)
 ```
 
 ## Архитектура
@@ -73,16 +144,38 @@ C++ экспортирует данные в txt-файлы, Python скрипт
 
 ## Сборка и запуск
 
-### Старый способ (терминал)
+### Полная сборка
 
 ```bash
-make  # Сборка всего
-./build/graph_main  # Запуск меню
+make  # Конфигурирует CMake с clang++, собирает все библиотеки и исполняемый файл
+```
+
+### Запуск меню
+
+```bash
+./build/graph_main  # Интерактивное меню для всех лаб
+```
+
+### Сборка отдельных лаб
+
+```bash
+make lab1  # Только lab1
+make lab3  # Только lab3
+make lab4  # Только lab4
+make lab5  # Только lab5
+make lab6  # Только lab6
+```
+
+### Проверка кода
+
+```bash
+make check     # Запускает clang-tidy (только чтение)
+make fix-code  # Применяет clang-tidy fixes + clang-format
 ```
 
 ### Новый способ (ноутбук, огонь!)
 
-1. Установи зависимости: `pip install jupyter matplotlib networkx seaborn`
+1. Установи зависимости: `pip install -r requirements.txt` (jupyter, matplotlib, networkx, seaborn)
 2. Запусти Jupyter: `jupyter notebook` или `jupyter lab`
 3. Открой `examples.ipynb`
 4. Запусти все ячейки — оно само сгенерит данные, визуализации и очистит assets в конце.
@@ -96,6 +189,12 @@ make  # Сборка всего
 - Генерация матриц Шимбелла для путей заданной длины.
 - Подсчёт количества маршрутов между вершинами.
 - Визуализация: матрицы min/max, граф с путями.
+
+### Lab 2: Обходы и кратчайшие пути
+
+- Реализация алгоритмов обхода: BFS, DFS, поиск точек сочленения.
+- Алгоритмы поиска кратчайших путей: Дейкстра, Беллман-Форд, Флойд-Уоршалл.
+- Сравнение скоростей работы алгоритмов.
 
 ### Lab 3: Потоки
 
