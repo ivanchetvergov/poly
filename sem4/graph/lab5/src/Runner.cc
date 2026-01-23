@@ -6,15 +6,23 @@
 
 #include <iostream>
 
-#include <Generator.h>
+#include <FileHandler.h>
+#include <DrawDataConfig.h>
+#include <Visualizer.h>
 
 namespace lab5 {
 
 using graph::EulerianCycle;
 using graph::HamiltonianCycle;
 using graph::TSPSolver;
+using graph::FileHandler;
+using graph::DrawDataConfig;
+using graph::Visualizer;
+using graph::DrawData;
+using graph::VisualizationType;
 
-void Runner::checkEulerian(Graph& graph) {
+void Runner::runCheckEulerian(Graph& graph) {
+    auto data = DrawDataConfig::getConfigs().at(51);
     EulerianCycle euler(graph);
 
     std::cout << "\n=== Проверка эйлеровости ===\n";
@@ -23,8 +31,15 @@ void Runner::checkEulerian(Graph& graph) {
         std::cout << "[OK] Граф является эйлеровым\n";
         auto cycle = euler.findCycle();
         if (cycle.has_value()) {
-            last_eulerian_cycle_ = cycle.value();
-            std::cout << "Эйлеров цикл найден, длина: " << last_eulerian_cycle_->size() << "\n";
+            std::cout << "Эйлеров цикл найден, длина: " << cycle->size() << "\n";
+
+            data.path = *cycle;
+            FileHandler::saveGraph(data.txtFile, graph);
+            FileHandler::savePaths(data.txtPathsFile, {data.path});
+            DrawData pathsData = data;
+            pathsData.paths = {data.path};
+            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
+            std::cout << "[OK] Эйлеров цикл визуализирован\n";
         }
     } else if (euler.isSemiEulerian()) {
         std::cout << "[INFO] Граф является полуэйлеровым (есть эйлеров путь, но нет цикла)\n";
@@ -40,23 +55,32 @@ void Runner::checkEulerian(Graph& graph) {
         std::cout << "Вершин с нечётной степенью: " << odd_vertices.size() << "\n";
 
         std::cout << "\nПопытка модификации графа...\n";
+        FileHandler::saveGraph(data.txtFile, graph);
         euler.makeEulerian();
-        last_eulerian_added_edges_ = euler.getAddedEdges();
-        if (!last_eulerian_added_edges_.empty()) {
-            std::cout << "[ИНФО] Добавлено рёбер: " << last_eulerian_added_edges_.size() << "\n";
+        auto added_edges = euler.getAddedEdges();
+        if (!added_edges.empty()) {
+            std::cout << "[ИНФО] Добавлено рёбер: " << added_edges.size() << "\n";
         }
         auto cycle = euler.findCycle();
         if (cycle.has_value()) {
-            last_eulerian_cycle_ = cycle.value();
-            std::cout << "[OK] После модификации найден эйлеров цикл, длина: "
-                      << last_eulerian_cycle_->size() << "\n";
+            std::cout << "[OK] После модификации найден эйлеров цикл, длина: " << cycle->size() << "\n";
+
+            data.path = *cycle;
+            data.addedEdges = added_edges;
+            FileHandler::savePaths(data.txtPathsFile, {data.path});
+            FileHandler::saveAddedEdges(data.txtPathsFile, data.addedEdges);
+            DrawData pathsData = data;
+            pathsData.paths = {data.path};
+            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
+            std::cout << "[OK] Эйлеров цикл после модификации визуализирован\n";
         } else {
-            std::cout << "[WARN] Не удалось найти эйлеров цикл после модификации\n";
+            std::cout << "[FAIL] Не удалось найти эйлеров цикл после модификации\n";
         }
     }
 }
 
-void Runner::checkHamiltonian(Graph& graph) {
+void Runner::runCheckHamiltonian(Graph& graph) {
+    auto data = DrawDataConfig::getConfigs().at(52);
     HamiltonianCycle hamilton(graph);
 
     std::cout << "\n=== Проверка гамильтоновости ===\n";
@@ -65,28 +89,44 @@ void Runner::checkHamiltonian(Graph& graph) {
         std::cout << "[OK] Граф является гамильтоновым\n";
         auto cycle = hamilton.findCycle();
         if (cycle.has_value()) {
-            last_hamiltonian_cycle_ = cycle.value();
             std::cout << "Гамильтонов цикл найден\n";
+
+            data.path = *cycle;
+            FileHandler::saveGraph(data.txtFile, graph);
+            FileHandler::savePaths(data.txtPathsFile, {data.path});
+            DrawData pathsData = data;
+            pathsData.paths = {data.path};
+            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
+            std::cout << "[OK] Гамильтонов цикл визуализирован\n";
         }
     } else {
         std::cout << "[INFO] Граф не является гамильтоновым\n";
         std::cout << "Попытка модификации графа...\n";
+        FileHandler::saveGraph(data.txtFile, graph);
         hamilton.makeHamiltonian();
-        last_hamiltonian_added_edges_ = hamilton.getAddedEdges();
-        if (!last_hamiltonian_added_edges_.empty()) {
-            std::cout << "[ИНФО] Добавлено рёбер: " << last_hamiltonian_added_edges_.size() << "\n";
+        auto added_edges = hamilton.getAddedEdges();
+        if (!added_edges.empty()) {
+            std::cout << "[ИНФО] Добавлено рёбер: " << added_edges.size() << "\n";
         }
         auto cycle = hamilton.findCycle();
         if (cycle.has_value()) {
-            last_hamiltonian_cycle_ = cycle.value();
             std::cout << "[OK] После модификации найден гамильтонов цикл\n";
+
+            data.path = *cycle;
+            data.addedEdges = added_edges;
+            FileHandler::savePaths(data.txtPathsFile, {data.path});
+            FileHandler::saveAddedEdges("assets/txt/added_edges.txt", data.addedEdges);
+            DrawData pathsData = data;
+            pathsData.paths = {data.path};
+            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
+            std::cout << "[OK] Гамильтонов цикл после модификации визуализирован\n";
         } else {
-            std::cout << "[WARN] Не удалось найти гамильтонов цикл после модификации\n";
+            std::cout << "[FAIL] Не удалось найти гамильтонов цикл после модификации\n";
         }
     }
 }
 
-void Runner::solveTSP(Graph const& graph) {
+void Runner::runSolveTSP(Graph const& graph) {
     std::cout << "\n=== Задача коммивояжёра (TSP) ===\n";
 
     TSPSolver solver(graph);
@@ -113,19 +153,17 @@ void Runner::solveTSP(Graph const& graph) {
         std::cout << "\n";
     }
 
-    last_tsp_cycle_ = result.front().path;
-}
+    auto best_cycle = result.front().path;
+    std::cout << "\nЛучший цикл визуализирован\n";
 
-std::optional<std::vector<int>> const& Runner::getLastEulerianCycle() const {
-    return last_eulerian_cycle_;
-}
-
-std::optional<std::vector<int>> const& Runner::getLastHamiltonianCycle() const {
-    return last_hamiltonian_cycle_;
-}
-
-std::optional<std::vector<int>> const& Runner::getLastTSPCycle() const {
-    return last_tsp_cycle_;
+    auto data = DrawDataConfig::getConfigs().at(53);
+    data.path = best_cycle;
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::savePaths(data.txtPathsFile, {data.path});
+    DrawData pathsData = data;
+    pathsData.paths = {data.path};
+    Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
+    std::cout << "[OK] Лучший TSP цикл визуализирован\n";
 }
 
 }  // namespace lab5

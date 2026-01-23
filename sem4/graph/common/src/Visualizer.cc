@@ -55,6 +55,10 @@ void Visualizer::draw(DrawData const& data, bool directed, VisualizationType typ
             "\"" + graph_title + "\"",
             "--type", type_str
         };
+        if (!data.txtGraphFile.empty()) {
+            args.push_back("--added_edges_file");
+            args.push_back(data.txtGraphFile);
+        }
         runPythonScript("plot_network.py", args);
     }
 }

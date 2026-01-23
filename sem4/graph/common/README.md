@@ -56,6 +56,18 @@
 - `drawRBTree(txt, png, title)` - красно-чёрное дерево.
 - `drawTextStats(txt, png, title)` - статистика текста.
 
+### Флаги визуализации
+
+Все методы `Visualizer` вызывают Python-скрипты с командной строкой. Ниже перечислены флаги и позиционные аргументы для каждого метода:
+
+- **drawMatrix**: Позиционные: `graph_file`, `output_file`, `title`
+- **draw (Graph/FlowNetwork)**: Позиционные: `graph_file`, `output_file`, `directed`, `title`; Флаги: `--type` (graph|flow), `--added_edges_file` (опционально, путь к файлу добавленных рёбер)
+- **drawPaths**: Позиционные: `graph_file`, `paths_file`, `output_file`, `directed`, `title`; Флаги: `--type` (graph|flow), `--added_edges_file` (опционально)
+- **drawColoredGraph**: Позиционные: `graph_file`, `output_file`, `colors_file`, `directed`, `title`
+- **drawHashTable**: Позиционные: `data_file`, `output_file`, `title`
+- **drawRBTree**: Позиционные: `data_file`, `output_file`, `title` (или `gif_file` для анимации)
+- **draw (Animation)**: Флаги: `--input` (файл снимков), `--output` (gif файл), `--graph_type` (directed|undirected), `--show`
+
 ## FileHandler
 
 Обработчик файлов для сохранения/загрузки данных. Всё статическое.

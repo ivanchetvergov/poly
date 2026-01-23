@@ -18,12 +18,13 @@ add_subdirectory(lab1)
 add_subdirectory(lab3)
 add_subdirectory(lab4)
 add_subdirectory(lab5)
+add_subdirectory(lab6)
 
 add_executable(${PROJECT_NAME}
     main.cc
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE graph_flow graph_lab1_lib graph_lab4_lib graph_lab5_lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE graph_flow graph_lab1_lib graph_lab4_lib graph_lab5_lib graph_lab6_lib)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 # Custom target to auto-fix code with clang-tidy and clang-format

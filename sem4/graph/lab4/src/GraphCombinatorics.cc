@@ -120,42 +120,29 @@ VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph) {
         vertex_to_index[vertices[i]] = i;
     }
 
-    if (n < 15) {
-        VerticesSet colors(n, -1);
-        VerticesSet best_colors(n, -1);
-
-        for (int max_colors = 1; max_colors <= static_cast<int>(n); ++max_colors) {
-            std::fill(colors.begin(), colors.end(), -1);
-            backtrackColoring(graph, 0, vertices, colors, max_colors, best_colors, vertex_to_index);
-            if (best_colors[0] != -1) {
-                return best_colors;
-            }
-        }
-        return best_colors;
-    }
-
-    // TODO: жадный алгоритм
     VerticesSet colors(n, -1);
-    return colors;
+    VerticesSet best_colors(n, -1);
+
+    for (int num_colors = 1; num_colors <= static_cast<int>(n); ++num_colors) {
+        std::fill(colors.begin(), colors.end(), -1);
+        if (backtrackColoring(graph, 0, vertices, colors, num_colors, vertex_to_index)) {
+            best_colors = colors;
+            break; // found minimal
+        }
+    }
+    return best_colors;
 }
 
-void GraphCombinatorics::backtrackColoring(Graph const& graph, int index,
+bool GraphCombinatorics::backtrackColoring(Graph const& graph, int index,
                                            VerticesSet const& vertices, VerticesSet& colors,
-                                           int& bestColors, VerticesSet& best_colors,
+                                           int num_colors,
                                            std::unordered_map<int, int> const& vertex_to_index) {
     if (index == static_cast<int>(vertices.size())) {
-        if (isValidColoring(graph, colors, vertices, vertex_to_index)) {
-            int maxColor = *std::max_element(colors.begin(), colors.end());
-            if (maxColor + 1 < bestColors) {
-                bestColors = maxColor + 1;
-                best_colors = colors;
-            }
-        }
-        return;
+        return isValidColoring(graph, colors, vertices, vertex_to_index);
     }
 
     int vertex = vertices[index];
-    for (int color = 0; color < bestColors; ++color) {
+    for (int color = 0; color < num_colors; ++color) {
         bool canColor = true;
         for (int neighbor : graph.getNeighbors(vertex)) {
             int neighbor_idx = vertex_to_index.at(neighbor);
@@ -166,10 +153,13 @@ void GraphCombinatorics::backtrackColoring(Graph const& graph, int index,
         }
         if (canColor) {
             colors[index] = color;
-            backtrackColoring(graph, index + 1, vertices, colors, bestColors, best_colors, vertex_to_index);
+            if (backtrackColoring(graph, index + 1, vertices, colors, num_colors, vertex_to_index)) {
+                return true;
+            }
             colors[index] = -1;
         }
     }
+    return false;
 }
 
 bool GraphCombinatorics::isIndependentSet(Graph const& graph,

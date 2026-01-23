@@ -21,6 +21,33 @@ using graph::Visualizer;
 using graph::FileHandler;
 using graph::DrawDataConfig;
 using graph::CollectionUtils;
+using graph::VisualizationType;
+
+std::unique_ptr<Graph> Runner::generateGraph() {
+    bool is_directed = static_cast<bool>(graph::readInt("Ориентированный граф? (1 - да, 0 - нет): "));
+    int num_vertices = graph::readInt("Количество вершин: ");
+    int num_edges = graph::readInt("Количество рёбер: ");
+    auto graph = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed);
+    auto data = DrawDataConfig::getConfigs().at(1);
+    FileHandler::saveGraph(data.txtFile, *graph);
+    Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
+    std::cout << "[OK] Граф отрисован в assets/png/01_graph.png\n";
+    return graph;
+}
+
+void Runner::runVisualizeAdjacencyMatrix(Graph const& graph) {
+    auto data = DrawDataConfig::getConfigs().at(2);
+    FileHandler::saveAdjacencyMatrix(data.txtFile, graph);
+    Visualizer::drawMatrix(data, "Матрица смежности");
+    std::cout << "[OK] Матрица смежности сохранена в assets/png/02_adjacency_matrix.png\n";
+}
+
+void Runner::runVisualizeWeightMatrix(Graph const& graph) {
+    auto data = DrawDataConfig::getConfigs().at(3);
+    FileHandler::saveWeightMatrix(data.txtFile, graph);
+    Visualizer::drawMatrix(data, "Матрица весов");
+    std::cout << "[OK] Матрица весов сохранена в assets/png/03_weight_matrix.png\n";
+}
 
 void Runner::runShimbellMethod(Graph const& graph) {
     std::cout << "=== Метод Шимбелла ===\n";

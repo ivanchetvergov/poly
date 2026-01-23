@@ -1,63 +1,127 @@
 #include "Runner.h"
 
 #include <iostream>
+#include <algorithm>
+
+#include <FileHandler.h>
+#include <DrawDataConfig.h>
+#include <Visualizer.h>
 
 namespace lab4 {
 
 using graph::KirchhoffTheorem;
 using graph::GraphCombinatorics;
+using graph::FileHandler;
+using graph::DrawDataConfig;
+using graph::Visualizer;
 
-int Runner::countSpanningTrees(Graph const& graph) {
+void Runner::runCountSpanningTrees(Graph const& graph) {
     int count = KirchhoffTheorem::countSpanningTrees(graph);
-    last_spanning_ = SpanningTreeResult{count};
-    return count;
+    std::cout << "Количество остовных деревьев: " << count << "\n";
 }
 
-CombinatoricsResult Runner::findMaxIndependentSet(Graph const& graph) {
+void Runner::runFindMaxIndependentSet(Graph const& graph) {
     GraphCombinatorics gc;
     auto mis = gc.findMaxIndependentSetVertices(graph);
-    last_combinatorics_ = CombinatoricsResult{true, false, false, 0, mis, {}, {}, {}, {}, {}};
-    return *last_combinatorics_;
+    std::cout << "Максимальное независимое множество вершин (размер " << mis.size() << "): ";
+    for (int v : mis) {
+        std::cout << v << " ";
+    }
+    std::cout << "\n";
+
+    auto data = DrawDataConfig::getConfigs().at(42);
+    std::vector<int> colors(graph.vertexCount(), 0);
+    for (int v : mis) {
+        colors[v] = 1;
+    }
+    data.colors = colors;
+    std::vector<int> vertices(graph.vertexCount());
+    for (size_t i = 0; i < graph.vertexCount(); ++i) vertices[i] = static_cast<int>(i);
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+    Visualizer::drawColoredGraph(data, graph.isDirected());
+    std::cout << "[OK] Независимое множество вершин визуализировано\n";
 }
 
-CombinatoricsResult Runner::findMaxIndependentSetEdges(Graph const& graph) {
+void Runner::runFindMaxIndependentSetEdges(Graph const& graph) {
     GraphCombinatorics gc;
     auto edges = gc.findMaxIndependentSetEdges(graph);
-    last_combinatorics_ = CombinatoricsResult{false, false, false, 0, {}, {}, {}, {}, edges, {}};
-    return *last_combinatorics_;
+    std::cout << "Максимальное независимое множество рёбер (размер " << edges.size() << "): ";
+    for (auto const& e : edges) {
+        std::cout << "(" << e.first << "," << e.second << ") ";
+    }
+    std::cout << "\n";
+
+    auto data = DrawDataConfig::getConfigs().at(43);
+    data.addedEdges = edges;
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+    Visualizer::draw(data, graph.isDirected(), graph::VisualizationType::Graph);
+    std::cout << "[OK] Независимое множество рёбер визуализировано\n";
 }
 
-CombinatoricsResult Runner::findMinVertexCover(Graph const& graph) {
+void Runner::runFindMinVertexCover(Graph const& graph) {
     GraphCombinatorics gc;
     auto vc = gc.findMinVertexCover(graph);
-    last_combinatorics_ = CombinatoricsResult{false, true, false, 0, {}, vc, {}, {}, {}, {}};
-    return *last_combinatorics_;
+    std::cout << "Минимальное вершинное покрытие (размер " << vc.size() << "): ";
+    for (int v : vc) {
+        std::cout << v << " ";
+    }
+    std::cout << "\n";
+
+    auto data = DrawDataConfig::getConfigs().at(44);
+    std::vector<int> colors(graph.vertexCount(), 0);
+    for (int v : vc) {
+        colors[v] = 1;
+    }
+    data.colors = colors;
+    std::vector<int> vertices(graph.vertexCount());
+    for (size_t i = 0; i < graph.vertexCount(); ++i) vertices[i] = static_cast<int>(i);
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+    Visualizer::drawColoredGraph(data, graph.isDirected());
+    std::cout << "[OK] Вершинное покрытие визуализировано\n";
 }
 
-CombinatoricsResult Runner::findMinEdgeCover(Graph const& graph) {
+void Runner::runFindMinEdgeCover(Graph const& graph) {
     GraphCombinatorics gc;
     auto ec = gc.findMinEdgeCover(graph);
-    last_combinatorics_ = CombinatoricsResult{false, false, false, 0, {}, {}, {}, {}, {}, ec};
-    return *last_combinatorics_;
+    std::cout << "Минимальное рёберное покрытие (размер " << ec.size() << "): ";
+    for (auto const& e : ec) {
+        std::cout << "(" << e.first << "," << e.second << ") ";
+    }
+    std::cout << "\n";
+
+    auto data = DrawDataConfig::getConfigs().at(45);
+    data.addedEdges = ec;
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+    Visualizer::draw(data, graph.isDirected(), graph::VisualizationType::Graph);
+    std::cout << "[OK] Рёберное покрытие визуализировано\n";
 }
 
-CombinatoricsResult Runner::findMinColoring(Graph const& graph) {
+void Runner::runFindMinColoring(Graph const& graph) {
     GraphCombinatorics gc;
     auto coloring = gc.findMinColoring(graph);
     int chromatic_number = 0;
     for (int color : coloring) {
         chromatic_number = std::max(chromatic_number, color + 1);
     }
-    last_combinatorics_ = CombinatoricsResult{false, false, false, chromatic_number, {}, {}, {}, coloring, {}, {}};
-    return *last_combinatorics_;
-}
+    std::cout << "Хроматическое число: " << chromatic_number << "\n";
+    std::cout << "Раскраска: ";
+    for (size_t i = 0; i < coloring.size(); ++i) {
+        std::cout << "v" << i << ":" << coloring[i] << " ";
+    }
+    std::cout << "\n";
 
-std::optional<SpanningTreeResult> const& Runner::getLastSpanningTree() const {
-    return last_spanning_;
-}
-
-std::optional<CombinatoricsResult> const& Runner::getLastCombinatorics() const {
-    return last_combinatorics_;
+    auto data = DrawDataConfig::getConfigs().at(46);
+    data.colors = coloring;
+    std::vector<int> vertices(graph.vertexCount());
+    for (size_t i = 0; i < graph.vertexCount(); ++i) vertices[i] = static_cast<int>(i);
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveColors(data.txtColorsFile, vertices, data.colors);
+    Visualizer::drawColoredGraph(data, graph.isDirected());
+    std::cout << "[OK] Раскраска графа визуализирована\n";
 }
 
 }  // namespace lab4

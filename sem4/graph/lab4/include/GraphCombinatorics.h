@@ -22,8 +22,8 @@ public:
 private:
     void backtrackIndependentSet(Graph const& graph, int index, VerticesSet const& vertices,
                                  VerticesSet& current, VerticesSet& best);
-    void backtrackColoring(Graph const& graph, int index, VerticesSet const& vertices,
-                          VerticesSet& colors, int& bestColors, VerticesSet& best_colors,
+    [[nodiscard]] bool backtrackColoring(Graph const& graph, int index, VerticesSet const& vertices,
+                          VerticesSet& colors, int num_colors,
                           std::unordered_map<int, int> const& vertex_to_index);
 
     [[nodiscard]] bool isIndependentSet(Graph const& graph, VerticesSet const& vertices) const;

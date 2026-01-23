@@ -16,6 +16,7 @@ void Menu::initializeActions() {
     actions_[1] = [this]() { graph_ = lab1_runner_.generateGraph(); };
     actions_[2] = [this]() { lab1_runner_.runVisualizeAdjacencyMatrix(*graph_); };
     actions_[3] = [this]() { lab1_runner_.runVisualizeWeightMatrix(*graph_); };
+
     actions_[11] = [this]() { lab1_runner_.runShimbellMethod(*graph_); };
     actions_[12] = [this]() { lab1_runner_.runPathsMethod(*graph_); };
 
@@ -31,6 +32,7 @@ void Menu::initializeActions() {
     actions_[44] = [this]() { lab4_runner_.runFindMinVertexCover(*graph_); };
     actions_[45] = [this]() { lab4_runner_.runFindMinEdgeCover(*graph_); };
     actions_[46] = [this]() { lab4_runner_.runFindMinColoring(*graph_); };
+
     actions_[51] = [this]() { lab5_runner_.runCheckEulerian(*graph_); };
     actions_[52] = [this]() { lab5_runner_.runCheckHamiltonian(*graph_); };
     actions_[53] = [this]() { lab5_runner_.runSolveTSP(*graph_); };
