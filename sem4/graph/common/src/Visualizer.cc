@@ -106,19 +106,19 @@ void Visualizer::drawColoredGraph(DrawData const& data, bool directed) {
     runPythonScript("plot_colored_graph.py", args);
 }
 
-void Visualizer::drawHashTable(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
-    Args args = {txtFile, pngFile, "\"" + title + "\""};
+void Visualizer::drawHashTable(DrawData const& data) {
+    Args args = {data.txtFile, data.pngFile, "\"" + data.title + "\""};
     runPythonScript("plot_hashtable.py", args);
 }
 
-void Visualizer::drawRBTree(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
-    Args args = {txtFile, pngFile, "\"" + title + "\""};
-    runPythonScript("plot_rbtree.py", args);
-}
-
-void Visualizer::drawTextStats(std::string const& txtFile, std::string const& pngFile, std::string const& title) {
-    Args args = {txtFile, pngFile, "\"" + title + "\""};
-    runPythonScript("plot_text_stats.py", args);
+void Visualizer::drawRBTree(DrawData const& data, VisualizationType type) {
+    if (type == VisualizationType::Animation) {
+        Args args = {data.txtFile, data.gifFile, "\"" + data.title + "\""};
+        runPythonScript("plot_rbtree_animation.py", args);
+    } else {
+        Args args = {data.txtFile, data.pngFile, "\"" + data.title + "\""};
+        runPythonScript("plot_rbtree.py", args);
+    }
 }
 
 }  // namespace graph

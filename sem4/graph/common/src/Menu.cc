@@ -2,6 +2,7 @@
 #include "DrawDataConfig.h"
 #include "FileHandler.h"
 #include "Visualizer.h"
+#include "../../lab6/include/Runner.h"
 #include <iomanip>
 #include <sstream>
 
@@ -389,6 +390,11 @@ void Menu::initializeActions() {
             no_graph_msg_);
     };
 
+    actions_[61] = []() { dict::lab6::Runner r; r.runHashTableDemo(); };
+    actions_[62] = []() { dict::lab6::Runner r; r.runRBTreeDemo(); };
+    actions_[63] = []() { dict::lab6::Runner r; r.runHashTableInteractive(); };
+    actions_[64] = []() { dict::lab6::Runner r; r.runRBTreeInteractive(); };
+
 }
 
 void Menu::show() const {
@@ -423,6 +429,12 @@ void Menu::show() const {
     std::cout << "51 - Проверка эйлеровости\n";
     std::cout << "52 - Проверка гамильтоновости\n";
     std::cout << "53 - Задача коммивояжера (TSP)\n";
+
+    std::cout << "\n[Lab 6 - HashTable and RBTree]\n";
+    std::cout << "61 - HashTable Demo\n";
+    std::cout << "62 - RBTree Demo\n";
+    std::cout << "63 - HashTable Interactive\n";
+    std::cout << "64 - RBTree Interactive\n";
 
     std::cout << "\n0 - Выход\n";
 }

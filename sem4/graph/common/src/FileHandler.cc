@@ -208,4 +208,12 @@ bool FileHandler::saveAddedEdges(std::string const& filename, std::vector<std::p
     return true;
 }
 
+bool FileHandler::saveHashTableData(std::string const& data, std::string const& filename) {
+    return saveToFile(filename, data);
+}
+
+bool FileHandler::saveRBTreeData(std::string const& data, std::string const& filename) {
+    return saveToFile(filename, data);
+}
+
 }  // namespace graph

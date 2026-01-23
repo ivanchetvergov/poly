@@ -67,7 +67,7 @@
 - `saveWeightMatrix(filename, graph)` - матрица весов.
 - `saveCapacityMatrix(filename, network)` - пропускных способностей.
 - `saveCostMatrix(filename, network)` - стоимостей.
-- `saveDistanceMatrix(filename, matrix)` - расстояний (матрица optional<double>).
+- `saveDistanceMatrix(filename, matrix)` - расстояний (матрица optional(double)).
 - `savePath(filename, path)` - один путь.
 - `savePaths(filename, paths)` - несколько путей.
 - `saveColors(filename, vertices, colors)` - раскраска вершин.

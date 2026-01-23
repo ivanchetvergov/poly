@@ -24,6 +24,7 @@ struct DrawData {
 
 };
 
+
 enum class VisualizationType {
     Graph,
     FlowNetwork,
@@ -37,10 +38,8 @@ public:
     static void drawColoredGraph(DrawData const& data, bool directed);
     static void drawMatrix(DrawData const& data, std::string const& defaultTitle);
 
-    static void drawHashTable(std::string const& txtFile, std::string const& pngFile, std::string const& title);
-    static void drawRBTree(std::string const& txtFile, std::string const& pngFile, std::string const& title);
-    static void drawTextStats(std::string const& txtFile, std::string const& pngFile, std::string const& title);
-
+    static void drawHashTable(DrawData const& data);
+    static void drawRBTree(DrawData const& data, VisualizationType type);
 };
 
 }  // namespace graph

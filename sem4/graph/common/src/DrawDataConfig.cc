@@ -249,6 +249,71 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .path = {},
         .addedEdges = {},
         .paths = {}
+    }},
+    {61, {
+        .pngFile = "assets/png/61_hashtable_demo.png",
+        .txtFile = "assets/txt/hashtable_demo.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "HashTable Demo",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {62, {
+        .pngFile = "assets/png/62_rbtree_demo.png",
+        .txtFile = "assets/txt/62_rbtree_demo.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "RBTree Demo",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {63, {
+        .pngFile = "assets/png/63_hashtable_interactive.png",
+        .txtFile = "assets/txt/63_hashtable_interactive.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "HashTable Interactive",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {64, {
+        .pngFile = "assets/png/64_rbtree_interactive.png",
+        .txtFile = "assets/txt/64_rbtree_interactive.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "RBTree Interactive",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {65, {
+        .pngFile = "",
+        .txtFile = "assets/txt/65_rbtree_snapshots.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "assets/gif/65_rbtree_growth.gif",
+        .title = "RBTree Growth Animation",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
     }}
 };
 

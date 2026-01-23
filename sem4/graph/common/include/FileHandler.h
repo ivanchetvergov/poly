@@ -48,6 +48,9 @@ public:
 
     static bool saveAddedEdges(std::string const& filename, std::vector<std::pair<int, int>> const& edges);
 
+    static bool saveHashTableData(std::string const& data, std::string const& filename);
+    static bool saveRBTreeData(std::string const& data, std::string const& filename);
+
 private:
     template <typename T, typename GraphOrNetwork, typename Getter>
     static bool saveSquareMatrix(std::string const& filename,
