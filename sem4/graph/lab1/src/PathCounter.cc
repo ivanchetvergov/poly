@@ -9,12 +9,12 @@ int PathCounter::getPathCount(int from, int to) {
     return getAllPaths(from, to).size();
 }
 
-Matrix PathCounter::getAllPaths(int from, int to) {
+PathMatrix PathCounter::getAllPaths(int from, int to) {
     if (!m_graph_.hasVertex(from) || !m_graph_.hasVertex(to)) {
         return {};
     }
 
-    Matrix all_paths;
+    PathMatrix all_paths;
     std::vector<int> current_path;
     std::unordered_map<int, bool> visited;
 
@@ -28,7 +28,7 @@ bool PathCounter::hasPath(int from, int to) {
 
 void PathCounter::backtrackAllPaths(
     int current, int target, std::unordered_map<int, bool>& visited,
-    std::vector<int>& currentPath, Matrix& allPaths) {
+    std::vector<int>& currentPath, PathMatrix& allPaths) {
 
     currentPath.push_back(current);
     visited[current] = true;

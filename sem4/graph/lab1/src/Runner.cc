@@ -7,45 +7,67 @@
 
 #include <Generator.h>
 #include <PathUtils.h>
+#include <Visualizer.h>
+#include <FileHandler.h>
+#include <DrawDataConfig.h>
+#include <Menu.h>
 
 namespace lab1 {
 
 using graph::PathCounter;
 using graph::ShimbellMethod;
+using graph::Generator;
+using graph::Visualizer;
+using graph::FileHandler;
+using graph::DrawDataConfig;
+using graph::CollectionUtils;
 
-void Runner::runShimbellMethod(Graph const& graph, int pathLength) {
+void Runner::runShimbellMethod(Graph const& graph) {
+    std::cout << "=== Метод Шимбелла ===\n";
+    int path_length = graph::readInt("Длина пути: ");
+
     ShimbellMethod shimbell(graph);
-    last_shimbell_ = shimbell.compute(pathLength);
+    auto result = shimbell.compute(path_length);
+
+    auto dataMin = DrawDataConfig::getConfigs().at(13);
+    auto doubleMin = CollectionUtils::convertOptionalMatrixToDouble(result.min_distances);
+    FileHandler::saveMatrix(dataMin.txtFile, doubleMin);
+    Visualizer::drawMatrix(dataMin, "Матрица Шимбелла (минимум)");
+
+    auto dataMax = DrawDataConfig::getConfigs().at(14);
+    auto doubleMax = CollectionUtils::convertOptionalMatrixToDouble(result.max_distances);
+    FileHandler::saveMatrix(dataMax.txtFile, doubleMax);
+    Visualizer::drawMatrix(dataMax, "Матрица Шимбелла (максимум)");
+
+    std::cout << "[OK] Матрицы Шимбелла сохранены в assets/png/13_shimbell_min.png и 14_shimbell_max.png\n";
 }
 
-int Runner::countPaths(Graph const& graph, int from, int to) {
+void Runner::runPathsMethod(Graph const& graph) {
+    std::cout << "=== Подсчёт путей ===\n";
+    int from = graph::readInt("Начальная вершина: ");
+    int to = graph::readInt("Конечная вершина: ");
+
     if (!graph.hasVertex(from) || !graph.hasVertex(to)) {
-        throw std::invalid_argument("Vertex does not exist");
+        std::cout << "[FAIL] Вершины не существуют\n";
+        return;
     }
 
     PathCounter counter(graph);
-    all_paths_ = counter.getAllPaths(from, to);
+    auto all_paths = counter.getAllPaths(from, to);
     int count = counter.getPathCount(from, to);
 
-    std::vector<int> path;
-    if (!all_paths_.empty()) {
-        path = all_paths_[0];
+    if (!all_paths.empty()) {
+        auto data = DrawDataConfig::getConfigs().at(12);
+        data.paths = all_paths;
+        FileHandler::saveGraph(data.txtFile, graph);
+        FileHandler::savePaths(data.txtPathsFile, data.paths);
+        Visualizer::drawPaths(data, graph.isDirected(), graph::VisualizationType::Graph);
+        std::cout << "[OK] Пути визуализированы в assets/png/12_paths.png\n";
+        std::cout << "Количество путей: " << count << "\n";
+    } else {
+        std::cout << "[FAIL] Не удалось найти пути\n";
     }
 
-    last_path_ = PathResult{.from=from, .to=to, .path=path, .path_count=count};
-    return count;
-}
-
-std::optional<PathResult> const& Runner::getLastPath() const {
-    return last_path_;
-}
-
-std::vector<std::vector<int>> const& Runner::getAllPaths() const {
-    return all_paths_;
-}
-
-graph::ShimbellResult const* Runner::getLastShimbell() const {
-    return last_shimbell_ ? &(*last_shimbell_) : nullptr;
 }
 
 }  // namespace lab1
