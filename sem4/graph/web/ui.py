@@ -148,7 +148,7 @@ def render_lab_ui(lab_name):
                                 word = st.text_input("Word", key=f"{lab_name}_{action_name}_word")
                                 submitted = st.form_submit_button("Submit Command")
                                 if submitted:
-                                    op = operation if operation != "remove" else "delete"
+                                    op = operation
                                     params_str = f"{op} {word}"
                                     send_command(lab_name, params_str)
                                     time.sleep(3.0)
