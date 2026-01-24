@@ -57,12 +57,14 @@ def start_process(lab_name):
 
 def render_main_menu():
     st.markdown("<h2 style='text-align: center;'>Select a Lab</h2>", unsafe_allow_html=True)
+    st.markdown('<style>.stButton button { margin: 0 !important; padding: 2rem 4rem !important; font-size: 5rem !important; height: 7.2rem !important; width: 500px !important; }</style>', unsafe_allow_html=True)
+    st.markdown('<div style="display: flex; justify-content: center;"><div style="max-width: 800px;">', unsafe_allow_html=True)
 
     # 2x3 grid for labs
     labs = ["Lab 1: Shimbell Method and Path Counting", "Lab 2: Placeholder", "Lab 3: Flows (Max Flow, Min Cost Flow)",
             "Lab 4: Graph Combinatorics", "Lab 5: Cycles (Eulerian, Hamiltonian, TSP)", "Lab 6: Data Structures (HashTable, RBTree)"]
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, gap="xxsmall")
     cols = [col1, col2, col3]
 
     for i, lab_name in enumerate(labs):
@@ -89,6 +91,23 @@ def render_main_menu():
                                 shutil.rmtree(dir_path)
                                 dir_path.mkdir()
                         st.rerun()
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+def display_image(img_path):
+    if img_path.exists() and os.path.getsize(str(img_path)) > 0:
+        try:
+            with Image.open(str(img_path)) as im:
+                im.verify()
+            if str(img_path).endswith('.gif'):
+                import base64
+                with open(str(img_path), "rb") as f:
+                    data = base64.b64encode(f.read()).decode()
+                st.markdown(f'<img src="data:image/gif;base64,{data}" style="width:100%;">', unsafe_allow_html=True)
+            else:
+                st.image(str(img_path))
+        except Exception as e:
+            pass
 
 def render_lab_ui(lab_name):
     lab_config = LAB_CONFIGS[lab_name]
@@ -248,30 +267,12 @@ def render_lab_ui(lab_name):
             with col1:
                 img = st.session_state.current_visualization[0]
                 img_path = ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img
-                if img_path.exists() and os.path.getsize(str(img_path)) > 0:
-                    try:
-                        with Image.open(str(img_path)) as im:
-                            im.verify()
-                        st.image(str(img_path))
-                    except Exception as e:
-                        pass
+                display_image(img_path)
             with col2:
                 img = st.session_state.current_visualization[1]
                 img_path = ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img
-                if img_path.exists() and os.path.getsize(str(img_path)) > 0:
-                    try:
-                        with Image.open(str(img_path)) as im:
-                            im.verify()
-                        st.image(str(img_path))
-                    except Exception as e:
-                        pass
+                display_image(img_path)
         else:
             for img in st.session_state.current_visualization:
                 img_path = ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img
-                if img_path.exists() and os.path.getsize(str(img_path)) > 0:
-                    try:
-                        with Image.open(str(img_path)) as im:
-                            im.verify()
-                        st.image(str(img_path))
-                    except Exception as e:
-                        pass
+                display_image(img_path)
