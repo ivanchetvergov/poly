@@ -4,7 +4,6 @@ from ui import render_main_menu, render_lab_ui
 def main():
     st.set_page_config(page_title="Graph Labs Web Interface", layout="wide")
 
-    # Initialize session state
     if 'processes' not in st.session_state:
         st.session_state.processes = {}
     if 'current_lab' not in st.session_state:
@@ -12,7 +11,6 @@ def main():
     if 'current_visualization' not in st.session_state:
         st.session_state.current_visualization = []
 
-    # Add CSS for rounded buttons and disabled styles
     st.markdown("""
     <style>
     .main-menu-button button {
@@ -22,6 +20,8 @@ def main():
         margin: 10px;
         width: 100%;
         height: 120px;
+        background-color: red;
+        color: white;
     }
     .stButton > button {
         border-radius: 15px;
@@ -42,10 +42,10 @@ def main():
         display: block;
         margin: 0 auto;
     }
-    </style>
+    body {
+        overflow: hidden;
+    }    </style>
     """, unsafe_allow_html=True)
-
-    st.markdown("<h1 style='margin-top: -60px;'>Graph Algorithms Labs - Interactive Web Interface</h1>", unsafe_allow_html=True)
 
     if st.session_state.current_lab is None:
         render_main_menu()

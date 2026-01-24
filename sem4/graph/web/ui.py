@@ -14,6 +14,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 def send_command(lab_name, command):
     """Send a command to the process."""
+    print(f"DEBUG: Sending command: {command}")
     if lab_name not in st.session_state.processes:
         return
     proc = st.session_state.processes[lab_name]['proc']
@@ -79,6 +80,14 @@ def render_main_menu():
                     if st.button(lab_name, key=f"select_{lab_name}"):
                         start_process(lab_name)
                         st.session_state.current_lab = lab_name
+                        st.session_state.graph_generated = False
+                        st.session_state.current_visualization = []
+                        # Clear assets
+                        for dir_name in ["png", "gif"]:
+                            dir_path = ASSETS_DIR / dir_name
+                            if dir_path.exists():
+                                shutil.rmtree(dir_path)
+                                dir_path.mkdir()
                         st.rerun()
 
 def render_lab_ui(lab_name):
@@ -87,89 +96,150 @@ def render_lab_ui(lab_name):
     with st.sidebar:
         st.header(f"{lab_name}")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Back to menu", key="back_to_menu"):
-                send_command(lab_name, "0")
-                time.sleep(0.5)
-                kill_process(lab_name)
-                st.session_state.current_lab = None
-                st.rerun()
-        with col2:
-            if st.button("Clear Output", key=f"{lab_name}_clear_output"):
-                st.session_state.processes[lab_name]['output'] = ""
-                st.session_state.current_visualization = []
-                # Clear assets
-                for dir_name in ["png", "gif"]:
-                    dir_path = ASSETS_DIR / dir_name
-                    if dir_path.exists():
-                        shutil.rmtree(dir_path)
-                        dir_path.mkdir()
-                st.rerun()
+        if st.button("Back to Main menu", key="back_to_menu"):
+            send_command(lab_name, "0")
+            time.sleep(0.5)
+            kill_process(lab_name)
+            st.session_state.current_lab = None
+            st.rerun()
 
         if not is_process_running(lab_name):
             st.error("Process not running. Go back and restart.")
             return
 
-        # Actions as expanders
-        vertices = st.session_state.get(f"{lab_name}_current_vertices", DEFAULT_PARAMS.vertices)
-        for action_name, action_config in lab_config.sub_actions.items():
-            with st.expander(action_name):
-                for param in action_config.params or []:
-                    if param == "directed":
-                        st.checkbox("Directed", value=DEFAULT_PARAMS.directed, key=f"{lab_name}_{action_name}_directed")
-                    elif param == "vertices":
-                        st.number_input("Vertices", 3, 50, DEFAULT_PARAMS.vertices, key=f"{lab_name}_{action_name}_vertices")
-                    elif param == "edges":
-                        st.number_input("Edges", 5, 100, DEFAULT_PARAMS.edges, key=f"{lab_name}_{action_name}_edges")
-                    elif param == "start_vertex":
-                        st.number_input("Start Vertex", 0, vertices-1, DEFAULT_PARAMS.start_vertex, key=f"{lab_name}_{action_name}_start_v")
-                    elif param == "end_vertex":
-                        st.number_input("End Vertex", 0, vertices-1, DEFAULT_PARAMS.end_vertex, key=f"{lab_name}_{action_name}_end_v")
-                    elif param == "source":
-                        st.number_input("Source", 0, vertices-1, DEFAULT_PARAMS.source, key=f"{lab_name}_{action_name}_source")
-                    elif param == "sink":
-                        st.number_input("Sink", 0, vertices-1, DEFAULT_PARAMS.sink, key=f"{lab_name}_{action_name}_sink")
-                    elif param == "distance":
-                        st.number_input("Distance", 1, vertices-1, DEFAULT_PARAMS.distance, key=f"{lab_name}_{action_name}_distance")
+        # Actions as expanders or toggle for Lab 6
+        current_vertices = st.session_state.get(f"{lab_name}_current_vertices", DEFAULT_PARAMS.vertices)
+        if lab_name == "Lab 6: Data Structures (HashTable, RBTree)":
+            is_any_interactive_open = any(st.session_state.get(f"{lab_name}_{act}_open", False) for act in lab_config.sub_actions if "Interactive" in act)
+            for action_name, action_config in lab_config.sub_actions.items():
+                is_interactive = "Interactive" in action_name
+                open_key = f"{lab_name}_{action_name}_open"
+                if is_interactive:
+                    disabled_open = is_any_interactive_open and not st.session_state.get(open_key, False)
+                    if st.button(f"Open {action_name}", key=f"open_{action_name}", disabled=disabled_open):
+                        st.session_state[open_key] = True
+                    if st.session_state.get(open_key, False):
+                        entered_key = f"{open_key}_entered"
+                        if not st.session_state.get(entered_key, False):
+                            send_command(lab_name, str(action_config.execute_cmd))
+                            st.session_state[entered_key] = True
+                        with st.container():
+                            with st.form(key=f"{lab_name}_{action_name}_form"):
+                                operation = st.selectbox("Operation", ["insert", "remove", "search"], key=f"{lab_name}_{action_name}_operation")
+                                word = st.text_input("Word", key=f"{lab_name}_{action_name}_word")
+                                submitted = st.form_submit_button("Submit Command")
+                                if submitted:
+                                    op = operation if operation != "remove" else "delete"
+                                    params_str = f"{op} {word}"
+                                    send_command(lab_name, params_str)
+                                    time.sleep(3.0)
+                            if st.button("Exit from interactive loop", key=f"{lab_name}_{action_name}_exit"):
+                                send_command(lab_name, "exit")
+                                st.session_state[open_key] = False
+                                st.session_state[entered_key] = False
+                                time.sleep(0.5)
+                                st.rerun()
+                            col1, col2 = st.columns(2, gap="xxsmall")
+                            with col1:
+                                if st.button("Visualize", key=f"{lab_name}_{action_name}_draw"):
+                                    send_command(lab_name, "draw")
+                                    st.session_state.current_visualization = action_config.images
+                            with col2:
+                                if "RBTree" in action_name:
+                                    if st.button("GIF", key=f"{lab_name}_{action_name}_gif"):
+                                        send_command(lab_name, "gif")
+                                        st.session_state.current_visualization = ["65_rbtree_growth.gif"]
+                else:
+                    if is_any_interactive_open:
+                        st.write(f"{action_name} (disabled while interactive mode is open)")
+                    else:
+                        with st.expander(action_name):
+                            col1, col2 = st.columns(2, gap="xxsmall")
+                            with col1:
+                                disabled_exec = False
+                                if st.button("Execute", disabled=disabled_exec, key=f"{lab_name}_{action_name}_execute"):
+                                    with st.spinner("Executing..."):
+                                        cmd = action_config.execute_cmd
+                                        send_command(lab_name, cmd)
+                                        time.sleep(2.0)
+                            with col2:
+                                disabled_vis = False
+                                if st.button("Visualize", disabled=disabled_vis, key=f"{lab_name}_{action_name}_visualize"):
+                                    st.session_state.current_visualization = action_config.images
+        else:
+            for action_name, action_config in lab_config.sub_actions.items():
+                with st.expander(action_name):
+                    for param in action_config.params or []:
+                        if param == "directed":
+                            st.checkbox("Directed", value=DEFAULT_PARAMS.directed, key=f"{lab_name}_{action_name}_directed")
+                        elif param == "vertices":
+                            local_vertices = st.session_state.get(f"{lab_name}_{action_name}_vertices", DEFAULT_PARAMS.vertices)
+                            st.number_input("Vertices", 3, 50, DEFAULT_PARAMS.vertices, key=f"{lab_name}_{action_name}_vertices")
+                            st.session_state[f"{lab_name}_current_vertices"] = local_vertices
+                        elif param == "edges":
+                            st.number_input("Edges", 5, 100, DEFAULT_PARAMS.edges, key=f"{lab_name}_{action_name}_edges")
+                        elif param == "start_vertex":
+                            st.number_input("Start Vertex", 0, current_vertices-1, min(DEFAULT_PARAMS.start_vertex, current_vertices-1), key=f"{lab_name}_{action_name}_start_v")
+                        elif param == "end_vertex":
+                            st.number_input("End Vertex", 0, current_vertices-1, min(DEFAULT_PARAMS.end_vertex, current_vertices-1), key=f"{lab_name}_{action_name}_end_v")
+                        elif param == "source":
+                            st.number_input("Source", 0, current_vertices-1, min(DEFAULT_PARAMS.source, current_vertices-1), key=f"{lab_name}_{action_name}_source")
+                        elif param == "sink":
+                            st.number_input("Sink", 0, current_vertices-1, min(DEFAULT_PARAMS.sink, current_vertices-1), key=f"{lab_name}_{action_name}_sink")
+                        elif param == "distance":
+                            st.number_input("Distance", 1, current_vertices-1, min(DEFAULT_PARAMS.distance, current_vertices-1), key=f"{lab_name}_{action_name}_distance")
+                        elif param == "operation":
+                            st.selectbox("Operation", ["insert", "delete", "search"], key=f"{lab_name}_{action_name}_operation")
+                        elif param == "word":
+                            st.text_input("Word", key=f"{lab_name}_{action_name}_word")
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("Execute", key=f"{lab_name}_{action_name}_execute"):
-                        with st.spinner("Executing..."):
-                            cmd = action_config.execute_cmd
-                            params_str = ""
-                            if action_config.params:
-                                if "directed" in action_config.params:
-                                    directed = st.session_state.get(f"{lab_name}_{action_name}_directed", DEFAULT_PARAMS.directed)
-                                    params_str += f"\n{'1' if directed else '0'}"
-                                if "vertices" in action_config.params:
-                                    vertices = st.session_state.get(f"{lab_name}_{action_name}_vertices", DEFAULT_PARAMS.vertices)
-                                    params_str += f"\n{vertices}"
-                                    st.session_state[f"{lab_name}_current_vertices"] = vertices
-                                if "edges" in action_config.params:
-                                    edges = st.session_state.get(f"{lab_name}_{action_name}_edges", DEFAULT_PARAMS.edges)
-                                    params_str += f"\n{edges}"
-                                if "start_vertex" in action_config.params:
-                                    start_v = st.session_state.get(f"{lab_name}_{action_name}_start_v", DEFAULT_PARAMS.start_vertex)
-                                    params_str += f"\n{start_v}"
-                                if "end_vertex" in action_config.params:
-                                    end_v = st.session_state.get(f"{lab_name}_{action_name}_end_v", DEFAULT_PARAMS.end_vertex)
-                                    params_str += f"\n{end_v}"
-                                if "source" in action_config.params:
-                                    source = st.session_state.get(f"{lab_name}_{action_name}_source", DEFAULT_PARAMS.source)
-                                    params_str += f"\n{source}"
-                                if "sink" in action_config.params:
-                                    sink = st.session_state.get(f"{lab_name}_{action_name}_sink", DEFAULT_PARAMS.sink)
-                                    params_str += f"\n{sink}"
-                                    if action_name == "Min Cost Flow":
-                                        params_str += "\n1"
-                            send_command(lab_name, f"{cmd}{params_str}")
-                            time.sleep(1.0)
+                    col1, col2 = st.columns(2, gap="xxsmall")
+                    with col1:
+                        disabled_exec = ("Generate" not in action_name and not st.session_state.get('graph_generated', False)) and lab_name != "Lab 6: Data Structures (HashTable, RBTree)"
+                        if st.button("Execute", disabled=disabled_exec, key=f"{lab_name}_{action_name}_execute"):
+                            with st.spinner("Executing..."):
+                                cmd = action_config.execute_cmd
+                                params_str = ""
+                                if action_config.params:
+                                    if "directed" in action_config.params:
+                                        directed = st.session_state.get(f"{lab_name}_{action_name}_directed", DEFAULT_PARAMS.directed)
+                                        params_str += f"\n{'1' if directed else '0'}"
+                                    if "vertices" in action_config.params:
+                                        vertices = st.session_state.get(f"{lab_name}_{action_name}_vertices", DEFAULT_PARAMS.vertices)
+                                        params_str += f"\n{vertices}"
+                                        st.session_state[f"{lab_name}_current_vertices"] = vertices
+                                    if "edges" in action_config.params:
+                                        edges = st.session_state.get(f"{lab_name}_{action_name}_edges", DEFAULT_PARAMS.edges)
+                                        params_str += f"\n{edges}"
+                                    if "start_vertex" in action_config.params:
+                                        start_v = st.session_state.get(f"{lab_name}_{action_name}_start_v", DEFAULT_PARAMS.start_vertex)
+                                        params_str += f"\n{start_v}"
+                                    if "end_vertex" in action_config.params:
+                                        end_v = st.session_state.get(f"{lab_name}_{action_name}_end_v", DEFAULT_PARAMS.end_vertex)
+                                        params_str += f"\n{end_v}"
+                                    if "source" in action_config.params:
+                                        source = st.session_state.get(f"{lab_name}_{action_name}_source", DEFAULT_PARAMS.source)
+                                        params_str += f"\n{source}"
+                                    if "sink" in action_config.params:
+                                        sink = st.session_state.get(f"{lab_name}_{action_name}_sink", DEFAULT_PARAMS.sink)
+                                        params_str += f"\n{sink}"
+                                        if action_name == "Min Cost Flow":
+                                            params_str += "\n1"
+                                    if "operation" in action_config.params:
+                                        operation = st.session_state.get(f"{lab_name}_{action_name}_operation", "insert")
+                                        params_str += f"\n{operation}"
+                                    if "word" in action_config.params:
+                                        word = st.session_state.get(f"{lab_name}_{action_name}_word", "")
+                                        params_str += f"\n{word}"
+                                send_command(lab_name, f"{cmd}{params_str}")
+                                if "Generate" in action_name:
+                                    st.session_state.graph_generated = True
+                                time.sleep(2.0)
 
-                with col2:
-                    if st.button("Visualize", key=f"{lab_name}_{action_name}_visualize"):
-                        st.session_state.current_visualization = action_config.images
+                    with col2:
+                        disabled_vis = ("Generate" not in action_name and not st.session_state.get('graph_generated', False)) and lab_name != "Lab 6: Data Structures (HashTable, RBTree)"
+                        if st.button("Visualize", disabled=disabled_vis, key=f"{lab_name}_{action_name}_visualize"):
+                            st.session_state.current_visualization = action_config.images
 
     # Current Visualization
     if st.session_state.current_visualization:

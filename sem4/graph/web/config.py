@@ -40,7 +40,7 @@ LAB_CONFIGS = {
     "Lab 4: Graph Combinatorics": LabConfig(
         number="4",
         sub_actions={
-            "Generate Graph": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=[]),
+            "Generate Graph": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=["44_graph.png"]),
             "Spanning Trees": ActionConfig(execute_cmd="41", images=[]),
             "Independent Sets": ActionConfig(execute_cmd="42", images=["42_independent_set.png"]),
             "Independent Edges": ActionConfig(execute_cmd="43", images=["43_independent_edges.png"]),
@@ -61,8 +61,10 @@ LAB_CONFIGS = {
     "Lab 6: Data Structures (HashTable, RBTree)": LabConfig(
         number="6",
         sub_actions={
-            "HashTable": ActionConfig(execute_cmd="61", images=["61_hashtable_demo.png"]),
-            "RBTree": ActionConfig(execute_cmd="62", images=["62_rbtree_demo.png", "65_rbtree_growth.gif"]),
+            "HashTable Demo": ActionConfig(execute_cmd="61", images=["61_hashtable_demo.png"]),
+            "RBTree Demo": ActionConfig(execute_cmd="62", images=["62_rbtree_demo.png", "65_rbtree_growth.gif"]),
+            "HashTable Interactive": ActionConfig(execute_cmd="63", params=["operation", "word"], images=["63_hashtable_interactive.png"]),
+            "RBTree Interactive": ActionConfig(execute_cmd="64", params=["operation", "word"], images=["64_rbtree_interactive.png"]),
         }
     ),
 }
