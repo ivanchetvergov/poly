@@ -91,7 +91,7 @@ MinCostFlow::Result MinCostFlow::findMinCostFlow(int source, int sink, double ta
         auto calc_residual = [this](int u, int v) { return m_network_.getResidualCapacity(u, v); };
 
         double path_flow = std::min(targetFlow - current_flow,
-                     PathUtils<double>::getMinPathValue(source, sink, parent, calc_residual));
+                    PathUtils<double>::getMinPathValue(source, sink, parent, calc_residual));
 
         last_path = PathUtils<double>::reconstructPath(source, sink, parent);
 

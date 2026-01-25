@@ -51,7 +51,10 @@ DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
         int to_idx = getIndex(edge.to);
 
         matrix[from_idx][to_idx] = edge.weight;
-        matrix[to_idx][from_idx] = edge.weight;
+
+        if (!m_graph_.isDirected()){
+            matrix[to_idx][from_idx] = edge.weight;
+        }
     }
 
     return matrix;

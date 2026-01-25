@@ -7,8 +7,6 @@
 
 namespace graph {
 
-using AlgorithmNames = std::vector<std::string>;
-
 class Comparator {
 public:
     struct CompareResult {
@@ -20,6 +18,7 @@ public:
     };
 
     using CompareResults = std::vector<CompareResult>;
+    using AlgorithmNames = std::vector<std::string>;
 
     CompareResults compareAlgorithms(Graph const& graph,
                                      int start_node,

@@ -32,11 +32,14 @@ public:
 
     template <typename CompareFunc>
     static Matrix<std::optional<double>> multiplyOptionalMatrix(
-        Matrix<std::optional<double>> const& a, Matrix<std::optional<double>> const& b,
-        CompareFunc compare) {
+                                         Matrix<std::optional<double>> const& a,
+                                         Matrix<std::optional<double>> const& b,
+                                         CompareFunc compare)
+        {
         int size = static_cast<int>(a.size());
         Matrix<std::optional<double>> result(
-            size, std::vector<std::optional<double>>(size, std::nullopt));
+            size, std::vector<std::optional<double>>(size, std::nullopt)
+        );
 
         for (int i = 0; i < size; ++i) {
             for (int j = 0; j < size; ++j) {

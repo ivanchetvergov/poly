@@ -22,10 +22,6 @@ PathMatrix PathCounter::getAllPaths(int from, int to) {
     return all_paths;
 }
 
-bool PathCounter::hasPath(int from, int to) {
-    return getPathCount(from, to) > 0;
-}
-
 void PathCounter::backtrackAllPaths(
     int current, int target, std::unordered_map<int, bool>& visited,
     std::vector<int>& currentPath, PathMatrix& allPaths) {

@@ -13,17 +13,12 @@ CompareResults Comparator::compareAlgorithms(Graph const& graph,
     for (const auto& algorithm_name : algorithm_names) {
         CompareResult result;
 
-        result.algorithm_name = algorithm_name;
-        result.path = {};
-        result.time_taken = 0.0;
-        result.memory_used = 0;
-        result.iterations = 0;
 
         results.push_back(result);
     }
 
     return results;
-
+}
 
 
 } // namespace graph

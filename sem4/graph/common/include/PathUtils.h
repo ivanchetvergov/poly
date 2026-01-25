@@ -15,7 +15,8 @@ public:
     template <typename GetValueFunc, typename AggFunc>
     [[nodiscard]] static T calculatePathValue(int source, int sink,
                                               std::unordered_map<int, int> const& parent,
-                                              GetValueFunc getValue, AggFunc agg, T initial) {
+                                              GetValueFunc getValue, AggFunc agg, T initial)
+    {
         T result = initial;
         for (int v = sink; v != source; v = parent.at(v)) {
             int u = parent.at(v);

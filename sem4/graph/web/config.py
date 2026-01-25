@@ -78,6 +78,6 @@ class DefaultParams:
     end_vertex: int = 5
     source: int = 0
     sink: int = 5
-    distance: int = 5
+    distance: int = 8
 
 DEFAULT_PARAMS = DefaultParams()

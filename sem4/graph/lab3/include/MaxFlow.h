@@ -18,9 +18,9 @@ class MaxFlow {
 public:
     explicit MaxFlow(FlowNetwork& network) : m_network_(network) {}
 
-    [[nodiscard]] double fordFulkerson(int source, int sink, bool enableLogging = false);
+    [[nodiscard]] double fordFulkerson(int source, int sink, bool enableLogging = true);
 
-    std::vector<FlowSnapshot> const& getSnapshots() const { return m_snapshots_; }
+    [[nodiscard]] std::vector<FlowSnapshot> const& getSnapshots() const { return m_snapshots_; }
     void exportSnapshots(std::string const& filename) const;
 
 private:

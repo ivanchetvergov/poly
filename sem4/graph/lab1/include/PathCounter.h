@@ -15,7 +15,6 @@ public:
 
     [[nodiscard]] int getPathCount(int from, int to);
     [[nodiscard]] PathMatrix getAllPaths(int from, int to);
-    [[nodiscard]] bool hasPath(int from, int to);
 
 private:
     Graph const& m_graph_;

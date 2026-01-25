@@ -61,15 +61,18 @@ def render_main_menu():
     st.markdown('<div style="display: flex; justify-content: center;"><div style="max-width: 800px;">', unsafe_allow_html=True)
 
     # 2x3 grid for labs
-    labs = ["Lab 1: Shimbell Method and Path Counting", "Lab 2: Placeholder", "Lab 3: Flows (Max Flow, Min Cost Flow)",
+    labs = ["Lab 1: Shimbell Method and Path Counting", "Lab 2: Traversals and Shortest Paths", "Lab 3: Flows (Max Flow, Min Cost Flow)",
             "Lab 4: Graph Combinatorics", "Lab 5: Cycles (Eulerian, Hamiltonian, TSP)", "Lab 6: Data Structures (HashTable, RBTree)"]
+
+    disabled_labs = ["Lab 2: Traversals and Shortest Paths", "Lab 4: Graph Combinatorics", "Lab 5: Cycles (Eulerian, Hamiltonian, TSP)"]
 
     col1, col2, col3 = st.columns(3, gap="xxsmall")
     cols = [col1, col2, col3]
 
     for i, lab_name in enumerate(labs):
         with cols[i % 3]:
-            if lab_name == "Lab 2: Placeholder":
+            # if lab_name in disabled_labs:
+            if lab_name == "Lab 2: Traversals and Shortest Paths":
                 st.button(lab_name, disabled=True, key=f"select_{lab_name}")
             else:
                 running = is_process_running(lab_name)
@@ -128,6 +131,7 @@ def render_lab_ui(lab_name):
 
         # Actions as expanders or toggle for Lab 6
         current_vertices = st.session_state.get(f"{lab_name}_current_vertices", DEFAULT_PARAMS.vertices)
+        current_edges = st.session_state.get(f"{lab_name}_current_edges", DEFAULT_PARAMS.edges)
         if lab_name == "Lab 6: Data Structures (HashTable, RBTree)":
             is_any_interactive_open = any(st.session_state.get(f"{lab_name}_{act}_open", False) for act in lab_config.sub_actions if "Interactive" in act)
             for action_name, action_config in lab_config.sub_actions.items():
@@ -206,7 +210,7 @@ def render_lab_ui(lab_name):
                         elif param == "sink":
                             st.number_input("Sink", 0, current_vertices-1, min(DEFAULT_PARAMS.sink, current_vertices-1), key=f"{lab_name}_{action_name}_sink")
                         elif param == "distance":
-                            st.number_input("Distance", 1, current_vertices-1, min(DEFAULT_PARAMS.distance, current_vertices-1), key=f"{lab_name}_{action_name}_distance")
+                            st.number_input("Distance", 1, current_edges, min(DEFAULT_PARAMS.distance, current_edges), key=f"{lab_name}_{action_name}_distance")
                         elif param == "operation":
                             st.selectbox("Operation", ["insert", "delete", "search"], key=f"{lab_name}_{action_name}_operation")
                         elif param == "word":
@@ -230,6 +234,7 @@ def render_lab_ui(lab_name):
                                     if "edges" in action_config.params:
                                         edges = st.session_state.get(f"{lab_name}_{action_name}_edges", DEFAULT_PARAMS.edges)
                                         params_str += f"\n{edges}"
+                                        st.session_state[f"{lab_name}_current_edges"] = edges
                                     if "start_vertex" in action_config.params:
                                         start_v = st.session_state.get(f"{lab_name}_{action_name}_start_v", DEFAULT_PARAMS.start_vertex)
                                         params_str += f"\n{start_v}"

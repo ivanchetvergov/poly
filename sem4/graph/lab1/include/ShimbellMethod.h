@@ -19,21 +19,21 @@ struct ShimbellResult {
 
 class ShimbellMethod {
 public:
-    explicit ShimbellMethod(Graph const& graph);
+    explicit ShimbellMethod(const Graph& graph);
 
-    [[nodiscard]] ShimbellResult const& compute(int pathLength);
+    [[nodiscard]] const ShimbellResult& compute(int pathLength);
 
 private:
-    Graph const& m_graph_;
+    const Graph& m_graph_;
     std::vector<int> m_vertex_ids_;
     int m_size_;
     ShimbellResult result_;
 
     [[nodiscard]] DistanceMatrix createAdjacencyMatrix() const;
-    [[nodiscard]] DistanceMatrix multiplyMin(DistanceMatrix const& a,
-                                             DistanceMatrix const& b) const;
-    [[nodiscard]] DistanceMatrix multiplyMax(DistanceMatrix const& a,
-                                             DistanceMatrix const& b) const;
+    [[nodiscard]] DistanceMatrix multiplyMin(const DistanceMatrix& a,
+                                             const DistanceMatrix& b) const;
+    [[nodiscard]] DistanceMatrix multiplyMax(const DistanceMatrix& a,
+                                             const DistanceMatrix& b) const;
     [[nodiscard]] int getIndex(int vertexId) const;
 };
 
