@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <random>
+#include <algorithm>
 
 #include "../../common/include/Visualizer.h"
 #include "../../common/include/FileHandler.h"
@@ -19,9 +21,12 @@ namespace lab6 {
 
 void Runner::runHashTableDemo() {
     std::cout << "=== HashTable Demo ===\n";
-    HashTable ht(20);
+    HashTable ht(18);
 
-    std::vector<std::string> words = {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
+    std::vector<std::string> words = {
+        "C++", "Python", "Java", "Haskell", "DisMath",
+        "TGraph", "DB", "SQL", "ML", "RecSys", "NLP"
+    };
     for (auto const& word : words) {
         ht.insert(word);
     }
@@ -44,10 +49,15 @@ void Runner::runRBTreeDemo() {
     std::cout << "=== RBTree Demo ===\n";
     RBTree tree;
 
-    // std::vector<std::string> words =  {"grape", "вишня", "cherry", "яблоко", "apple", "melon", "peach", "mango"};
-    std::vector<std::string> words = {"Hesse", "Гете", "Hugo", "Достоевский", "Kafka", "Tolstoy", "Camus", "Пушкин",
-        "Orwell", "Чехов", "Balzac", "Гессе", "Dostoevsky", "Flaubert", "Булгаков", "Goethe", "Proust", "Шолохов", "Camus"};
+    // std::vector<std::string> words = {"Hesse", "Гете", "Hugo", "Достоевский", "Kafka", "Tolstoy", "Camus", "Пушкин",
+    //     "Orwell", "Чехов", "Balzac", "Гессе", "Dostoevsky", "Flaubert", "Булгаков", "Goethe", "Proust", "Шолохов", "Camus"};
+    std::vector<std::string> words = {
+        "C++", "Python", "Java", "Go", "Rust", "Haskell",
+        "DisMath", "TGraph", "Algo", "EvMath", "DB", "SQL",
+        "ML", "RecSys", "NLP", "CV", "DL",
+    };
 
+    std::shuffle(words.begin(), words.end(), std::mt19937{std::random_device{}()});
     int step = 0;
     auto data = DrawDataConfig::getConfigs().at(65);
     std::string snapshotsFile = data.txtFile;

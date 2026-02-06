@@ -1,4 +1,3 @@
-"""Класс для рендеринга графов"""
 from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import networkx as nx

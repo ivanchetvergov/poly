@@ -41,7 +41,6 @@ void Menu::initializeActions() {
     actions_[62] = [this]() { lab6_runner_.runRBTreeDemo(); };
     actions_[63] = [this]() { lab6_runner_.runHashTableInteractive(); };
     actions_[64] = [this]() { lab6_runner_.runRBTreeInteractive(); };
-
 }
 
 void Menu::show() const {

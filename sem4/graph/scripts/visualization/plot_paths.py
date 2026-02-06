@@ -12,7 +12,6 @@ from ..core.helpers import get_path_edges, normalize_edge, read_paths
 
 
 def get_edge_colors_and_widths(G, directed, paths, added_edges, all_path_edges, colors, network_type):
-    """Calculate edge colors and widths based on their role."""
     edge_colors = []
     edge_widths = []
 
