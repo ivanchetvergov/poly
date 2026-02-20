@@ -29,6 +29,29 @@ module Pr01_1 where
 
 -}
 
+-- ЗАДАНИЕ 1
+
+-- На лекции
 mySND:: (a,b) -> b
 mySND (x,y) = y
 -- MYSND = \(x,y) -> y
+
+myHead :: [a] -> a
+myHead (x:_) = x
+
+myTail :: [a] -> [a]
+myTail (_:xs) = xs
+
+myZip :: [a] -> [b] -> [(a,b)]
+myZip [] _ = []
+myZip _ [] = []
+myZip (x:xs) (y:ys) = (x,y) : myZip xs ys
+
+myMap :: (a -> b) -> [a] -> [b]
+myMap _ [] = []
+myMap f (x:xs) = f x : myMap f xs
+
+myZipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+myZipWith _ [] _ = []
+myZipWith _ _ [] = []
+myZipWith f (x:xs) (y:ys) = f x y : myZipWith f xs ys
