@@ -2,6 +2,7 @@
 
 #include "../include/PathCounter.h"
 #include "../include/ShimbellMethod.h"
+#include "../include/GraphMetrics.h"
 
 #include <iostream>
 
@@ -32,6 +33,19 @@ std::unique_ptr<Graph> Runner::generateGraph() {
     FileHandler::saveGraph(data.txtFile, *graph);
     Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
     std::cout << "[OK] Граф отрисован в assets/png/01_graph.png\n";
+    return graph;
+}
+
+std::unique_ptr<Graph> Runner::generateRayleighGraph() {
+    bool is_directed = static_cast<bool>(graph::readInt("Ориентированный граф? (1 - да, 0 - нет): "));
+    int num_vertices = graph::readInt("Количество вершин: ");
+    int num_edges = graph::readInt("Количество рёбер: ");
+    int z = graph::readInt("Параметр распределения Рэлея (z > 0, например 1): ");
+    auto graph = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed, false, z);
+    auto data = DrawDataConfig::getConfigs().at(1);
+    FileHandler::saveGraph(data.txtFile, *graph);
+    Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
+    std::cout << "[OK] Граф (распределение Рэлея, z=" << z << ") отрисован в assets/png/01_graph.png\n";
     return graph;
 }
 
@@ -95,6 +109,49 @@ void Runner::runPathsMethod(Graph const& graph) {
         std::cout << "[FAIL] Не удалось найти пути\n";
     }
 
+}
+
+void Runner::runGraphMetrics(Graph const& graph) {
+    std::cout << "=== Метрики графа ===\n";
+
+    graph::GraphMetrics metrics(graph);
+    auto result = metrics.compute();
+
+    std::cout << "\nЭксцентриситеты вершин:\n";
+    for (int v : graph.vertexIds()) {
+        double ecc = result.eccentricities.at(v);
+        std::cout << "  v" << v << " : " << (ecc == std::numeric_limits<double>::infinity() ? "inf" : std::to_string(ecc)) << "\n";
+    }
+
+    std::cout << "\nРадиус графа   : " << result.radius   << "\n";
+    std::cout << "Диаметр графа  : " << result.diameter  << "\n";
+
+    std::cout << "\nЦентральные вершины (эксцентриситет = радиус): ";
+    for (int v : result.center) std::cout << v << " ";
+    std::cout << "\n";
+
+    std::cout << "Диаметральные вершины (эксцентриситет = диаметр): ";
+    for (int v : result.diametralVerts) std::cout << v << " ";
+    std::cout << "\n";
+
+    std::vector<int> ids = graph.vertexIds();
+    std::vector<int> colors(ids.size(), 0);
+    for (int i = 0; i < static_cast<int>(ids.size()); ++i) {
+        int v = ids[i];
+        bool is_center    = std::find(result.center.begin(),
+                                        result.center.end(), v) != result.center.end();
+        bool is_diametral = std::find(result.diametralVerts.begin(), result.diametralVerts.end(), v) != result.diametralVerts.end();
+        if (is_center)    colors[i] = 1;
+        else if (is_diametral) colors[i] = 2;
+    }
+
+    auto data = DrawDataConfig::getConfigs().at(15);
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveColors(data.txtColorsFile, ids, colors);
+    data.colorLabels = {"Обычные вершины", "Центр графа (радиус)", "Диаметральные вершины"};
+    Visualizer::drawColoredGraph(data, graph.isDirected());
+    std::cout << "[OK] Визуализация метрик в assets/png/15_graph_metrics.png\n";
+    std::cout << "     Цвет 1 = центр, Цвет 2 = диаметральные, Цвет 0 = остальные\n";
 }
 
 }  // namespace lab1

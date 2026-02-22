@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(graph_lab1_lib STATIC
     src/ShimbellMethod.cc
     src/PathCounter.cc
+    src/GraphMetrics.cc
     src/Runner.cc
 )
 target_include_directories(graph_lab1_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include)
