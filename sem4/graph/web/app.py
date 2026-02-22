@@ -1,8 +1,9 @@
 import streamlit as st
-from ui import render_main_menu, render_lab_ui
+from ui import GraphLabApp
+
 
 def main():
-    st.set_page_config(page_title="Graph Labs Web Interface", layout="wide")
+    st.set_page_config(page_title="Graph Labs", layout="wide")
 
     if 'processes' not in st.session_state:
         st.session_state.processes = {}
@@ -48,9 +49,9 @@ def main():
     """, unsafe_allow_html=True)
 
     if st.session_state.current_lab is None:
-        render_main_menu()
+        GraphLabApp().render_main_menu()
     else:
-        render_lab_ui(st.session_state.current_lab)
+        GraphLabApp().render_lab_ui(st.session_state.current_lab)
 
 if __name__ == "__main__":
     main()

@@ -13,21 +13,19 @@ class LabConfig:
     sub_actions: Dict[str, ActionConfig]
 
 LAB_CONFIGS = {
-    "Lab 1: Shimbell Method and Path Counting": LabConfig(
+    "Lab 1": LabConfig(
         number="1",
         sub_actions={
-            "Generate Graph": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=["01_graph.png"]),
+            "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=["01_graph.png"]),
+            "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "edges", "rayleigh_a", "rayleigh_h"], images=["01_graph.png"]),
             "Adjacency Matrix": ActionConfig(execute_cmd="2", images=["02_adjacency_matrix.png"]),
             "Weight Matrix": ActionConfig(execute_cmd="3", images=["03_weight_matrix.png"]),
             "Shimbell Matrices": ActionConfig(execute_cmd="11", params=["distance"], images=["13_shimbell_min.png", "13_shimbell_max.png"]),
             "Paths": ActionConfig(execute_cmd="12", params=["start_vertex", "end_vertex"], images=["12_paths.png"]),
+            "Graph Metrics": ActionConfig(execute_cmd="13", images=["15_graph_metrics.png"]),
         }
     ),
-    "Lab 2: Placeholder": LabConfig(  # Placeholder
-        number="2",
-        sub_actions={}
-    ),
-    "Lab 3: Flows (Max Flow, Min Cost Flow)": LabConfig(
+    "Lab 3": LabConfig(
         number="3",
         sub_actions={
             "Generate Flow Network": ActionConfig(execute_cmd="31", params=["vertices", "edges"], images=["31_flow_network.png"]),
@@ -37,28 +35,7 @@ LAB_CONFIGS = {
             "Costs": ActionConfig(execute_cmd="35", images=["35_cost_matrix.png"]),
         }
     ),
-    "Lab 4: Graph Combinatorics": LabConfig(
-        number="4",
-        sub_actions={
-            "Generate Graph": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=["44_graph.png"]),
-            "Spanning Trees": ActionConfig(execute_cmd="41", images=[]),
-            "Independent Sets": ActionConfig(execute_cmd="42", images=["42_independent_set.png"]),
-            "Independent Edges": ActionConfig(execute_cmd="43", images=["43_independent_edges.png"]),
-            "Vertex Cover": ActionConfig(execute_cmd="44", images=["44_vertex_cover.png"]),
-            "Edge Cover": ActionConfig(execute_cmd="45", images=["45_edge_cover.png"]),
-            "Coloring": ActionConfig(execute_cmd="46", images=["46_coloring.png"]),
-        }
-    ),
-    "Lab 5: Cycles (Eulerian, Hamiltonian, TSP)": LabConfig(
-        number="5",
-        sub_actions={
-            "Generate Graph": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=[]),
-            "Eulerian Cycle": ActionConfig(execute_cmd="51", images=["51_euler_cycle.png"]),
-            "Hamiltonian Cycle": ActionConfig(execute_cmd="52", images=["52_hamilton_cycle.png"]),
-            "TSP": ActionConfig(execute_cmd="53", images=["53_tsp_cycle.png"]),
-        }
-    ),
-    "Lab 6: Data Structures (HashTable, RBTree)": LabConfig(
+    "Lab 6": LabConfig(
         number="6",
         sub_actions={
             "HashTable Demo": ActionConfig(execute_cmd="61", images=["61_hashtable_demo.png"]),
@@ -79,5 +56,7 @@ class DefaultParams:
     source: int = 0
     sink: int = 5
     distance: int = 8
+    rayleigh_a: int = 1
+    rayleigh_h: int = 1
 
 DEFAULT_PARAMS = DefaultParams()

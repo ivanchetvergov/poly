@@ -21,7 +21,7 @@ struct DrawData {
     std::vector<int> path;
     std::vector<std::pair<int, int>> addedEdges;
     std::vector<std::vector<int>> paths;
-
+    std::vector<std::string> colorLabels;
 };
 
 
