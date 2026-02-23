@@ -18,11 +18,19 @@ def main():
 
     matrix = np.loadtxt(input_file)
 
+    # annot = np.empty(matrix.shape, dtype=object)
+    # for i in range(matrix.shape[0]):
+    #     for j in range(matrix.shape[1]):
+    #         if matrix[i, j] == 0:
+    #             annot[i, j] = '+inf'
+    #         else:
+    #             annot[i, j] = f"{matrix[i, j]:.2f}"
+
     plt.figure(figsize=matrix_cfg.matrix_figsize)
 
     sns.heatmap(
         matrix,
-        annot=True,
+        annot=matrix,
         fmt=".2f",
         cmap=matrix_cfg.matrix_colormap,
         cbar=True,

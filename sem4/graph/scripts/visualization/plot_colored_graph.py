@@ -1,4 +1,5 @@
 import sys
+import argparse
 import matplotlib as mpl
 from matplotlib.lines import Line2D
 
@@ -19,11 +20,22 @@ def get_vertex_colors(G, colors_dict: dict) -> list:
 
 
 def main():
-    graph_file = sys.argv[1]
-    output_file = sys.argv[2]
-    colors_file = sys.argv[3]
-    directed = len(sys.argv) > 4 and sys.argv[4].lower() == 'directed'
-    title_arg = sys.argv[5] if len(sys.argv) > 5 else None
+    parser = argparse.ArgumentParser()
+    parser.add_argument('graph_file')
+    parser.add_argument('output_file')
+    parser.add_argument('colors_file')
+    parser.add_argument('directed', nargs='?', default='undirected')
+    parser.add_argument('title', nargs='?', default=None)
+    parser.add_argument('--labels', default=None,
+                        help='Comma-separated legend labels per color index (e.g. "Обычные,Центр,Диаметральные")')
+    args = parser.parse_args()
+
+    graph_file  = args.graph_file
+    output_file = args.output_file
+    colors_file = args.colors_file
+    directed    = args.directed.lower() == 'directed'
+    title_arg   = args.title
+    custom_labels = [l.strip() for l in args.labels.split(',')] if args.labels else None
 
     loader = GraphLoader()
     G = loader.load_graph(graph_file, directed)
@@ -46,19 +58,25 @@ def main():
     max_color = max(colors.values()) if colors else 0
     legend_elements = []
     if max_color == 1:
+        label0 = custom_labels[0] if custom_labels and len(custom_labels) > 0 else 'Остальные вершины'
+        label1 = custom_labels[1] if custom_labels and len(custom_labels) > 1 else 'Выделенные вершины'
         legend_elements.append(Line2D([0], [0], marker='o', color='w',
                                      markerfacecolor=node_cfg.highlight_node_color, markersize=legend_cfg.legend_node_size,
-                                     label='Выделенные вершины'))
+                                     label=label1))
         legend_elements.append(Line2D([0], [0], marker='o', color='w',
                                      markerfacecolor=node_cfg.default_node_color, markersize=legend_cfg.legend_node_size,
-                                     label='Остальные вершины'))
+                                     label=label0))
     else:
         cmap = mpl.colormaps['Set1']
         for color_idx in unique_colors:
             color = cmap(color_idx / (max_color + 1)) if max_color > 0 else node_cfg.default_node_color
+            if custom_labels and color_idx < len(custom_labels):
+                label = custom_labels[color_idx]
+            else:
+                label = f'Цвет {color_idx + 1}'
             legend_elements.append(Line2D([0], [0], marker='o', color='w',
                                          markerfacecolor=color, markersize=legend_cfg.legend_node_size,
-                                         label=f'Цвет {color_idx + 1}'))
+                                         label=label))
 
     legend_elements.append(Line2D([0], [0], color=edge_cfg.highlight_edge_color, linewidth=2,
                                  linestyle=legend_cfg.legend_edge_style, label='Рёбра выделенных вершин'))

@@ -94,7 +94,7 @@ class MatrixConfig:
 class AnimationConfig:
     animation_interval: int = 2000
     animation_repeat_delay: int = 1000
-    dpi: int = 400
+    dpi: int = 200
     fps: int = 2
 
 

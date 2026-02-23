@@ -21,7 +21,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"}
+    DISABLED_LABS = {"Lab 2", "Lab 4", "Lab 5", "Lab 6"}
 
     def __init__(self):
         self._s = st.session_state
@@ -219,7 +219,7 @@ class GraphLabApp:
                     if st.button(lab_name, key=f"select_{lab_name}"):
                         self.start_process(lab_name)
                         self._s.current_lab = lab_name
-                        self._s.graph_generated = False
+                        self._set(f"{lab_name}_graph_generated", False)
                         self._s.current_visualization = []
                         self._set('dist_type', None)
                         self._clear_assets()
@@ -279,8 +279,8 @@ class GraphLabApp:
             "directed":     lambda: "1" if self._get_param(lab, action, "directed", DEFAULT_PARAMS.directed) else "0",
             "vertices":     lambda: str(self._get_param(lab, action, "vertices", DEFAULT_PARAMS.vertices)),
             "edges":        lambda: str(self._get_param(lab, action, "edges", DEFAULT_PARAMS.edges)),
-            "start_vertex": lambda: str(self._get_param(lab, action, "start_v", DEFAULT_PARAMS.start_vertex)),
-            "end_vertex":   lambda: str(self._get_param(lab, action, "end_v", DEFAULT_PARAMS.end_vertex)),
+            "start_vertex": lambda: str(self._get_param(lab, action, "start_vertex", DEFAULT_PARAMS.start_vertex)),
+            "end_vertex":   lambda: str(self._get_param(lab, action, "end_vertex", DEFAULT_PARAMS.end_vertex)),
             "source":       lambda: str(self._get_param(lab, action, "source", DEFAULT_PARAMS.source)),
             "sink":         lambda: str(self._get_param(lab, action, "sink", DEFAULT_PARAMS.sink)),
             "distance":     lambda: str(self._get_param(lab, action, "distance", DEFAULT_PARAMS.distance)),
@@ -299,7 +299,7 @@ class GraphLabApp:
             elif p == "edges":
                 self._set(f"{lab}_current_edges", int(value))
             elif p == "sink" and action == "Min Cost Flow":
-                parts.append("1")
+                parts.append("1")  # auto-confirm default 2/3 of max flow
         return "\n".join(parts)
 
     # ------------------------------------------------------------------
@@ -375,7 +375,12 @@ class GraphLabApp:
                     self._render_param_widget(lab, action_name, param)
 
                 is_gen = "Generate" in action_name
-                disabled = not is_gen and not self._get('graph_generated', False)
+                needs_maxflow = action_name == "Min Cost Flow"
+                disabled = (
+                    not is_gen and not self._get(f'{lab}_graph_generated', False)
+                ) or (
+                    needs_maxflow and not self._get(f'{lab}_maxflow_done', False)
+                )
 
                 col1, col2 = st.columns(2, gap="small")
                 with col1:
@@ -386,7 +391,11 @@ class GraphLabApp:
                             full_cmd = f"{cmd}\n{params_str}" if params_str else cmd
                             self.send_command(lab, full_cmd)
                             if is_gen:
-                                self._s.graph_generated = True
+                                self._set(f'{lab}_graph_generated', True)
+                                self._set(f'{lab}_maxflow_done', False)
+                                self._s.current_visualization = action_config.images
+                            if action_name == "Max Flow":
+                                self._set(f'{lab}_maxflow_done', True)
                                 if 'Rice' in action_name:
                                     self._set('dist_type', 'rice')
                                     self._set('dist_a', self._get_param(lab, action_name, 'rayleigh_a', DEFAULT_PARAMS.rayleigh_a))
