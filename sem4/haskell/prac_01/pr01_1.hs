@@ -106,10 +106,35 @@ resUnzip' = myUnzip (myZip list list')
 
 -- Напишите реализацию стандартных функции высшего порядка для работы со списками:
 -- myFilter - применение предиката к каждому элементу списка (две реализации: с использованием охранных выражений и if-then-else)
+
+myFilter :: (a -> Bool) -> [a] -> [a]
+myFilter _ [] = []
+myFilter p (x:xs) | p x       = x : myFilter p xs
+                  | otherwise = myFilter p xs
+
+myFilterIf :: (a -> Bool) -> [a] -> [a]
+myFilterIf _ [] = []
+myFilterIf p (x:xs) =
+    if p x then x : myFilterIf p xs
+    else myFilterIf p xs
+
+isEven :: Int -> Bool
+isEven x = x `mod` 2 == 0
+
+resFilter = myFilter isEven list
+resFilterIf = myFilterIf isEven list
+
 -- myMap - применение функции одного аргумента к каждому элементу списка
 myMap :: (a -> b) -> [a] -> [b]
 myMap _ [] = []
 myMap f (x:xs) = f x : myMap f xs
+
+foo :: Int -> Int
+foo = \x -> (x + 3) * 2
+
+resMap = myMap foo list
+resMap' = myMap foo list'
+resMapEmpty = myMap foo emptyList
 
 -- myZipWith - применение функции двух аргументов к двум спискам
 myZipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
@@ -117,8 +142,43 @@ myZipWith _ [] _ = []
 myZipWith _ _ [] = []
 myZipWith f (x:xs) (y:ys) = f x y : myZipWith f xs ys
 
--- myZipWith3 - применение функции трех аргументов к трем спискам
--- myAll - проверяет удовлетворяют ли все элементы списка предикату
--- myAny - проверяет удовлетворяют ли хотя бы один элемент списка предикату
--- myComposition - композиция двух функций (.)
+resZipWith = myZipWith (+) list list'
+resZipWith' = myZipWith (\x y -> x * y) list list'
 
+-- myZipWith3 - применение функции трех аргументов к трем спискам
+myZipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+myZipWith3 _ [] _ _ = []
+myZipWith3 _ _ [] _ = []
+myZipWith3 _ _ _ [] = []
+myZipWith3 f (x:xs) (y:ys) (z:zs) = f x y z : myZipWith3 f xs ys zs
+
+resZipWith3 = myZipWith3 (\x y z -> x + y * z) list list' (myMap foo list)
+
+-- myAll - проверяет удовлетворяют ли все элементы списка предикату
+myAll :: (a -> Bool) -> [a] -> Bool
+myAll _ [] = True
+myAll p (x:xs) = p x && myAll p xs
+
+resMyAll = myAll isEven list
+resMyAll' = myAll isEven [2,4,6,8]
+
+-- myAny - проверяет удовлетворяют ли хотя бы один элемент списка предикату
+myAny :: (a -> Bool) -> [a] -> Bool
+myAny _ [] = False
+myAny p (x:xs) = p x || myAny p xs
+
+resMyAny = myAny isEven list
+resMyAny' = myAny isEven [1,3,5,7]
+
+-- myComposition - композиция двух функций (.)
+myComposition :: (b -> c) -> (a -> b) -> (a -> c)
+myComposition f g = \x -> f (g x)
+
+myDoubleToInt :: Double -> Int
+myDoubleToInt = \x -> floor x
+
+myIntToString :: Int -> String
+myIntToString = \x -> show x
+
+resComposition = myComposition myIntToString myDoubleToInt 3.14
+resComposition' = myComposition (\x -> show x) (\x -> x `mod` 2 == 0)  4
