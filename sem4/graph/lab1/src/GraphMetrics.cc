@@ -24,10 +24,10 @@ std::unordered_map<int, double> GraphMetrics::dijkstra(int src) const {
         auto [d, u] = pq.top(); pq.pop();
         if (d > dist[u]) continue;
 
-        for (auto const& [v, _] : m_graph_.neighbors(u)) {
-            double w = m_graph_.getEdgeWeight(u, v).value_or(1.0);
-            if (dist[u] + w < dist[v]) {
-                dist[v] = dist[u] + w;
+        for (auto const& [v, w] : m_graph_.neighbors(u)) {
+            double weight = w;
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
                 pq.push({dist[v], v});
             }
         }

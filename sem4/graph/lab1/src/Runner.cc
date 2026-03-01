@@ -5,6 +5,7 @@
 #include "../include/GraphMetrics.h"
 
 #include <iostream>
+#include <cmath>
 
 #include <Generator.h>
 #include <PathUtils.h>
@@ -40,12 +41,13 @@ std::unique_ptr<Graph> Runner::generateRayleighGraph() {
     bool is_directed = static_cast<bool>(graph::readInt("Ориентированный граф? (1 - да, 0 - нет): "));
     int num_vertices = graph::readInt("Количество вершин: ");
     int num_edges = graph::readInt("Количество рёбер: ");
-    int z = graph::readInt("Параметр распределения Рэлея (z > 0, например 1): ");
-    auto graph = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed, false, z);
+    int a = graph::readInt("Параметр a (масштаб, a > 0): ");
+    int h = graph::readInt("Параметр h (форма, h > 0): ");
+    auto graph = gen_.generateRiceGraph(num_vertices, num_edges, is_directed, a, h);
     auto data = DrawDataConfig::getConfigs().at(1);
     FileHandler::saveGraph(data.txtFile, *graph);
     Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
-    std::cout << "[OK] Граф (распределение Рэлея, z=" << z << ") отрисован в assets/png/01_graph.png\n";
+    std::cout << "[OK] Граф (Райс, a=" << a << ", h=" << h << ") отрисован в assets/png/01_graph.png\n";
     return graph;
 }
 
@@ -64,7 +66,6 @@ void Runner::runVisualizeWeightMatrix(Graph const& graph) {
 }
 
 void Runner::runShimbellMethod(Graph const& graph) {
-    std::cout << "=== Метод Шимбелла ===\n";
     int path_length = graph::readInt("Длина пути: ");
 
     ShimbellMethod shimbell(graph);
@@ -84,7 +85,6 @@ void Runner::runShimbellMethod(Graph const& graph) {
 }
 
 void Runner::runPathsMethod(Graph const& graph) {
-    std::cout << "=== Подсчёт путей ===\n";
     int from = graph::readInt("Начальная вершина: ");
     int to = graph::readInt("Конечная вершина: ");
 
@@ -95,7 +95,7 @@ void Runner::runPathsMethod(Graph const& graph) {
 
     PathCounter counter(graph);
     auto all_paths = counter.getAllPaths(from, to);
-    int count = counter.getPathCount(from, to);
+    int count = all_paths.size();
 
     if (!all_paths.empty()) {
         auto data = DrawDataConfig::getConfigs().at(12);
@@ -112,7 +112,6 @@ void Runner::runPathsMethod(Graph const& graph) {
 }
 
 void Runner::runGraphMetrics(Graph const& graph) {
-    std::cout << "=== Метрики графа ===\n";
 
     graph::GraphMetrics metrics(graph);
     auto result = metrics.compute();
@@ -120,27 +119,18 @@ void Runner::runGraphMetrics(Graph const& graph) {
     std::cout << "\nЭксцентриситеты вершин:\n";
     for (int v : graph.vertexIds()) {
         double ecc = result.eccentricities.at(v);
-        std::cout << "  v" << v << " : " << (ecc == std::numeric_limits<double>::infinity() ? "inf" : std::to_string(ecc)) << "\n";
+        std::cout << "  v" << v << " : " << (std::isinf(ecc) ? "+inf" : std::to_string(ecc)) << "\n";
     }
 
     std::cout << "\nРадиус графа   : " << result.radius   << "\n";
     std::cout << "Диаметр графа  : " << result.diameter  << "\n";
 
-    std::cout << "\nЦентральные вершины (эксцентриситет = радиус): ";
-    for (int v : result.center) std::cout << v << " ";
-    std::cout << "\n";
-
-    std::cout << "Диаметральные вершины (эксцентриситет = диаметр): ";
-    for (int v : result.diametralVerts) std::cout << v << " ";
-    std::cout << "\n";
-
     std::vector<int> ids = graph.vertexIds();
     std::vector<int> colors(ids.size(), 0);
     for (int i = 0; i < static_cast<int>(ids.size()); ++i) {
         int v = ids[i];
-        bool is_center    = std::find(result.center.begin(),
-                                        result.center.end(), v) != result.center.end();
-        bool is_diametral = std::find(result.diametralVerts.begin(), result.diametralVerts.end(), v) != result.diametralVerts.end();
+        bool is_center    = CollectionUtils::contains(result.center, v);
+        bool is_diametral = CollectionUtils::contains(result.diametralVerts, v);
         if (is_center)    colors[i] = 1;
         else if (is_diametral) colors[i] = 2;
     }
@@ -151,7 +141,6 @@ void Runner::runGraphMetrics(Graph const& graph) {
     data.colorLabels = {"Обычные вершины", "Центр графа (радиус)", "Диаметральные вершины"};
     Visualizer::drawColoredGraph(data, graph.isDirected());
     std::cout << "[OK] Визуализация метрик в assets/png/15_graph_metrics.png\n";
-    std::cout << "     Цвет 1 = центр, Цвет 2 = диаметральные, Цвет 0 = остальные\n";
 }
 
 }  // namespace lab1

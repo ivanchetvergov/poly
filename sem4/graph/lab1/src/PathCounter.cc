@@ -24,8 +24,8 @@ PathMatrix PathCounter::getAllPaths(int from, int to) {
 
 void PathCounter::backtrackAllPaths(
     int current, int target, std::unordered_map<int, bool>& visited,
-    std::vector<int>& currentPath, PathMatrix& allPaths) {
-
+    std::vector<int>& currentPath, PathMatrix& allPaths)
+{
     currentPath.push_back(current);
     visited[current] = true;
 

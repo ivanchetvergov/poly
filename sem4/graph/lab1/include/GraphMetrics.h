@@ -9,9 +9,9 @@
 namespace graph {
 
 struct MetricsResult {
-    std::unordered_map<int, double> eccentricities;  // vertexId -> eccentricity
-    std::vector<int> center;          // вершины с min эксцентриситетом (= радиусу)
-    std::vector<int> diametralVerts;  // вершины с max эксцентриситетом (= диаметру)
+    std::unordered_map<int, double> eccentricities;
+    std::vector<int> center;
+    std::vector<int> diametralVerts;
     double radius{0.0};
     double diameter{0.0};
 };

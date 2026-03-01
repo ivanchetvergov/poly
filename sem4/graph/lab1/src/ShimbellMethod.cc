@@ -20,12 +20,6 @@ ShimbellResult const& ShimbellMethod::compute(int pathLength) {
     DistanceMatrix current_min = createAdjacencyMatrix();
     DistanceMatrix current_max = createAdjacencyMatrix();
 
-    if (pathLength == 1) {
-        result_ =
-            ShimbellResult{.min_distances = current_min, .max_distances = current_max, .path_length = 1};
-        return result_;
-    }
-
     DistanceMatrix base_min = current_min;
     DistanceMatrix base_max = current_max;
 
@@ -35,29 +29,28 @@ ShimbellResult const& ShimbellMethod::compute(int pathLength) {
     }
 
     result_ = ShimbellResult{
-        .min_distances = current_min, .max_distances = current_max, .path_length = pathLength};
+        .min_distances = current_min,
+        .max_distances = current_max,
+        .path_length = pathLength
+    };
     return result_;
 }
 
-DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
-    DistanceMatrix matrix(m_size_, std::vector<std::optional<double>>(m_size_, std::nullopt));
-
-    for (int i = 0; i < m_size_; ++i) {
-        matrix[i][i] = 0.0;
-    }
-
-    for (auto const& edge : m_graph_.edges()) {
-        int from_idx = getIndex(edge.from);
-        int to_idx = getIndex(edge.to);
-
-        matrix[from_idx][to_idx] = edge.weight;
-
-        if (!m_graph_.isDirected()){
-            matrix[to_idx][from_idx] = edge.weight;
+DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const
+{
+    return CollectionUtils::makeSquareMatrix<std::optional<double>>(
+        m_vertex_ids_,
+        [&](int u, int v) -> std::optional<double> {
+            if (u == v) {
+                return 0.0;
+            }
+            auto w = m_graph_.getEdgeWeight(u, v);
+            if (w.has_value()) {
+                return w;
+            }
+            return std::nullopt;
         }
-    }
-
-    return matrix;
+    );
 }
 
 DistanceMatrix ShimbellMethod::multiplyMin(DistanceMatrix const& a, DistanceMatrix const& b) const {
