@@ -16,9 +16,15 @@ class Generator {
 public:
     explicit Generator(std::optional<unsigned> seed = std::nullopt);
 
+
     std::unique_ptr<Graph> generateAcyclicGraph(int numVertices, int numEdges,
-                                                bool isDirected = false,
-                                                bool allowNegative = false);
+                                                bool allowNegative = false,
+                                                bool isDirected = false);
+
+
+    std::unique_ptr<Graph> generateRiceGraph(int numVertices, int numEdges,
+                                             bool isDirected = false,
+                                             double a = 1.0, double h = 1.0);
 
     std::unique_ptr<FlowNetwork> generateFlowNetwork(int numVertices, int numEdges);
 
@@ -26,6 +32,9 @@ public:
     int randomInt(int min, int max);
 
 private:
+    double normalWeight();
+    double riceWeight(double a, double h);
+
     template <typename GraphT, typename AddEdgeFunc, typename WeightGenFunc>
     std::unique_ptr<GraphT> generateAcyclicTemplate(int numVertices, int numEdges,
                                                     AddEdgeFunc addEdge, WeightGenFunc genWeight,
