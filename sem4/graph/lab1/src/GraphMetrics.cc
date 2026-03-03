@@ -8,27 +8,22 @@ namespace graph {
 
 GraphMetrics::GraphMetrics(Graph const& graph) : m_graph_(graph) {}
 
-std::unordered_map<int, double> GraphMetrics::dijkstra(int src) const {
+std::unordered_map<int, double> GraphMetrics::bfsSteps(int src) const {
     constexpr double INF = std::numeric_limits<double>::infinity();
 
     std::unordered_map<int, double> dist;
     for (int v : m_graph_.vertexIds()) dist[v] = INF;
     dist[src] = 0.0;
 
-    // (dist, vertex)
-    using P = std::pair<double, int>;
-    std::priority_queue<P, std::vector<P>, std::greater<>> pq;
-    pq.push({0.0, src});
+    std::queue<int> q;
+    q.push(src);
 
-    while (!pq.empty()) {
-        auto [d, u] = pq.top(); pq.pop();
-        if (d > dist[u]) continue;
-
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
         for (auto const& [v, w] : m_graph_.neighbors(u)) {
-            double weight = w;
-            if (dist[u] + weight < dist[v]) {
-                dist[v] = dist[u] + weight;
-                pq.push({dist[v], v});
+            if (dist[v] == INF) {
+                dist[v] = dist[u] + 1.0;
+                q.push(v);
             }
         }
     }
@@ -43,7 +38,7 @@ MetricsResult GraphMetrics::compute() const {
     double radius = INF, diameter = 0.0;
 
     for (int v : ids) {
-        auto dist = dijkstra(v);
+        auto dist = bfsSteps(v);
         double ecc = 0.0;
         for (int u : ids) {
             if (u == v) continue;

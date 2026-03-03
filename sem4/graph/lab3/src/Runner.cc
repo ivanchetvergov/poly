@@ -26,7 +26,22 @@ using graph::VisualizationType;
 void Runner::runGenerateFlowNetwork() {
     int num_vertices = graph::readInt("Количество вершин: ");
     int num_edges = graph::readInt("Количество рёбер: ");
-    network_ = Generator{}.generateFlowNetwork(num_vertices, num_edges);
+    int cost_sign_val = graph::readInt("Знак стоимостей (0-положит., 1-отрицат., 2-смешанные): ");
+    auto cost_sign = static_cast<graph::WeightSign>(cost_sign_val);
+    network_ = Generator{}.generateFlowNetwork(num_vertices, num_edges, cost_sign);
+    auto data = DrawDataConfig::getConfigs().at(31);
+    FileHandler::saveFlowNetwork(data.txtFile, *network_);
+    Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
+}
+
+void Runner::runGenerateFlowNetworkByDegrees() {
+    int num_vertices = graph::readInt("Количество вершин: ");
+    int a = graph::readInt("Параметр a (масштаб, a > 0): ");
+    int h = graph::readInt("Параметр h (форма, h > 0): ");
+    int cost_sign_val = graph::readInt("Знак стоимостей (0-положит., 1-отрицат., 2-смешанные): ");
+    auto cost_sign = static_cast<graph::WeightSign>(cost_sign_val);
+    network_ = Generator{}.generateFlowNetworkByDegrees(
+        num_vertices, a, h, graph::EdgeCountDist::TruncatedNormal, cost_sign);
     auto data = DrawDataConfig::getConfigs().at(31);
     FileHandler::saveFlowNetwork(data.txtFile, *network_);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);

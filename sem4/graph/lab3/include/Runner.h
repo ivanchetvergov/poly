@@ -13,6 +13,7 @@ public:
     Runner() = default;
 
     void runGenerateFlowNetwork();
+    void runGenerateFlowNetworkByDegrees();
     void runMaxFlow();
     void runMinCostFlow();
     void runVisualizeCapacityMatrix();

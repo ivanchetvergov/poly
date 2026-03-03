@@ -29,7 +29,9 @@ std::unique_ptr<Graph> Runner::generateGraph() {
     bool is_directed = static_cast<bool>(graph::readInt("Ориентированный граф? (1 - да, 0 - нет): "));
     int num_vertices = graph::readInt("Количество вершин: ");
     int num_edges = graph::readInt("Количество рёбер: ");
-    auto graph = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed);
+    int sign_val = graph::readInt("Знак весов (0-положительные, 1-отрицательные, 2-смешанные): ");
+    auto sign = static_cast<graph::WeightSign>(sign_val);
+    auto graph = gen_.generateAcyclicGraph(num_vertices, num_edges, is_directed, sign);
     auto data = DrawDataConfig::getConfigs().at(1);
     FileHandler::saveGraph(data.txtFile, *graph);
     Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
@@ -40,10 +42,12 @@ std::unique_ptr<Graph> Runner::generateGraph() {
 std::unique_ptr<Graph> Runner::generateRayleighGraph() {
     bool is_directed = static_cast<bool>(graph::readInt("Ориентированный граф? (1 - да, 0 - нет): "));
     int num_vertices = graph::readInt("Количество вершин: ");
-    int num_edges = graph::readInt("Количество рёбер: ");
     int a = graph::readInt("Параметр a (масштаб, a > 0): ");
     int h = graph::readInt("Параметр h (форма, h > 0): ");
-    auto graph = gen_.generateRiceGraph(num_vertices, num_edges, is_directed, a, h);
+    int sign_val = graph::readInt("Знак весов (0-положительные, 1-отрицательные, 2-смешанные): ");
+    auto sign = static_cast<graph::WeightSign>(sign_val);
+    auto graph = gen_.generateRiceGraphByDegrees(num_vertices, is_directed, a, h,
+                                        graph::EdgeCountDist::TruncatedNormal, sign);
     auto data = DrawDataConfig::getConfigs().at(1);
     FileHandler::saveGraph(data.txtFile, *graph);
     Visualizer::draw(data, graph->isDirected(), graph::VisualizationType::Graph);
@@ -108,7 +112,6 @@ void Runner::runPathsMethod(Graph const& graph) {
     } else {
         std::cout << "[FAIL] Не удалось найти пути\n";
     }
-
 }
 
 void Runner::runGraphMetrics(Graph const& graph) {

@@ -13,8 +13,17 @@ ShimbellMethod::ShimbellMethod(Graph const& graph)
       m_size_(static_cast<int>(m_vertex_ids_.size())) {}
 
 ShimbellResult const& ShimbellMethod::compute(int pathLength) {
-    if (pathLength <= 0) {
-        throw std::invalid_argument("Длина пути должна быть положительной");
+    if (pathLength < 0) {
+        throw std::invalid_argument("Длина пути не может быть отрицательной");
+    }
+
+    if (pathLength == 0) {
+
+        DistanceMatrix identity(m_size_,
+                                std::vector<std::optional<double>>(m_size_, std::nullopt));
+        for (int i = 0; i < m_size_; ++i) identity[i][i] = 1;
+        result_ = ShimbellResult{identity, identity, 0};
+        return result_;
     }
 
     DistanceMatrix current_min = createAdjacencyMatrix();

@@ -13,7 +13,6 @@ PathMatrix PathCounter::getAllPaths(int from, int to) {
     if (!m_graph_.hasVertex(from) || !m_graph_.hasVertex(to)) {
         return {};
     }
-
     PathMatrix all_paths;
     std::vector<int> current_path;
     std::unordered_map<int, bool> visited;
