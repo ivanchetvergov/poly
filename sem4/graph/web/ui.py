@@ -21,7 +21,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 2", "Lab 4", "Lab 5", "Lab 6"}
+    DISABLED_LABS = {"Lab 3", "Lab 4", "Lab 5", "Lab 6"}
 
     def __init__(self):
         self._s = st.session_state
@@ -118,20 +118,21 @@ class GraphLabApp:
         fig, ax = plt.subplots(figsize=(6, 3))
         ax.hist(weights, bins=20, density=True, alpha=0.35, color='steelblue', label='Гистограмма')
 
-        x = np.linspace(max(0, min(weights) - 1), max(weights) * 1.1, 400)
-
+        x_data = np.linspace(max(0, min(weights) - 1), max(weights) * 1.1, 400)
         kde = gaussian_kde(weights)
-        ax.plot(x, kde(x), 'b-', lw=2, label='KDE (данные)')
+        ax.plot(x_data, kde(x_data), 'b-', lw=2, label='KDE (данные)')
 
         if dist_type == 'uniform':
-            pdf = np.where((x >= 1.0) & (x <= 10.0), 1.0 / 9.0, 0.0)
-            ax.plot(x, pdf, 'r--', lw=2, label='U[1, 10] PDF')
+            x_pdf = np.linspace(0.0, 11.0, 400)
+            pdf = np.where((x_pdf >= 1.0) & (x_pdf <= 10.0), 1.0 / 9.0, 0.0)
+            ax.plot(x_pdf, pdf, 'r--', lw=2, label='U[1, 10] PDF')
             ax.set_title('Распределение весов: равномерное U[1, 10]')
         elif dist_type == 'rice':
             sigma, nu = float(a), float(h)
             if sigma > 0:
-                pdf = (x / sigma ** 2) * np.exp(-(x ** 2 + nu ** 2) / (2 * sigma ** 2)) * i0(x * nu / sigma ** 2)
-                ax.plot(x, pdf, 'r--', lw=2, label=f'Rice(a={sigma}, h={nu}) PDF')
+                x_pdf = np.linspace(0.0, (nu + 5 * sigma) * 1.2, 400)
+                pdf = (x_pdf / sigma ** 2) * np.exp(-(x_pdf ** 2 + nu ** 2) / (2 * sigma ** 2)) * i0(x_pdf * nu / sigma ** 2)
+                ax.plot(x_pdf, pdf, 'r--', lw=2, label=f'Rice(a={sigma}, h={nu}) PDF')
             ax.set_title(f'Распределение весов: Райс (a={sigma}, h={nu})')
 
         ax.set_xlabel('Вес')
@@ -245,25 +246,33 @@ class GraphLabApp:
         if param == "directed":
             st.checkbox("Directed", value=DEFAULT_PARAMS.directed, key=key)
         elif param == "vertices":
-            local_v = self._s.get(key, DEFAULT_PARAMS.vertices)
             st.number_input("Vertices", 3, 50, DEFAULT_PARAMS.vertices, key=key)
-            self._set(f"{lab}_current_vertices", local_v)
         elif param == "edges":
             st.number_input("Edges", 5, 100, DEFAULT_PARAMS.edges, key=key)
         elif param == "start_vertex":
+            if self._s.get(key, 0) > v - 1:
+                self._s[key] = v - 1
             st.number_input("Start Vertex", 0, v - 1, min(DEFAULT_PARAMS.start_vertex, v - 1), key=key)
         elif param == "end_vertex":
+            if self._s.get(key, DEFAULT_PARAMS.end_vertex) > v - 1:
+                self._s[key] = v - 1
             st.number_input("End Vertex", 0, v - 1, min(DEFAULT_PARAMS.end_vertex, v - 1), key=key)
         elif param == "source":
             st.number_input("Source", 0, v - 1, min(DEFAULT_PARAMS.source, v - 1), key=key)
         elif param == "sink":
             st.number_input("Sink", 0, v - 1, min(DEFAULT_PARAMS.sink, v - 1), key=key)
         elif param == "distance":
-            st.number_input("Distance", 1, e, min(DEFAULT_PARAMS.distance, e), key=key)
+            st.number_input("Distance", 0, e, min(DEFAULT_PARAMS.distance, e), key=key)
         elif param == "rayleigh_a":
             st.number_input("a (масштаб, a > 0)", 1, 100, DEFAULT_PARAMS.rayleigh_a, key=key)
         elif param == "rayleigh_h":
             st.number_input("h (форма, h > 0)", 1, 100, DEFAULT_PARAMS.rayleigh_h, key=key)
+        elif param == "weight_sign":
+            st.selectbox("Знак весов", ["Positive", "Negative", "Mixed"],
+                         index=["Positive", "Negative", "Mixed"].index(DEFAULT_PARAMS.weight_sign), key=key)
+        elif param == "cost_sign":
+            st.selectbox("Знак стоимостей", ["Positive", "Negative", "Mixed"],
+                         index=["Positive", "Negative", "Mixed"].index(DEFAULT_PARAMS.cost_sign), key=key)
         elif param == "operation":
             st.selectbox("Operation", ["insert", "delete", "search"], key=key)
         elif param == "word":
@@ -286,6 +295,10 @@ class GraphLabApp:
             "distance":     lambda: str(self._get_param(lab, action, "distance", DEFAULT_PARAMS.distance)),
             "rayleigh_a":   lambda: str(self._get_param(lab, action, "rayleigh_a", DEFAULT_PARAMS.rayleigh_a)),
             "rayleigh_h":   lambda: str(self._get_param(lab, action, "rayleigh_h", DEFAULT_PARAMS.rayleigh_h)),
+            "weight_sign":  lambda: str(["Positive", "Negative", "Mixed"].index(
+                                self._get_param(lab, action, "weight_sign", DEFAULT_PARAMS.weight_sign))),
+            "cost_sign":    lambda: str(["Positive", "Negative", "Mixed"].index(
+                                self._get_param(lab, action, "cost_sign", DEFAULT_PARAMS.cost_sign))),
             "operation":    lambda: str(self._get_param(lab, action, "operation", "insert")),
             "word":         lambda: str(self._get_param(lab, action, "word", "")),
         }
@@ -394,14 +407,14 @@ class GraphLabApp:
                                 self._set(f'{lab}_graph_generated', True)
                                 self._set(f'{lab}_maxflow_done', False)
                                 self._s.current_visualization = action_config.images
-                            if action_name == "Max Flow":
-                                self._set(f'{lab}_maxflow_done', True)
                                 if 'Rice' in action_name:
                                     self._set('dist_type', 'rice')
                                     self._set('dist_a', self._get_param(lab, action_name, 'rayleigh_a', DEFAULT_PARAMS.rayleigh_a))
                                     self._set('dist_h', self._get_param(lab, action_name, 'rayleigh_h', DEFAULT_PARAMS.rayleigh_h))
                                 elif 'Acyclic' in action_name:
                                     self._set('dist_type', 'uniform')
+                            if action_name == "Max Flow":
+                                self._set(f'{lab}_maxflow_done', True)
                 with col2:
                     if st.button("Visualize", disabled=disabled, key=f"{lab}_{action_name}_visualize"):
                         self._s.current_visualization = action_config.images

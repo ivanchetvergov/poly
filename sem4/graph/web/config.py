@@ -16,8 +16,8 @@ LAB_CONFIGS = {
     "Lab 1": LabConfig(
         number="1",
         sub_actions={
-            "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges"], images=["01_graph.png"]),
-            "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "edges", "rayleigh_a", "rayleigh_h"], images=["01_graph.png"]),
+            "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges", "weight_sign"], images=["01_graph.png"]),
+            "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
             "Adjacency Matrix": ActionConfig(execute_cmd="2", images=["02_adjacency_matrix.png"]),
             "Weight Matrix": ActionConfig(execute_cmd="3", images=["03_weight_matrix.png"]),
             "Shimbell Matrices": ActionConfig(execute_cmd="11", params=["distance"], images=["13_shimbell_min.png", "13_shimbell_max.png"]),
@@ -25,10 +25,21 @@ LAB_CONFIGS = {
             "Graph Metrics": ActionConfig(execute_cmd="13", images=["15_graph_metrics.png"]),
         }
     ),
+    "Lab 2": LabConfig(
+        number="2",
+        sub_actions={
+            "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges", "weight_sign"], images=["01_graph.png"]),
+            "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
+            "BFS Traversal": ActionConfig(execute_cmd="21", params=["start_vertex"], images=["21_bfs.gif"]),
+            "Dijkstra Path": ActionConfig(execute_cmd="22", params=["start_vertex", "end_vertex"], images=["22_dijkstra.png"]),
+            "Compare Algorithms": ActionConfig(execute_cmd="23", params=["start_vertex"], images=[]),
+        }
+    ),
     "Lab 3": LabConfig(
         number="3",
         sub_actions={
-            "Generate Flow Network": ActionConfig(execute_cmd="31", params=["vertices", "edges"], images=["31_flow_network.png"]),
+            "Generate Flow Network": ActionConfig(execute_cmd="31", params=["vertices", "edges", "cost_sign"], images=["31_flow_network.png"]),
+            "Generate Flow Network (Rice)": ActionConfig(execute_cmd="36", params=["vertices", "rayleigh_a", "rayleigh_h", "cost_sign"], images=["31_flow_network.png"]),
             "Max Flow": ActionConfig(execute_cmd="32", params=["source", "sink"], images=["32_max_flow.png", "32_flow_animation.gif"]),
             "Min Cost Flow": ActionConfig(execute_cmd="33", params=["source", "sink"], images=["33_min_cost_flow_path.png"]),
             "Capacities": ActionConfig(execute_cmd="34", images=["34_capacity_matrix.png"]),
@@ -58,5 +69,7 @@ class DefaultParams:
     distance: int = 8
     rayleigh_a: int = 1
     rayleigh_h: int = 1
+    weight_sign: str = "Positive"
+    cost_sign: str = "Positive"
 
 DEFAULT_PARAMS = DefaultParams()
