@@ -10,6 +10,6 @@ add_library(graph_lab1_lib STATIC
     src/GraphMetrics.cc
     src/Runner.cc
 )
-target_include_directories(graph_lab1_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include)
-target_link_libraries(graph_lab1_lib PUBLIC graph_common)
+target_include_directories(graph_lab1_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include ${CMAKE_CURRENT_SOURCE_DIR}/../lab2/include)
+target_link_libraries(graph_lab1_lib PUBLIC graph_common graph_lab2_lib)
 target_compile_options(graph_lab1_lib PRIVATE -Wall -Wextra)

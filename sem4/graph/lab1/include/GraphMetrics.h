@@ -23,8 +23,6 @@ public:
     [[nodiscard]] MetricsResult compute() const;
 
 private:
-    [[nodiscard]] std::unordered_map<int, double> bfsSteps(int src) const;
-
     Graph const& m_graph_;
 };
 

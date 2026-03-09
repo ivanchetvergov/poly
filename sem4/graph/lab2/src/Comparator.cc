@@ -1,24 +1,25 @@
-#include "Comparator.h"
+#include "../include/Comparator.h"
+
+#include <BFS.h>
+#include <Dijkstra.h>
 
 namespace graph {
 
-using CompareResults = std::vector<Comparator::CompareResult>;
-
-CompareResults Comparator::compareAlgorithms(Graph const& graph,
-                                         int start_node,
-                                         int end_node,
-                                         AlgorithmNames const& algorithm_names) {
+Comparator::CompareResults Comparator::compare(Graph const& graph, int start) {
     CompareResults results;
 
-    for (const auto& algorithm_name : algorithm_names) {
-        CompareResult result;
-
-
-        results.push_back(result);
+    {
+        BFS bfs(graph);
+        auto r = bfs.traverse(start);
+        results.push_back({"BFS", r.iterations});
+    }
+    {
+        Dijkstra dijk(graph);
+        auto r = dijk.compute(start);
+        results.push_back({"Dijkstra", r.iterations});
     }
 
     return results;
 }
 
-
-} // namespace graph
+}  // namespace graph

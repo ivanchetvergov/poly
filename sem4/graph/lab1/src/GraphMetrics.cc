@@ -1,34 +1,13 @@
 // GraphMetrics.cc
 #include "GraphMetrics.h"
 
+#include <BFS.h>
+
 #include <algorithm>
-#include <queue>
 
 namespace graph {
 
 GraphMetrics::GraphMetrics(Graph const& graph) : m_graph_(graph) {}
-
-std::unordered_map<int, double> GraphMetrics::bfsSteps(int src) const {
-    constexpr double INF = std::numeric_limits<double>::infinity();
-
-    std::unordered_map<int, double> dist;
-    for (int v : m_graph_.vertexIds()) dist[v] = INF;
-    dist[src] = 0.0;
-
-    std::queue<int> q;
-    q.push(src);
-
-    while (!q.empty()) {
-        int u = q.front(); q.pop();
-        for (auto const& [v, w] : m_graph_.neighbors(u)) {
-            if (dist[v] == INF) {
-                dist[v] = dist[u] + 1.0;
-                q.push(v);
-            }
-        }
-    }
-    return dist;
-}
 
 MetricsResult GraphMetrics::compute() const {
     constexpr double INF = std::numeric_limits<double>::infinity();
@@ -38,13 +17,15 @@ MetricsResult GraphMetrics::compute() const {
     double radius = INF, diameter = 0.0;
 
     for (int v : ids) {
-        auto dist = bfsSteps(v);
+        BFS bfs(m_graph_);
+        auto r = bfs.traverse(v);
+
         double ecc = 0.0;
         for (int u : ids) {
             if (u == v) continue;
-            double d = dist.at(u);
-            if (d == INF) { ecc = INF; break; }
-            ecc = std::max(ecc, d);
+            int steps = r.dist_steps.at(u);
+            if (steps == -1) { ecc = INF; break; }
+            ecc = std::max(ecc, static_cast<double>(steps));
         }
         result.eccentricities[v] = ecc;
         if (ecc != INF) {
@@ -53,7 +34,7 @@ MetricsResult GraphMetrics::compute() const {
         }
     }
 
-    result.radius   = radius   == INF ? 0.0 : radius;
+    result.radius   = radius == INF ? 0.0 : radius;
     result.diameter = diameter;
 
     for (int v : ids) {
@@ -69,3 +50,4 @@ MetricsResult GraphMetrics::compute() const {
 }
 
 }  // namespace graph
+

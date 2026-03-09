@@ -11,19 +11,12 @@ class Comparator {
 public:
     struct CompareResult {
         std::string algorithm_name;
-        std::vector<int> path;
-        double time_taken;
-        size_t memory_used;
-        size_t iterations;
+        size_t      iterations{0};
     };
 
     using CompareResults = std::vector<CompareResult>;
-    using AlgorithmNames = std::vector<std::string>;
 
-    CompareResults compareAlgorithms(Graph const& graph,
-                                     int start_node,
-                                     int end_node,
-                                     AlgorithmNames const& algorithm_names);
+    [[nodiscard]] static CompareResults compare(Graph const& graph, int start);
 };
 
 }  // namespace graph
