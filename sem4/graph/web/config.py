@@ -32,7 +32,7 @@ LAB_CONFIGS = {
             "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
             "BFS Traversal": ActionConfig(execute_cmd="21", params=["start_vertex"], images=["21_bfs.gif"]),
             "Dijkstra Path": ActionConfig(execute_cmd="22", params=["start_vertex", "end_vertex"], images=["22_dijkstra.png"]),
-            "Compare Algorithms": ActionConfig(execute_cmd="23", params=["start_vertex"], images=[]),
+            "Compare Algorithms": ActionConfig(execute_cmd="23", params=["start_vertex"], images=["23_compare.png"]),
         }
     ),
     "Lab 3": LabConfig(
