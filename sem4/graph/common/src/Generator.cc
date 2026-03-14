@@ -38,16 +38,8 @@ double Generator::applySign(double w, WeightSign sign) {
     return w;
 }
 
-std::unique_ptr<Graph> Generator::generateAcyclicGraph(int numVertices, int numEdges,
-                                                       bool isDirected, WeightSign sign) {
-    auto gen_weight = [this, sign]() {
-        return applySign(randomReal(1.0, 10.0), sign);
-    };
-    auto add_edge = [](Graph& g, int from, int to, double w) { g.addEdge(from, to, w); };
-    return generateAcyclicTemplate<Graph>(numVertices, numEdges, add_edge, gen_weight, isDirected);
-}
-
-int Generator::sampleEdgeCount(int minE, int maxE, EdgeCountDist dist) {
+int Generator::sampleEdgeCount(int minE, int maxE, EdgeCountDist dist)
+{
     if (minE >= maxE) return minE;
     if (dist == EdgeCountDist::Uniform) {
         return randomInt(minE, maxE);
@@ -61,8 +53,12 @@ int Generator::sampleEdgeCount(int minE, int maxE, EdgeCountDist dist) {
     return static_cast<int>(std::round(val));
 }
 
-std::vector<int> Generator::computeDegreesFromRice(int n, bool isDirected, double a, double h,
-                                                   int totalEdges) {
+std::vector<int> Generator::computeDegreesFromRice(int n,
+                                                   bool isDirected,
+                                                   double a,
+                                                   double h,
+                                                   int totalEdges)
+{
     if (n <= 1) return {};
 
     std::vector<double> prob(n);
@@ -73,49 +69,67 @@ std::vector<int> Generator::computeDegreesFromRice(int n, bool isDirected, doubl
     for (auto& v : prob) { v = std::exp(v - maxVal); sumExp += v; }
     for (auto& v : prob) v /= sumExp;
 
-    std::vector<int> cap(n);
-    for (int i = 0; i < n; ++i) cap[i] = n - 1 - i;
+    std::vector<int> capacity(n);
+    for (int i = 0; i < n; ++i) capacity[i] = n - 1 - i;
 
     std::vector<double> quota(n);
     double sumW = 0.0;
-    for (int i = 0; i < n; ++i) { quota[i] = prob[i] * cap[i]; sumW += quota[i]; }
+    for (int i = 0; i < n; ++i) { quota[i] = prob[i] * capacity[i]; sumW += quota[i]; }
     if (sumW > 0.0)
         for (auto& q : quota) q *= static_cast<double>(totalEdges) / sumW;
 
     std::vector<int> degrees(n);
     int allocated = 0;
     for (int i = 0; i < n; ++i) {
-        degrees[i] = std::min(static_cast<int>(std::floor(quota[i])), cap[i]);
+        degrees[i] = std::min(static_cast<int>(std::floor(quota[i])), capacity[i]);
         allocated += degrees[i];
     }
 
     int remainder = totalEdges - allocated;
     std::vector<int> order(n);
-    std::iota(order.begin(), order.end(), 0);
+    std::iota(order.begin(), order.end(), 0); // 0, 1, 2, ..., n-1 (сохраним айдишники вершин)
     std::sort(order.begin(), order.end(), [&](int a, int b) {
         return (quota[a] - std::floor(quota[a])) > (quota[b] - std::floor(quota[b]));
     });
     for (int idx : order) {
         if (remainder <= 0) break;
-        if (degrees[idx] < cap[idx]) { ++degrees[idx]; --remainder; }
+        if (degrees[idx] < capacity[idx]) { ++degrees[idx]; --remainder; }
     }
     return degrees;
 }
-
+std::unique_ptr<Graph> Generator::generateAcyclicGraph(int numVertices,
+                                                       int numEdges,
+                                                       bool isDirected,
+                                                       WeightSign sign)
+{
+    auto gen_weight = [this, sign]() {
+        return applySign(randomReal(1.0, 10.0), sign);
+    };
+    auto add_edge = [](Graph& g, int from, int to, double w) { g.addEdge(from, to, w); };
+    return generateAcyclicTemplate<Graph>(numVertices, numEdges, add_edge, gen_weight, isDirected);
+}
 
 std::unique_ptr<Graph> Generator::generateRiceGraphByDegrees(int numVertices,
-                                                    bool isDirected, double a, double h,
-                                                    EdgeCountDist dist, WeightSign sign) {
+                                                             bool isDirected,
+                                                             double a,
+                                                             double h,
+                                                             EdgeCountDist dist,
+                                                             WeightSign sign)
+{
     auto gen_weight = [this, a, h, sign]() { return applySign(riceWeight(a, h), sign); };
     auto add_edge   = [](Graph& g, int from, int to, double w) { g.addEdge(from, to, w); };
     return buildByRice<Graph>(numVertices, isDirected, a, h, dist, gen_weight, add_edge);
 }
 
-std::unique_ptr<FlowNetwork> Generator::generateFlowNetwork(int numVertices, int numEdges,
-                                                            WeightSign costSign) {
-    auto gen_weight = [this, costSign]() {
+// * FlowNetwork
+
+std::unique_ptr<FlowNetwork> Generator::generateFlowNetwork(int numVertices,
+                                                            int numEdges,
+                                                            WeightSign sign)
+{
+    auto gen_weight = [this, sign]() {
         return std::make_pair(randomReal(5.0, 20.0),
-                              applySign(randomReal(1.0, 10.0), costSign));
+                              applySign(randomReal(1.0, 10.0), sign));
     };
     auto add_edge = [](FlowNetwork& g, int from, int to, std::pair<double, double> w) {
         g.addEdge(from, to, w.first, w.second);
@@ -123,11 +137,15 @@ std::unique_ptr<FlowNetwork> Generator::generateFlowNetwork(int numVertices, int
     return generateAcyclicTemplate<FlowNetwork>(numVertices, numEdges, add_edge, gen_weight, true);
 }
 
-std::unique_ptr<FlowNetwork> Generator::generateFlowNetworkByDegrees(
-    int numVertices, double a, double h, EdgeCountDist dist, WeightSign costSign) {
-    auto gen_weight = [this, a, h, costSign]() {
+std::unique_ptr<FlowNetwork> Generator::generateFlowNetworkByDegrees(int numVertices,
+                                                                     double a,
+                                                                     double h,
+                                                                     EdgeCountDist dist,
+                                                                     WeightSign sign)
+{
+    auto gen_weight = [this, a, h, sign]() {
         return std::make_pair(std::abs(riceWeight(a, h)),
-                              applySign(riceWeight(a, h), costSign));
+                              applySign(riceWeight(a, h), sign));
     };
     auto add_edge = [](FlowNetwork& g, int from, int to, std::pair<double, double> w) {
         g.addEdge(from, to, w.first, w.second);

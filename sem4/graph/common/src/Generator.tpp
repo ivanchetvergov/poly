@@ -44,7 +44,7 @@ std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(int numVertices, int 
     std::shuffle(candidates.begin(), candidates.end(), rng_);
 
     int to_add = numEdges - (numVertices - 1);
-    for (int i = 0; i < to_add && i < static_cast<int>(candidates.size()); ++i) {
+    for (int i = 0; i < to_add && i < candidates.size()); ++i) {
         auto [from, to] = candidates[i];
         addEdge(*graph, from, to, genWeight());
     }
@@ -54,13 +54,14 @@ std::unique_ptr<GraphT> Generator::generateAcyclicTemplate(int numVertices, int 
 
 template <typename GraphT, typename AddEdgeFunc, typename WeightGenFunc>
 std::unique_ptr<GraphT> Generator::generateByDegreesTemplate(int numVertices,
-                                                              std::vector<int> degrees,
-                                                              AddEdgeFunc addEdge,
-                                                              WeightGenFunc genWeight,
-                                                              bool isDirected) {
+                                                             std::vector<int> degrees,
+                                                             AddEdgeFunc addEdge,
+                                                             WeightGenFunc genWeight,
+                                                             bool isDirected)
+{
     if (numVertices <= 0)
         throw std::invalid_argument("Количество вершин должно быть положительным");
-    if (static_cast<int>(degrees.size()) != numVertices)
+    if (degrees.size() != numVertices)
         throw std::invalid_argument("Размер вектора степеней должен совпадать с числом вершин");
 
     auto graph = std::make_unique<GraphT>(isDirected);
@@ -73,7 +74,7 @@ std::unique_ptr<GraphT> Generator::generateByDegreesTemplate(int numVertices,
 
         int from;
         if (!with_budget.empty()) {
-            from = with_budget[randomInt(0, static_cast<int>(with_budget.size()) - 1)];
+            from = with_budget[randomInt(0, with_budget.size() - 1)];
         } else {
             from = randomInt(0, i - 1);
         }
@@ -83,11 +84,14 @@ std::unique_ptr<GraphT> Generator::generateByDegreesTemplate(int numVertices,
 
     for (int i = 0; i < numVertices - 1; ++i) {
         if (degrees[i] <= 0) continue;
+
         std::vector<int> available;
         for (int j = i + 1; j < numVertices; ++j)
             if (!graph->hasEdge(i, j)) available.push_back(j);
+
         std::shuffle(available.begin(), available.end(), rng_);
-        int toAdd = std::min(degrees[i], static_cast<int>(available.size()));
+        int toAdd = std::min(degrees[i], available.size());
+
         for (int k = 0; k < toAdd; ++k)
             addEdge(*graph, i, available[k], genWeight());
     }
