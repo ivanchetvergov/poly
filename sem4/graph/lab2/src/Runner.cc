@@ -11,6 +11,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 #include <limits>
 
 namespace lab2 {
@@ -29,11 +30,6 @@ void Runner::runBFS(Graph const& graph) {
     std::cout << "Порядок посещения: ";
     for (int v : result.visited_order) std::cout << v << " ";
     std::cout << "\n";
-
-    std::cout << "Рёбра дерева обхода:\n";
-    for (auto const& [u, v] : result.edges_traversed)
-        std::cout << "  " << u << " -> " << v
-                  << "  (шаг " << result.dist_steps.at(v) << ")\n";
 
     std::cout << "Итераций: " << result.iterations << "\n";
 
@@ -93,6 +89,15 @@ void Runner::runCompare(Graph const& graph) {
     for (auto const& r : results)
         std::cout << std::left << std::setw(16) << r.algorithm_name
                   << std::setw(14) << r.iterations << "\n";
+
+    auto data = graph::DrawDataConfig::getConfigs().at(23);
+    {
+        std::ofstream f(data.txtFile);
+        for (auto const& r : results)
+            f << r.algorithm_name << " " << r.iterations << "\n";
+    }
+    graph::Visualizer::drawCompare(data);
+    std::cout << "[OK] Диаграмма сравнения сохранена в assets/png/23_compare.png\n";
 }
 
 }  // namespace lab2

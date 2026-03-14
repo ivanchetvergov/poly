@@ -31,11 +31,12 @@ DijkstraResult Dijkstra::compute(int start) const {
     while (!pq.empty()) {
         auto [d, u] = pq.top();
         pq.pop();
+        ++result.iterations;  // heap pop operation
 
         if (d > result.dist[u]) continue;  // stale entry
 
         for (auto const& [v, w] : m_graph_.neighbors(u)) {
-            ++result.iterations;
+            ++result.iterations;  // edge relaxation attempt
             double nd = result.dist[u] + w;
             if (nd < result.dist[v]) {
                 result.dist[v]   = nd;

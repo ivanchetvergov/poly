@@ -13,6 +13,7 @@ Comparator::CompareResults Comparator::compare(Graph const& graph, int start) {
         auto r = bfs.traverse(start);
         results.push_back({"BFS", r.iterations});
     }
+
     {
         Dijkstra dijk(graph);
         auto r = dijk.compute(start);

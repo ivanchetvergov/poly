@@ -24,9 +24,10 @@ BFSResult BFS::traverse(int start) const {
     while (!q.empty()) {
         int u = q.front();
         q.pop();
+        ++result.iterations;  // dequeue
 
         for (auto const& [v, w] : m_graph_.neighbors(u)) {
-            ++result.iterations;
+            ++result.iterations;  // edge
             if (result.dist_steps[v] == -1) {
                 result.dist_steps[v] = result.dist_steps[u] + 1;
                 result.parent[v]     = u;
