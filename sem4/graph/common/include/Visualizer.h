@@ -21,7 +21,7 @@ struct DrawData {
     std::vector<int> path;
     std::vector<std::pair<int, int>> addedEdges;
     std::vector<std::vector<int>> paths;
-    std::vector<std::string> colorLabels;
+    std::vector<std::string> colorLabels{};
 };
 
 
@@ -35,6 +35,8 @@ class Visualizer {
 public:
     static void draw(DrawData const& data, bool directed, VisualizationType type);
     static void drawPaths(DrawData const& data, bool directed, VisualizationType type);
+    static void drawBFSAnimation(DrawData const& data, bool directed);
+    static void drawCompare(DrawData const& data);
     static void drawColoredGraph(DrawData const& data, bool directed);
     static void drawMatrix(DrawData const& data, std::string const& defaultTitle);
 

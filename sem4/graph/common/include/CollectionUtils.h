@@ -64,6 +64,11 @@ public:
         }
     }
 
+    template <typename Container, typename Value>
+    static bool contains(Container const& container, Value const& value) {
+        return std::find(container.begin(), container.end(), value) != container.end();
+    }
+
     template <typename Map, typename Key, typename Value = double>
     static Value getNestedMapValue(Map const& map, Key const& key1, Key const& key2,
                                    Value const& defaultValue = Value{}) {

@@ -14,13 +14,45 @@ Menu::Menu() {
 
 void Menu::initializeActions() {
     actions_[1] = [this]() { graph_ = lab1_runner_.generateGraph(); };
-    actions_[2] = [this]() { lab1_runner_.runVisualizeAdjacencyMatrix(*graph_); };
-    actions_[3] = [this]() { lab1_runner_.runVisualizeWeightMatrix(*graph_); };
+    actions_[4] = [this]() { graph_ = lab1_runner_.generateRayleighGraph(); };
 
-    actions_[11] = [this]() { lab1_runner_.runShimbellMethod(*graph_); };
-    actions_[12] = [this]() { lab1_runner_.runPathsMethod(*graph_); };
+    actions_[2] = [this]() {
+        checkAndRun(graph_, [this]() { lab1_runner_.runVisualizeAdjacencyMatrix(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[3] = [this]() {
+        checkAndRun(graph_, [this]() { lab1_runner_.runVisualizeWeightMatrix(*graph_); },
+                    "Граф не инициализирован");
+    };
+
+    actions_[11] = [this]() {
+        checkAndRun(graph_, [this]() { lab1_runner_.runShimbellMethod(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[12] = [this]() {
+        checkAndRun(graph_, [this]() { lab1_runner_.runPathsMethod(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[13] = [this]() {
+        checkAndRun(graph_, [this]() { lab1_runner_.runGraphMetrics(*graph_); },
+                    "Граф не инициализирован");
+    };
+
+    actions_[21] = [this]() {
+        checkAndRun(graph_, [this]() { lab2_runner_.runBFS(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[22] = [this]() {
+        checkAndRun(graph_, [this]() { lab2_runner_.runDijkstra(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[23] = [this]() {
+        checkAndRun(graph_, [this]() { lab2_runner_.runCompare(*graph_); },
+                    "Граф не инициализирован");
+    };
 
     actions_[31] = [this]() { lab3_runner_.runGenerateFlowNetwork(); };
+    actions_[36] = [this]() { lab3_runner_.runGenerateFlowNetworkByDegrees(); };
     actions_[32] = [this]() { lab3_runner_.runMaxFlow(); };
     actions_[33] = [this]() { lab3_runner_.runMinCostFlow(); };
     actions_[34] = [this]() { lab3_runner_.runVisualizeCapacityMatrix(); };
@@ -47,39 +79,47 @@ void Menu::show() const {
     std::cout << "\n=== Единое меню лабораторных работ ===\n";
 
     std::cout << "\n[Общее]\n";
-    std::cout << "1 - Сгенерировать граф\n";
+    std::cout << "1 - Сгенерировать граф (ациклический)\n";
+    std::cout << "4 - Сгенерировать граф (Райс)\n";
     std::cout << "2 - Визуализировать матрицу смежности\n";
     std::cout << "3 - Визуализировать матрицу весов\n";
 
     std::cout << "\n[Lab 1 - Метод Шимбелла и подсчёт путей]\n";
     std::cout << "11 - Метод Шимбелла\n";
     std::cout << "12 - Подсчёт путей\n";
+    std::cout << "13 - Метрики графа\n";
+
+    std::cout << "\n[Lab 2 - Обход и кратчайшие пути]\n";
+    std::cout << "21 - BFS-обход\n";
+    std::cout << "22 - Путь Дейкстры\n";
+    std::cout << "23 - Сравнение алгоритмов\n";
 
     std::cout << "\n[Lab 3 - Потоки]\n";
     std::cout << "31 - Сгенерировать сеть потоков\n";
+    std::cout << "36 - Сгенерировать сеть потоков (Райс)\n";
     std::cout << "32 - Поиск максимального потока\n";
     std::cout << "33 - Визуализировать путь минимальной стоимости\n";
     std::cout << "34 - Визуализировать матрицу пропускных способностей\n";
     std::cout << "35 - Визуализировать матрицу стоимостей\n";
 
-    std::cout << "\n[Lab 4 - Остовы и комбинаторика]\n";
-    std::cout << "41 - Число остовных деревьев (Кирхгоф)\n";
-    std::cout << "42 - Макс. независимое множество вершин\n";
-    std::cout << "43 - Макс. независимое множество рёбер\n";
-    std::cout << "44 - Мин. вершинное покрытие\n";
-    std::cout << "45 - Мин. рёберное покрытие\n";
-    std::cout << "46 - Минимальная раскраска графа\n";
+    // std::cout << "\n[Lab 4 - Остовы и комбинаторика]\n";
+    // std::cout << "41 - Число остовных деревьев (Кирхгоф)\n";
+    // std::cout << "42 - Макс. независимое множество вершин\n";
+    // std::cout << "43 - Макс. независимое множество рёбер\n";
+    // std::cout << "44 - Мин. вершинное покрытие\n";
+    // std::cout << "45 - Мин. рёберное покрытие\n";
+    // std::cout << "46 - Минимальная раскраска графа\n";
 
-    std::cout << "\n[Lab 5 - Циклы]\n";
-    std::cout << "51 - Проверка эйлеровости\n";
-    std::cout << "52 - Проверка гамильтоновости\n";
-    std::cout << "53 - Задача коммивояжера (TSP)\n";
+    // std::cout << "\n[Lab 5 - Циклы]\n";
+    // std::cout << "51 - Проверка эйлеровости\n";
+    // std::cout << "52 - Проверка гамильтоновости\n";
+    // std::cout << "53 - Задача коммивояжера (TSP)\n";
 
-    std::cout << "\n[Lab 6 - HashTable and RBTree]\n";
-    std::cout << "61 - HashTable демо\n";
-    std::cout << "62 - RBTree демо\n";
-    std::cout << "63 - HashTable интерактивно\n";
-    std::cout << "64 - RBTree интерактивно\n";
+    // std::cout << "\n[Lab 6 - HashTable and RBTree]\n";
+    // std::cout << "61 - HashTable демо\n";
+    // std::cout << "62 - RBTree демо\n";
+    // std::cout << "63 - HashTable интерактивно\n";
+    // std::cout << "64 - RBTree интерактивно\n";
 
     std::cout << "\n0 - Выход\n";
 }

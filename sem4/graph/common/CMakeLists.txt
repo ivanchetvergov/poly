@@ -18,4 +18,4 @@ target_include_directories(graph_common PUBLIC
     ${CMAKE_SOURCE_DIR}/lab3/include
 )
 
-target_compile_options(graph_common PRIVATE -Wall -Wextra)
+target_compile_options(graph_common PRIVATE -Wall -Wextra -Wno-missing-designated-field-initializers)

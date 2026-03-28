@@ -97,6 +97,23 @@ void Visualizer::drawPaths(DrawData const& data, bool directed, VisualizationTyp
     runPythonScript("plot_paths.py", args);
 }
 
+void Visualizer::drawBFSAnimation(DrawData const& data, bool directed) {
+    std::string graphType = directed ? "directed" : "undirected";
+    Args args = {
+        data.txtFile,
+        data.txtGraphFile,
+        data.gifFile,
+        graphType,
+    };
+    runPythonScript("plot_bfs_animation.py", args);
+}
+
+void Visualizer::drawCompare(DrawData const& data) {
+    std::string chart_title = data.title.empty() ? "Сравнение алгоритмов" : data.title;
+    Args args = {data.txtFile, data.pngFile, "\"" + chart_title + "\""};
+    runPythonScript("plot_compare.py", args);
+}
+
 void Visualizer::drawColoredGraph(DrawData const& data, bool directed) {
     std::string graphType = directed ? "directed" : "undirected";
     std::string graph_title = data.title.empty() ? "Раскраска графа" : data.title;

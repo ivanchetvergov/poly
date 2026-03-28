@@ -45,6 +45,8 @@ void Runner::runGenerateFlowNetworkByDegrees() {
     auto data = DrawDataConfig::getConfigs().at(31);
     FileHandler::saveFlowNetwork(data.txtFile, *network_);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
+    std::cout << "[OK] Сеть потоков (Райс, a=" << a << ", h=" << h
+              << ") отрисована в assets/png/31_flow_network.png\n";
 }
 
 void Runner::runMaxFlow() {

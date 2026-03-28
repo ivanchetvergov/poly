@@ -50,9 +50,10 @@ DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const
     return CollectionUtils::makeSquareMatrix<std::optional<double>>(
         m_vertex_ids_,
         [&](int u, int v) -> std::optional<double> {
-            if (u == v) {
-                return 0.0;
-            }
+            // ! fix: защита от накопления в Шимбелле
+            // if (u == v) {
+            //     return 0.0;
+            // }
             auto w = m_graph_.getEdgeWeight(u, v);
             if (w.has_value()) {
                 return w;

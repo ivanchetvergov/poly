@@ -21,7 +21,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 3", "Lab 4", "Lab 5", "Lab 6"}
+    DISABLED_LABS = {"Lab 4", "Lab 5"}
 
     def __init__(self):
         self._s = st.session_state
@@ -90,25 +90,36 @@ class GraphLabApp:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _read_weights(graph_txt: Path) -> list[float]:
-        weights = []
-        if not graph_txt.exists():
-            return weights
-        with open(graph_txt) as f:
+    def _read_values(data_txt: Path, value_index: int, min_parts: int) -> list[float]:
+        values = []
+        if not data_txt.exists():
+            return values
+        with open(data_txt) as f:
             for line in f:
                 parts = line.strip().split()
-                if len(parts) == 3:
+                if len(parts) >= min_parts:
                     try:
-                        weights.append(float(parts[2]))
+                        values.append(float(parts[value_index]))
                     except ValueError:
                         pass
-        return weights
+        return values
 
     def plot_weight_distribution(self) -> None:
         dist_type = self._get('dist_type')
         if not dist_type:
             return
-        weights = self._read_weights(ASSETS_DIR / 'txt' / '01_graph.txt')
+        dist_source = self._get('dist_source', 'graph')
+
+        if dist_source == 'flow':
+            values = self._read_values(ASSETS_DIR / 'txt' / '31_flow.txt', value_index=4, min_parts=5)
+            x_label = 'Стоимость ребра'
+            chart_title_prefix = 'Распределение стоимостей'
+        else:
+            values = self._read_values(ASSETS_DIR / 'txt' / '01_graph.txt', value_index=2, min_parts=3)
+            x_label = 'Вес'
+            chart_title_prefix = 'Распределение весов'
+
+        weights = values
         if not weights:
             return
 
@@ -126,16 +137,16 @@ class GraphLabApp:
             x_pdf = np.linspace(0.0, 11.0, 400)
             pdf = np.where((x_pdf >= 1.0) & (x_pdf <= 10.0), 1.0 / 9.0, 0.0)
             ax.plot(x_pdf, pdf, 'r--', lw=2, label='U[1, 10] PDF')
-            ax.set_title('Распределение весов: равномерное U[1, 10]')
+            ax.set_title(f'{chart_title_prefix}: равномерное U[1, 10]')
         elif dist_type == 'rice':
             sigma, nu = float(a), float(h)
             if sigma > 0:
                 x_pdf = np.linspace(0.0, (nu + 5 * sigma) * 1.2, 400)
                 pdf = (x_pdf / sigma ** 2) * np.exp(-(x_pdf ** 2 + nu ** 2) / (2 * sigma ** 2)) * i0(x_pdf * nu / sigma ** 2)
                 ax.plot(x_pdf, pdf, 'r--', lw=2, label=f'Rice(a={sigma}, h={nu}) PDF')
-            ax.set_title(f'Распределение весов: Райс (a={sigma}, h={nu})')
+            ax.set_title(f'{chart_title_prefix}: Райс (a={sigma}, h={nu})')
 
-        ax.set_xlabel('Вес')
+        ax.set_xlabel(x_label)
         ax.set_ylabel('Плотность')
         ax.legend()
         fig.tight_layout()
@@ -168,7 +179,7 @@ class GraphLabApp:
     def _display_visualizations(self) -> None:
         images = self._s.current_visualization
         dist_type = self._get('dist_type')
-        show_dist = dist_type and any('01_graph' in img for img in (images or []))
+        show_dist = dist_type and any(('01_graph' in img) or ('31_flow_network' in img) for img in (images or []))
 
         if not images and not show_dist:
             return
@@ -409,10 +420,12 @@ class GraphLabApp:
                                 self._s.current_visualization = action_config.images
                                 if 'Rice' in action_name:
                                     self._set('dist_type', 'rice')
+                                    self._set('dist_source', 'flow' if 'Flow Network' in action_name else 'graph')
                                     self._set('dist_a', self._get_param(lab, action_name, 'rayleigh_a', DEFAULT_PARAMS.rayleigh_a))
                                     self._set('dist_h', self._get_param(lab, action_name, 'rayleigh_h', DEFAULT_PARAMS.rayleigh_h))
-                                elif 'Acyclic' in action_name:
+                                elif 'Acyclic' in action_name or action_name == 'Generate Flow Network':
                                     self._set('dist_type', 'uniform')
+                                    self._set('dist_source', 'flow' if 'Flow Network' in action_name else 'graph')
                             if action_name == "Max Flow":
                                 self._set(f'{lab}_maxflow_done', True)
                 with col2:

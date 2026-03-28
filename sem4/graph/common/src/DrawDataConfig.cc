@@ -81,6 +81,58 @@ std::map<int, DrawData> DrawDataConfig::configs_ = {
         .addedEdges = {},
         .paths = {}
     }},
+    {15, {
+        .pngFile = "assets/png/15_graph_metrics.png",
+        .txtFile = "assets/txt/15_graph.txt",
+        .txtColorsFile = "assets/txt/15_metrics_colors.txt",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "Метрики графа",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {21, {
+        .pngFile = "",
+        .txtFile = "assets/txt/21_graph.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "assets/txt/21_bfs_edges.txt",
+        .gifFile = "assets/gif/21_bfs.gif",
+        .title = "BFS-анимация",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {22, {
+        .pngFile = "assets/png/22_dijkstra.png",
+        .txtFile = "assets/txt/22_graph.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "assets/txt/22_dijkstra_path.txt",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "Путь Дейкстры",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
+    {23, {
+        .pngFile = "assets/png/23_compare.png",
+        .txtFile = "assets/txt/23_compare.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "Сравнение алгоритмов",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    }},
     {31, {
         .pngFile = "assets/png/31_flow_network.png",
         .txtFile = "assets/txt/31_flow.txt",
