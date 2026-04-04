@@ -1,0 +1,18 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: competition-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: competition_db
+      POSTGRES_USER: competition_user
+      POSTGRES_PASSWORD: competition_pass
+    ports:
+      - "5436:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
