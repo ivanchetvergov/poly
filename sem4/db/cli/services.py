@@ -1,6 +1,8 @@
 from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
+from datetime import datetime
 from io import StringIO
+from time import perf_counter
 
 import asyncpg
 from faker import Faker
@@ -16,15 +18,36 @@ class ActionOutcome:
     inserted: int | None = None
     logs: list[str] = field(default_factory=list)
     error: str | None = None
+    started_at: str = ""
+    finished_at: str = ""
+    duration_ms: int = 0
+    connect_ms: int = 0
+    execute_ms: int = 0
+    log_lines: int = 0
+    throughput_rows_per_sec: float | None = None
 
 
 async def run_seed_action(action: str, params: dict) -> ActionOutcome:
-    conn = await asyncpg.connect(**get_pg_connect_kwargs())
-    fake = Faker()
-    inserter = Inserter(conn)
+    started = datetime.now().isoformat(timespec="seconds")
+    total_started = perf_counter()
+
+    conn = None
     buffer = StringIO()
+    inserted: int | None = None
+    logs: list[str] = []
+    error: str | None = None
+    connect_ms = 0
+    execute_ms = 0
 
     try:
+        connect_started = perf_counter()
+        conn = await asyncpg.connect(**get_pg_connect_kwargs())
+        connect_ms = int((perf_counter() - connect_started) * 1000)
+
+        fake = Faker()
+        inserter = Inserter(conn)
+
+        execute_started = perf_counter()
         try:
             with redirect_stdout(buffer), redirect_stderr(buffer):
                 inserted = await execute_action(
@@ -36,10 +59,35 @@ async def run_seed_action(action: str, params: dict) -> ActionOutcome:
                 )
             error = None
         except Exception as exc:
-            inserted = None
             error = str(exc)
+        finally:
+            execute_ms = int((perf_counter() - execute_started) * 1000)
 
         logs = [line for line in buffer.getvalue().splitlines() if line.strip()]
-        return ActionOutcome(inserted=inserted, logs=logs, error=error)
+
+    except Exception as exc:
+        error = str(exc)
+        logs = [line for line in buffer.getvalue().splitlines() if line.strip()]
+
     finally:
-        await conn.close()
+        if conn is not None:
+            await conn.close()
+
+    duration_ms = int((perf_counter() - total_started) * 1000)
+    finished = datetime.now().isoformat(timespec="seconds")
+    throughput = None
+    if isinstance(inserted, int) and execute_ms > 0:
+        throughput = inserted / (execute_ms / 1000)
+
+    return ActionOutcome(
+        inserted=inserted,
+        logs=logs,
+        error=error,
+        started_at=started,
+        finished_at=finished,
+        duration_ms=duration_ms,
+        connect_ms=connect_ms,
+        execute_ms=execute_ms,
+        log_lines=len(logs),
+        throughput_rows_per_sec=throughput,
+    )

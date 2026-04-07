@@ -9,7 +9,7 @@ async def seed_users(inserter, fake: Faker, count: int = 50) -> int:
         query=(
             'INSERT INTO "user" (role_id, username, email, password_hash)\n'
             'VALUES ($1, $2, $3, $4)\n'
-            'ON CONFLICT (username) DO NOTHING'
+            'ON CONFLICT DO NOTHING'
         ),
         generator=lambda deps: (
             random.choice(deps['role']),

@@ -3,16 +3,15 @@ from __future__ import annotations
 from faker import Faker
 
 from cli import bootstrap  # noqa: F401
+from cli.level_distribution import ALL_LEVEL_RATIOS, distribute_total, level_counts
 from inserter import Inserter
 from seed_base import (
-    run_level1,
     seed_competitions,
     seed_dataset_files,
     seed_datasets,
     seed_users,
 )
 from seed_core import (
-    run_level2,
     seed_competition_datasets,
     seed_configurations,
     seed_participations,
@@ -21,9 +20,7 @@ from seed_core import (
     seed_teams,
 )
 from seed_dict import run_all_dictionaries
-from seed_runner import seed_all
 from seed_sub import (
-    run_level3,
     seed_evaluations,
     seed_leaderboard_entries,
     seed_solution_codes,
@@ -31,11 +28,13 @@ from seed_sub import (
 )
 
 ACTION_SPECS = {
-    "all": {"defaults": {}},
+    "all": {"defaults": {"total_count": 3000}},
     "dict": {"defaults": {}},
-    "level1": {"defaults": {}},
-    "level2": {"defaults": {}},
-    "level3": {"defaults": {}},
+    "table_counts": {"defaults": {}},
+    "clear_all_data": {"defaults": {"confirm": "NO"}},
+    "level1": {"defaults": {"total_count": 1000}},
+    "level2": {"defaults": {"total_count": 1000}},
+    "level3": {"defaults": {"total_count": 1000}},
     "users": {"defaults": {"count": 50}},
     "datasets": {"defaults": {"count": 10}},
     "dataset_files": {"defaults": {"min_per_dataset": 3, "max_per_dataset": 5}},
@@ -57,6 +56,194 @@ ACTION_SPECS = {
 }
 
 
+async def _table_count(conn, table: str) -> int:
+    safe_table = table.replace('"', '""')
+    return int(await conn.fetchval(f'SELECT COUNT(*)::bigint FROM "{safe_table}"'))
+
+
+def _bounds_for_target(target_total: int, parent_total: int) -> tuple[int, int]:
+    if target_total <= 0 or parent_total <= 0:
+        return 0, 0
+
+    exact = target_total / parent_total
+    base = int(exact)
+    if base <= 0:
+        return 0, 1
+    if float(base) == exact:
+        return base, base
+    return base, base + 1
+
+
+async def run_level1_from_total(
+    conn,
+    inserter: Inserter,
+    fake: Faker,
+    total_count: int,
+) -> None:
+    counts = level_counts("level1", total_count)
+    await seed_users(inserter, fake, count=counts["users"])
+    await seed_datasets(inserter, fake, count=counts["datasets"])
+    datasets_total = await _table_count(conn, "dataset")
+    files_min, files_max = _bounds_for_target(counts["dataset_files"], datasets_total)
+    await seed_dataset_files(
+        inserter,
+        fake,
+        min_per_dataset=files_min,
+        max_per_dataset=files_max,
+    )
+    await seed_competitions(inserter, fake, count=counts["competitions"])
+
+
+async def run_level2_from_total(
+    conn,
+    inserter: Inserter,
+    fake: Faker,
+    total_count: int,
+) -> None:
+    counts = level_counts("level2", total_count)
+    await seed_configurations(inserter, count=counts["configurations"])
+
+    competitions_total = await _table_count(conn, "competition")
+    comp_data_min, comp_data_max = _bounds_for_target(
+        counts["competition_datasets"],
+        competitions_total,
+    )
+    await seed_competition_datasets(
+        inserter,
+        min_per_competition=comp_data_min,
+        max_per_competition=comp_data_max,
+    )
+
+    await seed_teams(inserter, fake, count=counts["teams"])
+
+    teams_total = await _table_count(conn, "team")
+    team_members_min, team_members_max = _bounds_for_target(
+        counts["team_members"],
+        teams_total,
+    )
+    await seed_team_members(
+        inserter,
+        min_per_team=team_members_min,
+        max_per_team=team_members_max,
+    )
+
+    team_comp_min, team_comp_max = _bounds_for_target(
+        counts["team_competitions"],
+        teams_total,
+    )
+    await seed_team_competitions(
+        inserter,
+        min_per_team=team_comp_min,
+        max_per_team=team_comp_max,
+    )
+
+    await seed_participations(inserter, count=counts["participations"])
+
+
+async def run_level3_from_total(
+    conn,
+    inserter: Inserter,
+    fake: Faker,
+    total_count: int,
+) -> None:
+    counts = level_counts("level3", total_count)
+
+    participations_total = await _table_count(conn, "participation")
+    submissions_min, submissions_max = _bounds_for_target(
+        counts["submissions"],
+        participations_total,
+    )
+    await seed_submissions(
+        inserter,
+        fake,
+        min_per_participation=submissions_min,
+        max_per_participation=submissions_max,
+    )
+
+    if counts["solution_codes"] > 0:
+        await seed_solution_codes(inserter, fake)
+    if counts["evaluations"] > 0:
+        await seed_evaluations(inserter)
+    if counts["leaderboard_entries"] > 0:
+        await seed_leaderboard_entries(inserter)
+
+
+async def run_all_from_total(
+    conn,
+    inserter: Inserter,
+    fake: Faker,
+    total_count: int,
+) -> None:
+    level_totals = distribute_total(
+        total_count,
+        ratios=ALL_LEVEL_RATIOS,
+    )
+
+    await run_all_dictionaries(conn)
+    await run_level1_from_total(conn, inserter, fake, level_totals["level1"])
+    await run_level2_from_total(conn, inserter, fake, level_totals["level2"])
+    await run_level3_from_total(conn, inserter, fake, level_totals["level3"])
+
+
+async def print_table_counts(conn) -> None:
+    rows = await conn.fetch(
+        """
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        ORDER BY table_name
+        """
+    )
+
+    if not rows:
+        print("No tables found in public schema.")
+        return
+
+    print("Table row counts:")
+    for row in rows:
+        table = row["table_name"]
+        safe_table = table.replace('"', '""')
+        count = await conn.fetchval(f'SELECT COUNT(*)::bigint FROM "{safe_table}"')
+        print(f"- {table}: {count}")
+
+
+async def clear_all_data(conn, *, confirm: str = "NO") -> None:
+    if confirm.upper() != "YES":
+        raise ValueError("Set confirm=YES to clear all data")
+
+    rows = await conn.fetch(
+        """
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        ORDER BY table_name
+        """
+    )
+
+    if not rows:
+        print("No tables found in public schema.")
+        return
+
+    counts: list[tuple[str, int]] = []
+    for row in rows:
+        table = row["table_name"]
+        safe_table = table.replace('"', '""')
+        count = int(await conn.fetchval(f'SELECT COUNT(*)::bigint FROM "{safe_table}"'))
+        counts.append((table, count))
+
+    quoted_tables = []
+    for table, _ in counts:
+        quoted_tables.append('"' + table.replace('"', '""') + '"')
+    table_list = ", ".join(quoted_tables)
+    await conn.execute(f"TRUNCATE TABLE {table_list} RESTART IDENTITY CASCADE")
+
+    total_deleted = sum(count for _, count in counts)
+    print("Data cleared for public schema tables:")
+    for table, count in counts:
+        print(f"- {table}: removed {count}")
+    print(f"Total removed rows: {total_deleted}")
+
+
 async def execute_action(
     action: str,
     *,
@@ -66,19 +253,25 @@ async def execute_action(
     **kwargs,
 ) -> int | None:
     if action == "all":
-        await seed_all(conn, inserter=inserter, fake=fake)
+        await run_all_from_total(conn, inserter, fake, total_count=int(kwargs["total_count"]))
         return None
     if action == "dict":
         await run_all_dictionaries(conn)
         return None
+    if action == "table_counts":
+        await print_table_counts(conn)
+        return None
+    if action == "clear_all_data":
+        await clear_all_data(conn, **kwargs)
+        return None
     if action == "level1":
-        await run_level1(inserter, fake)
+        await run_level1_from_total(conn, inserter, fake, total_count=int(kwargs["total_count"]))
         return None
     if action == "level2":
-        await run_level2(inserter, fake)
+        await run_level2_from_total(conn, inserter, fake, total_count=int(kwargs["total_count"]))
         return None
     if action == "level3":
-        await run_level3(inserter, fake)
+        await run_level3_from_total(conn, inserter, fake, total_count=int(kwargs["total_count"]))
         return None
     if action == "users":
         return await seed_users(inserter, fake, **kwargs)
