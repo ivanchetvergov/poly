@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 
 CREATE TABLE IF NOT EXISTS task_type (
     task_type_id SERIAL PRIMARY KEY,
-    code VARCHAR(10) NOT NULL UNIQUE,
+    code VARCHAR(15) NOT NULL UNIQUE,
     description TEXT NOT NULL,
     answer_format VARCHAR(10) NOT NULL,
     validation_schema JSON,
