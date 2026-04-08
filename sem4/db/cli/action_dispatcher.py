@@ -81,6 +81,15 @@ async def run_level1_from_total(
     total_count: int,
 ) -> None:
     counts = level_counts("level1", total_count)
+
+    # Track initial counts
+    initial_counts = {
+        "user": await _table_count(conn, "user"),
+        "dataset": await _table_count(conn, "dataset"),
+        "dataset_file": await _table_count(conn, "dataset_file"),
+        "competition": await _table_count(conn, "competition"),
+    }
+
     await seed_users(inserter, fake, count=counts["users"])
     await seed_datasets(inserter, fake, count=counts["datasets"])
     datasets_total = await _table_count(conn, "dataset")
@@ -93,6 +102,18 @@ async def run_level1_from_total(
     )
     await seed_competitions(inserter, fake, count=counts["competitions"])
 
+    # Report added counts
+    print("\nLevel 1 - Records added:")
+    final_counts = {
+        "user": await _table_count(conn, "user"),
+        "dataset": await _table_count(conn, "dataset"),
+        "dataset_file": await _table_count(conn, "dataset_file"),
+        "competition": await _table_count(conn, "competition"),
+    }
+    for table, final in final_counts.items():
+        added = final - initial_counts[table]
+        print(f"- {table}: +{added}")
+
 
 async def run_level2_from_total(
     conn,
@@ -101,6 +122,17 @@ async def run_level2_from_total(
     total_count: int,
 ) -> None:
     counts = level_counts("level2", total_count)
+
+    # Track initial counts
+    initial_counts = {
+        "configuration": await _table_count(conn, "configuration"),
+        "competition_dataset": await _table_count(conn, "competition_dataset"),
+        "team": await _table_count(conn, "team"),
+        "team_member": await _table_count(conn, "team_member"),
+        "team_competition": await _table_count(conn, "team_competition"),
+        "participation": await _table_count(conn, "participation"),
+    }
+
     await seed_configurations(inserter, count=counts["configurations"])
 
     competitions_total = await _table_count(conn, "competition")
@@ -139,6 +171,20 @@ async def run_level2_from_total(
 
     await seed_participations(inserter, count=counts["participations"])
 
+    # Report added counts
+    print("\nLevel 2 - Records added:")
+    final_counts = {
+        "configuration": await _table_count(conn, "configuration"),
+        "competition_dataset": await _table_count(conn, "competition_dataset"),
+        "team": await _table_count(conn, "team"),
+        "team_member": await _table_count(conn, "team_member"),
+        "team_competition": await _table_count(conn, "team_competition"),
+        "participation": await _table_count(conn, "participation"),
+    }
+    for table, final in final_counts.items():
+        added = final - initial_counts[table]
+        print(f"- {table}: +{added}")
+
 
 async def run_level3_from_total(
     conn,
@@ -147,6 +193,14 @@ async def run_level3_from_total(
     total_count: int,
 ) -> None:
     counts = level_counts("level3", total_count)
+
+    # Track initial counts
+    initial_counts = {
+        "submission": await _table_count(conn, "submission"),
+        "solution_code": await _table_count(conn, "solution_code"),
+        "evaluation": await _table_count(conn, "evaluation"),
+        "leaderboard_entry": await _table_count(conn, "leaderboard_entry"),
+    }
 
     participations_total = await _table_count(conn, "participation")
     submissions_min, submissions_max = _bounds_for_target(
@@ -166,6 +220,18 @@ async def run_level3_from_total(
         await seed_evaluations(inserter)
     if counts["leaderboard_entries"] > 0:
         await seed_leaderboard_entries(inserter)
+
+    # Report added counts
+    print("\nLevel 3 - Records added:")
+    final_counts = {
+        "submission": await _table_count(conn, "submission"),
+        "solution_code": await _table_count(conn, "solution_code"),
+        "evaluation": await _table_count(conn, "evaluation"),
+        "leaderboard_entry": await _table_count(conn, "leaderboard_entry"),
+    }
+    for table, final in final_counts.items():
+        added = final - initial_counts[table]
+        print(f"- {table}: +{added}")
 
 
 async def run_all_from_total(
@@ -200,11 +266,22 @@ async def print_table_counts(conn) -> None:
         return
 
     print("Table row counts:")
+    table_counts = []
     for row in rows:
         table = row["table_name"]
         safe_table = table.replace('"', '""')
         count = await conn.fetchval(f'SELECT COUNT(*)::bigint FROM "{safe_table}"')
+        table_counts.append((table, count))
+
+    # Sort by count in descending order
+    table_counts.sort(key=lambda x: x[1], reverse=True)
+
+    total_count = 0
+    for table, count in table_counts:
         print(f"- {table}: {count}")
+        total_count += count
+
+    print(f"\nTotal records: {total_count}")
 
 
 async def clear_all_data(conn, *, confirm: str = "NO") -> None:

@@ -87,9 +87,12 @@ Screen {
     color: #f0f0f0;
     background: #000000;
     border: none;
+    scrollbar-size: 1 1;
+    scrollbar-color: #4a4a4a;
 }
 
 #logs:focus {
     border: none;
 }
+
 """

@@ -410,9 +410,15 @@ class SeederCLIApp(App):
         try:
             outcome = await run_seed_action(action, params)
 
-            if action == "table_counts" and outcome.logs:
+            # Add separator before results
+            self._log("\n" + "=" * 60)
+            self._log(f"Action: {action}")
+            self._log("=" * 60)
+
+            if action in ("table_counts", "level1", "level2", "level3", "all") and outcome.logs:
                 for line in outcome.logs:
                     self._log(line)
+                self._log("-" * 60)
 
             self._log_outcome_metrics(outcome)
 
