@@ -33,7 +33,7 @@ async def seed_datasets(inserter, fake: Faker, count: int = 10) -> int:
             fake.word()[:30],
             random.choice(deps['purpose']),
             random.choice([True, False]),
-            random.randint(1, 5),
+            round(random.uniform(1.0, 100.0), 2),
         ),
         count=count,
         dependencies={'purpose': 'SELECT purpose_id FROM dataset_purpose'},
