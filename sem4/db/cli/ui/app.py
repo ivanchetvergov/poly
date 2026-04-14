@@ -415,7 +415,7 @@ class SeederCLIApp(App):
             self._log(f"Action: {action}")
             self._log("=" * 60)
 
-            if action in ("table_counts", "level1", "level2", "level3", "all") and outcome.logs:
+            if action in ("table_counts", "level1", "level2", "level3", "all", "llm_query") and outcome.logs:
                 for line in outcome.logs:
                     self._log(line)
                 self._log("-" * 60)

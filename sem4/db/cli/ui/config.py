@@ -7,6 +7,7 @@ MENU = {
         ("5. Full seed", "all"),
         ("6. Table counts", "table_counts"),
         ("7. Clear all data", "clear_all_data"),
+        ("8. Ask LLM", "llm_query"),
     ],
     "base": [
         ("Run base level", "level1"),

@@ -32,6 +32,13 @@ ACTION_SPECS = {
     "dict": {"defaults": {}},
     "table_counts": {"defaults": {}},
     "clear_all_data": {"defaults": {"confirm": "NO"}},
+    "llm_query": {
+        "defaults": {
+            "prompt": "",
+            "url": "http://localhost:8000/generate",
+            "timeout": 180,
+        }
+    },
     "level1": {"defaults": {"total_count": 1000}},
     "level2": {"defaults": {"total_count": 1000}},
     "level3": {"defaults": {"total_count": 1000}},
