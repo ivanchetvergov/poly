@@ -11,19 +11,22 @@ def main():
         input_file = sys.argv[1]
         output_file = sys.argv[2]
         title = sys.argv[3]
+        hide_offdiag_zeros = (len(sys.argv) >= 5 and sys.argv[4] == '1')
     else:
         input_file = 'assets/txt/matrix.txt'
         output_file = 'assets/png/matrix.png'
         title = 'Матрица'
+        hide_offdiag_zeros = False
 
     matrix = np.loadtxt(input_file)
+    matrix = np.atleast_2d(matrix)
 
-    # Build annotation: show value normally, but hide off-diagonal zeros
+    # Optionally hide only text labels for off-diagonal zeros.
     annot = np.empty(matrix.shape, dtype=object)
     diag_mask = np.eye(matrix.shape[0], dtype=bool)
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
-            if matrix[i, j] == 0 and not diag_mask[i, j]:
+            if hide_offdiag_zeros and matrix[i, j] == 0 and not diag_mask[i, j]:
                 annot[i, j] = ''
             else:
                 annot[i, j] = f"{matrix[i, j]:.2f}"

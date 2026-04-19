@@ -21,10 +21,11 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 4", "Lab 5"}
+    DISABLED_LABS = {"Lab 4", "Lab 5", "Lab 6"}
 
     def __init__(self):
         self._s = st.session_state
+        self.start_process(None)
 
     # ------------------------------------------------------------------
     # Process management
@@ -32,28 +33,28 @@ class GraphLabApp:
 
     def send_command(self, lab: str, command: str) -> None:
         print(f"DEBUG: Sending command: {command}")
-        if lab not in self._s.processes:
+        if 'cpp_process' not in self._s:
             return
-        proc = self._s.processes[lab]['proc']
+        proc = self._s.cpp_process['proc']
         if proc.poll() is None:
             proc.stdin.write(command + '\n')
             proc.stdin.flush()
 
     def kill_process(self, lab: str) -> None:
-        if lab in self._s.processes:
-            proc = self._s.processes[lab]['proc']
+        if 'cpp_process' in self._s:
+            proc = self._s.cpp_process['proc']
             if proc.poll() is None:
                 proc.terminate()
                 proc.wait()
-            del self._s.processes[lab]
+            del self._s['cpp_process']
 
     def is_process_running(self, lab: str) -> bool:
-        if lab in self._s.processes:
-            return self._s.processes[lab]['proc'].poll() is None
+        if 'cpp_process' in self._s:
+            return self._s.cpp_process['proc'].poll() is None
         return False
 
     def start_process(self, lab: str) -> None:
-        if lab in self._s.processes:
+        if self.is_process_running(lab):
             return
         proc = subprocess.Popen(
             [str(EXECUTABLE)],
@@ -61,7 +62,7 @@ class GraphLabApp:
             text=True,
             cwd=PROJECT_ROOT,
         )
-        self._s.processes[lab] = {'proc': proc, 'output': ''}
+        self._s.cpp_process = {'proc': proc, 'output': ''}
 
     # ------------------------------------------------------------------
     # State helpers
@@ -222,19 +223,11 @@ class GraphLabApp:
             with cols[i % 3]:
                 if lab_name in self.DISABLED_LABS:
                     st.button(lab_name, disabled=True, key=f"select_{lab_name}")
-                elif self.is_process_running(lab_name):
-                    st.error(f"{lab_name} (Running)")
-                    if st.button(f"Stop {lab_name}", key=f"stop_{lab_name}"):
-                        self.kill_process(lab_name)
-                        st.rerun()
                 else:
                     if st.button(lab_name, key=f"select_{lab_name}"):
                         self.start_process(lab_name)
                         self._s.current_lab = lab_name
-                        self._set(f"{lab_name}_graph_generated", False)
                         self._s.current_visualization = []
-                        self._set('dist_type', None)
-                        self._clear_assets()
                         st.rerun()
 
         st.markdown('</div></div>', unsafe_allow_html=True)
@@ -398,10 +391,13 @@ class GraphLabApp:
                 for param in action_config.params or []:
                     self._render_param_widget(lab, action_name, param)
 
-                is_gen = "Generate" in action_name
+                is_gen = ("Generate" in action_name) or (action_config.execute_cmd == "37")
                 needs_maxflow = action_name == "Min Cost Flow"
+                has_local_graph = self._get(f'{lab}_graph_generated', False)
+                has_global_graph = self._get('global_graph_generated', False)
+                graph_ready = has_local_graph or has_global_graph
                 disabled = (
-                    not is_gen and not self._get(f'{lab}_graph_generated', False)
+                    not is_gen and not graph_ready
                 ) or (
                     needs_maxflow and not self._get(f'{lab}_maxflow_done', False)
                 )
@@ -417,10 +413,12 @@ class GraphLabApp:
                             if is_gen:
                                 self._set(f'{lab}_graph_generated', True)
                                 self._set(f'{lab}_maxflow_done', False)
+                                if 'Flow Network' not in action_name:
+                                    self._set('global_graph_generated', True)
                                 self._s.current_visualization = action_config.images
-                                if 'Rice' in action_name:
+                                if 'Rice' in action_name or action_name == 'fromNetwork':
                                     self._set('dist_type', 'rice')
-                                    self._set('dist_source', 'flow' if 'Flow Network' in action_name else 'graph')
+                                    self._set('dist_source', 'flow' if ('Flow Network' in action_name or action_name == 'fromNetwork') else 'graph')
                                     self._set('dist_a', self._get_param(lab, action_name, 'rayleigh_a', DEFAULT_PARAMS.rayleigh_a))
                                     self._set('dist_h', self._get_param(lab, action_name, 'rayleigh_h', DEFAULT_PARAMS.rayleigh_h))
                                 elif 'Acyclic' in action_name or action_name == 'Generate Flow Network':
@@ -441,8 +439,6 @@ class GraphLabApp:
         with st.sidebar:
             st.header(lab_name)
             if st.button("Back to Main menu", key="back_to_menu"):
-                self.send_command(lab_name, "0")
-                self.kill_process(lab_name)
                 self._s.current_lab = None
                 st.rerun()
             if not self.is_process_running(lab_name):

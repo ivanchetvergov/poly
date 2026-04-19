@@ -21,7 +21,7 @@ ShimbellResult const& ShimbellMethod::compute(int pathLength) {
 
         DistanceMatrix identity(m_size_,
                                 std::vector<std::optional<double>>(m_size_, std::nullopt));
-        for (int i = 0; i < m_size_; ++i) identity[i][i] = 1;
+        for (int i = 0; i < m_size_; ++i) identity[i][i] = 0.0;
         result_ = ShimbellResult{identity, identity, 0};
         return result_;
     }

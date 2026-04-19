@@ -71,6 +71,7 @@ void Runner::runVisualizeWeightMatrix(Graph const& graph) {
 
 void Runner::runShimbellMethod(Graph const& graph) {
     int path_length = graph::readInt("Длина пути: ");
+    bool hide_offdiag_zeros = (path_length == 0);
 
     ShimbellMethod shimbell(graph);
     auto result = shimbell.compute(path_length);
@@ -78,12 +79,12 @@ void Runner::runShimbellMethod(Graph const& graph) {
     auto dataMin = DrawDataConfig::getConfigs().at(13);
     auto doubleMin = CollectionUtils::convertOptionalMatrixToDouble(result.min_distances);
     FileHandler::saveMatrix(dataMin.txtFile, doubleMin);
-    Visualizer::drawMatrix(dataMin, "Матрица Шимбелла (минимум)");
+    Visualizer::drawMatrix(dataMin, "Матрица Шимбелла (минимум)", hide_offdiag_zeros);
 
     auto dataMax = DrawDataConfig::getConfigs().at(14);
     auto doubleMax = CollectionUtils::convertOptionalMatrixToDouble(result.max_distances);
     FileHandler::saveMatrix(dataMax.txtFile, doubleMax);
-    Visualizer::drawMatrix(dataMax, "Матрица Шимбелла (максимум)");
+    Visualizer::drawMatrix(dataMax, "Матрица Шимбелла (максимум)", hide_offdiag_zeros);
 
     std::cout << "[OK] Матрицы Шимбелла сохранены в assets/png/13_shimbell_min.png и 14_shimbell_max.png\n";
 }

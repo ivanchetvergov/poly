@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Graph.h>
 #include "../../lab3/include/FlowNetwork.h"
 
 #include <memory>
@@ -14,6 +15,7 @@ public:
 
     void runGenerateFlowNetwork();
     void runGenerateFlowNetworkByDegrees();
+    void runBuildFlowNetworkFromGraph(graph::Graph const& graph);
     void runMaxFlow();
     void runMinCostFlow();
     void runVisualizeCapacityMatrix();

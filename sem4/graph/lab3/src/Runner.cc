@@ -5,6 +5,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <cmath>
+#include <random>
 #include <sstream>
 
 #include <Generator.h>
@@ -32,6 +34,7 @@ void Runner::runGenerateFlowNetwork() {
     auto data = DrawDataConfig::getConfigs().at(31);
     FileHandler::saveFlowNetwork(data.txtFile, *network_);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
+    std::cout << "[OK] Сеть потоков отрисована в assets/png/31_flow_network.png\n";
 }
 
 void Runner::runGenerateFlowNetworkByDegrees() {
@@ -49,6 +52,48 @@ void Runner::runGenerateFlowNetworkByDegrees() {
               << ") отрисована в assets/png/31_flow_network.png\n";
 }
 
+void Runner::runBuildFlowNetworkFromGraph(graph::Graph const& graph) {
+    if (graph.vertexCount() == 0 || graph.edgeCount() == 0) {
+        std::cout << "[FAIL] Сначала сгенерируйте граф в Lab 1\n";
+        return;
+    }
+
+    int a = graph::readInt("Параметр a (масштаб, a > 0): ");
+    int h = graph::readInt("Параметр h (форма, h > 0): ");
+
+    network_ = std::make_unique<FlowNetwork>(graph.isDirected());
+
+    for (int v : graph.vertexIds()) {
+        network_->addVertex(v);
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> normal_dist(0.0, 1.0);
+
+    auto riceCost = [&]() {
+        double u1 = normal_dist(gen);
+        double u2 = normal_dist(gen);
+        return std::sqrt(std::pow(h + a * u1, 2) + std::pow(a * u2, 2));
+    };
+
+    for (auto const& edge : graph.edges()) {
+        double capacity = std::abs(edge.weight);
+        if (capacity <= 0.0) {
+            capacity = 1.0;
+        }
+        double cost = riceCost();
+        network_->addEdge(edge.from, edge.to, capacity, cost);
+    }
+
+    auto data = DrawDataConfig::getConfigs().at(31);
+    data.title = "Сеть потоков, построенная из графа";
+    FileHandler::saveFlowNetwork(data.txtFile, *network_);
+    Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
+    std::cout << "[OK] Сеть fromNetwork построена из графа; стоимости сгенерированы по Райсу (a="
+              << a << ", h=" << h << ")\n";
+}
+
 void Runner::runMaxFlow() {
     if (!network_) {
         std::cout << "[FAIL] Сначала сгенерируйте сеть\n";
@@ -63,16 +108,16 @@ void Runner::runMaxFlow() {
     }
 
     MaxFlow max_flow_algo(*network_);
-    last_max_flow_ = max_flow_algo.fordFulkerson(source, sink, true);
+    const double computed_max_flow = max_flow_algo.fordFulkerson(source, sink, true);
+    last_max_flow_ = std::floor(computed_max_flow);
 
     max_flow_algo.exportSnapshots("assets/txt/32_flow_snapshots.txt");
 
-    std::cout << "\n[OK] Максимальный поток: " << std::fixed << std::setprecision(2) << last_max_flow_ << "\n";
+    std::cout << "\n[OK] Максимальный поток (округление вниз): "
+              << static_cast<long long>(last_max_flow_) << "\n";
 
     auto data = DrawDataConfig::getConfigs().at(32);
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << last_max_flow_;
-    data.title = "Максимальный поток: " + ss.str();
+    data.title = "Максимальный поток: " + std::to_string(static_cast<long long>(last_max_flow_));
     FileHandler::saveFlowNetwork(data.txtFile, *network_);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::Animation);
@@ -96,7 +141,7 @@ void Runner::runMinCostFlow() {
         return;
     }
 
-    double default_target = (2.0 / 3.0) * last_max_flow_;
+    double default_target = std::floor((2.0 / 3.0) * last_max_flow_);
     std::cout << "Целевой поток [2/3 максимального = " << default_target << "], использовать его? (1 - да, 0 - нет): ";
     bool use_default = static_cast<bool>(graph::readInt(""));
     double target_flow = use_default ? default_target : graph::readInt("Введите целевой поток: ");
@@ -107,12 +152,41 @@ void Runner::runMinCostFlow() {
     std::cout << "\n=== Результат ===\n";
     std::cout << "Минимальная стоимость: " << result.cost << "\n";
     std::cout << "Достигнутый поток: " << result.flow << "\n";
+    std::cout << "Успех: " << (result.success ? "да" : "нет") << "\n";
+
+    if (!result.steps.empty()) {
+        std::cout << "\n=== Подробности по шагам ===\n";
+        for (auto const& step : result.steps) {
+            std::cout << "Шаг " << step.iteration << ": путь ";
+            for (size_t i = 0; i < step.path.size(); ++i) {
+                std::cout << step.path[i];
+                if (i + 1 < step.path.size()) std::cout << " -> ";
+            }
+            std::cout << "\n  Добавленный поток: " << step.pathFlow
+                      << "\n  Стоимость шага: " << step.pathCost
+                      << "\n  Накопленный поток: " << step.cumulativeFlow
+                      << "\n  Накопленная стоимость: " << step.cumulativeCost << "\n";
+        }
+    }
 
     if (!result.path.empty()) {
         auto data = DrawDataConfig::getConfigs().at(33);
         data.path = result.path;
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << result.cost;
+        data.title = "Путь минимальной стоимости (цена: " + ss.str() + ")";
         FileHandler::saveFlowNetwork(data.txtFile, *network_);
-        FileHandler::savePaths(data.txtPathsFile, {data.path});
+        std::vector<std::vector<int>> paths;
+        paths.reserve(result.steps.size());
+        for (auto const& step : result.steps) {
+            if (!step.path.empty()) {
+                paths.push_back(step.path);
+            }
+        }
+        if (paths.empty()) {
+            paths.push_back(data.path);
+        }
+        FileHandler::savePaths(data.txtPathsFile, paths);
         Visualizer::drawPaths(data, network_->isDirected(), VisualizationType::FlowNetwork);
     } else {
         std::cout << "[WARN] Путь не найден\n";

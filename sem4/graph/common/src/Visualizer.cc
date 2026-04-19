@@ -13,9 +13,15 @@ using Args = std::vector<std::string>;
 
 namespace graph {
 
-void Visualizer::drawMatrix(DrawData const& data, std::string const& defaultTitle) {
+void Visualizer::drawMatrix(DrawData const& data, std::string const& defaultTitle,
+                            bool hideOffDiagonalZeros) {
     std::string matrix_title = data.title.empty() ? defaultTitle : data.title;
-    std::vector<std::string> args = {data.txtFile, data.pngFile, "\"" + matrix_title + "\""};
+    std::vector<std::string> args = {
+        data.txtFile,
+        data.pngFile,
+        "\"" + matrix_title + "\"",
+        hideOffDiagonalZeros ? "1" : "0"
+    };
     runPythonScript("plot_matrix.py", args);
 }
 

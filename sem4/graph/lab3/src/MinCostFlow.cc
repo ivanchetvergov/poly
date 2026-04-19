@@ -77,6 +77,7 @@ bool MinCostFlow::bellmanFord(int source, int sink, std::unordered_map<int, doub
 
 MinCostFlow::Result MinCostFlow::findMinCostFlow(int source, int sink, double targetFlow) {
     Result result;
+    constexpr double kEps = 1e-9;
 
     resetFlows(m_network_);
 
@@ -86,14 +87,25 @@ MinCostFlow::Result MinCostFlow::findMinCostFlow(int source, int sink, double ta
     std::unordered_map<int, int> parent;
 
     std::vector<int> last_path;
+    int iteration = 0;
 
-    while (current_flow < targetFlow && bellmanFord(source, sink, dist, parent)) {
+    while (current_flow + kEps < targetFlow && bellmanFord(source, sink, dist, parent)) {
         auto calc_residual = [this](int u, int v) { return m_network_.getResidualCapacity(u, v); };
 
         double path_flow = std::min(targetFlow - current_flow,
                     PathUtils<double>::getMinPathValue(source, sink, parent, calc_residual));
 
+        if (path_flow <= kEps) {
+            break;
+        }
+
         last_path = PathUtils<double>::reconstructPath(source, sink, parent);
+
+        double path_cost = 0.0;
+        PathUtils<double>::forEachEdgeInPath(source, sink, parent,
+                                             [this, &path_cost](int u, int v) {
+                                                 path_cost += m_network_.getCost(u, v);
+                                             });
 
         PathUtils<double>::forEachEdgeInPath(source, sink, parent,
                                              [this, &total_cost, path_flow](int u, int v) {
@@ -102,11 +114,21 @@ MinCostFlow::Result MinCostFlow::findMinCostFlow(int source, int sink, double ta
                                              });
 
         current_flow += path_flow;
+
+        ++iteration;
+        result.steps.push_back({
+            .iteration = iteration,
+            .path = last_path,
+            .pathFlow = path_flow,
+            .pathCost = path_cost,
+            .cumulativeFlow = current_flow,
+            .cumulativeCost = total_cost,
+        });
     }
 
     result.flow = current_flow;
     result.cost = total_cost;
-    result.success = (current_flow == targetFlow);
+    result.success = (current_flow + kEps >= targetFlow);
     result.path = last_path;
 
     return result;

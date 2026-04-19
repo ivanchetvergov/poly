@@ -68,8 +68,11 @@ def main():
         graph_title = title if title else default_title
     elif network_type == 'flow':
         G = loader.load_flow_network(args.graph_file, directed)
-        path = loader.load_path(args.paths_file)
-        paths = [path]
+        paths = read_paths(args.paths_file)
+        # Backward compatibility: allow legacy single-line path format.
+        if not paths:
+            path = loader.load_path(args.paths_file)
+            paths = [path] if path else []
         added_edges = set()
         default_title = f'Сеть потоков с путём ({"directed" if directed else "undirected"})'
         graph_title = title if title else default_title

@@ -40,6 +40,7 @@ LAB_CONFIGS = {
         sub_actions={
             "Generate Flow Network": ActionConfig(execute_cmd="31", params=["vertices", "edges", "cost_sign"], images=["31_flow_network.png"]),
             "Generate Flow Network (Rice)": ActionConfig(execute_cmd="36", params=["vertices", "rayleigh_a", "rayleigh_h", "cost_sign"], images=["31_flow_network.png"]),
+            "fromGraph": ActionConfig(execute_cmd="37", params=["rayleigh_a", "rayleigh_h"], images=["31_flow_network.png"]),
             "Max Flow": ActionConfig(execute_cmd="32", params=["source", "sink"], images=["32_max_flow.png", "32_flow_animation.gif"]),
             "Min Cost Flow": ActionConfig(execute_cmd="33", params=["source", "sink"], images=["33_min_cost_flow_path.png"]),
             "Capacities": ActionConfig(execute_cmd="34", images=["34_capacity_matrix.png"]),

@@ -6,12 +6,12 @@ all: main $(LABS)
 main:
 	@echo "[main] Configuring and building..."
 	@if [ ! -d build ]; then mkdir build; fi
-	cd build && cmake -DCMAKE_CXX_COMPILER=clang++ .. && make -j$(JOBS)
+	cd build && cmake -DCMAKE_CXX_COMPILER=clang++ .. && cmake --build . -j$(JOBS)
 
 $(LABS):
 	@echo "[$@] Configuring and building..."
 	@if [ ! -d $@/build ]; then mkdir -p $@/build; fi
-	cd $@/build && cmake -DCMAKE_CXX_COMPILER=clang++ .. && make -j$(JOBS)
+	cd $@/build && cmake -DCMAKE_CXX_COMPILER=clang++ .. && cmake --build . -j$(JOBS)
 
 run: main
 	@echo "Запуск главного меню..."

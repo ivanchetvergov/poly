@@ -53,6 +53,10 @@ void Menu::initializeActions() {
 
     actions_[31] = [this]() { lab3_runner_.runGenerateFlowNetwork(); };
     actions_[36] = [this]() { lab3_runner_.runGenerateFlowNetworkByDegrees(); };
+    actions_[37] = [this]() {
+        checkAndRun(graph_, [this]() { lab3_runner_.runBuildFlowNetworkFromGraph(*graph_); },
+                    "Сначала сгенерируйте граф в Lab 1");
+    };
     actions_[32] = [this]() { lab3_runner_.runMaxFlow(); };
     actions_[33] = [this]() { lab3_runner_.runMinCostFlow(); };
     actions_[34] = [this]() { lab3_runner_.runVisualizeCapacityMatrix(); };
@@ -97,6 +101,7 @@ void Menu::show() const {
     std::cout << "\n[Lab 3 - Потоки]\n";
     std::cout << "31 - Сгенерировать сеть потоков\n";
     std::cout << "36 - Сгенерировать сеть потоков (Райс)\n";
+    std::cout << "37 - fromNetwork\n";
     std::cout << "32 - Поиск максимального потока\n";
     std::cout << "33 - Визуализировать путь минимальной стоимости\n";
     std::cout << "34 - Визуализировать матрицу пропускных способностей\n";
