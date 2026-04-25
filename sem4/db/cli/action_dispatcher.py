@@ -35,8 +35,6 @@ ACTION_SPECS = {
     "llm_query": {
         "defaults": {
             "prompt": "",
-            "url": "http://localhost:8000/generate",
-            "timeout": 180,
         }
     },
     "level1": {"defaults": {"total_count": 1000}},

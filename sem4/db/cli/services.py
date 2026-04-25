@@ -33,7 +33,7 @@ def _run_llm_query(params: dict) -> ActionOutcome:
             os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b:free"),
         )
     ).strip()
-    timeout = float(params.get("timeout", 180))
+    timeout = 20.0
 
     if not prompt:
         return ActionOutcome(
@@ -43,6 +43,7 @@ def _run_llm_query(params: dict) -> ActionOutcome:
         )
     logs: list[str] = []
     error: str | None = None
+    logs.append(f"Prompt: {prompt}")
     try:
         is_openrouter_direct = "openrouter.ai" in url
         if is_openrouter_direct:
@@ -81,6 +82,7 @@ def _run_llm_query(params: dict) -> ActionOutcome:
                 body_preview = resp.text[:400]
             except Exception:
                 body_preview = ""
+            logs.append(f"Response error body: {body_preview}")
             error = f"server returned status {resp.status_code}: {body_preview}"
         else:
             payload = resp.json()
@@ -93,7 +95,7 @@ def _run_llm_query(params: dict) -> ActionOutcome:
                         text = msg.get("content")
                 if text is None:
                     text = payload.get("text") or payload.get("response")
-            logs.append(str(text or ""))
+            logs.append(f"Response: {str(text or '')}")
     except Exception as exc:
         error = f"request failed: {exc}"
 
