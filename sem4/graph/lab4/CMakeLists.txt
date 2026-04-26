@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(graph_lab4_lib STATIC
     src/GraphCombinatorics.cc
     src/KirchhoffTheorem.cc
+    src/Boruvka.cc
+    src/PruferCode.cc
     src/Runner.cc
 )
 target_include_directories(graph_lab4_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include)

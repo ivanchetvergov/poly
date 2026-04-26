@@ -21,9 +21,6 @@ bool FlowNetwork::addEdge(int from, int to, double capacity, double cost) {
     bool added = GraphBase::addEdge(from, to, forward_edge);
     if (added) {
         GraphBase::addEdge(to, from, backward_edge);
-        if (hasVertex(to)) {
-            m_vertices_[to]->addNeighbor(from);
-        }
     }
 
     return added;

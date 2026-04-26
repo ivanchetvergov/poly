@@ -109,15 +109,16 @@ void Runner::runMaxFlow() {
 
     MaxFlow max_flow_algo(*network_);
     const double computed_max_flow = max_flow_algo.fordFulkerson(source, sink, true);
-    last_max_flow_ = std::floor(computed_max_flow);
+    last_max_flow_ = computed_max_flow;
 
     max_flow_algo.exportSnapshots("assets/txt/32_flow_snapshots.txt");
 
-    std::cout << "\n[OK] Максимальный поток (округление вниз): "
-              << static_cast<long long>(last_max_flow_) << "\n";
+    std::cout << "\n[OK] Максимальный поток: " << std::fixed << std::setprecision(2) << last_max_flow_ << "\n";
 
     auto data = DrawDataConfig::getConfigs().at(32);
-    data.title = "Максимальный поток: " + std::to_string(static_cast<long long>(last_max_flow_));
+    std::ostringstream title_stream;
+    title_stream << std::fixed << std::setprecision(2) << last_max_flow_;
+    data.title = "Максимальный поток: " + title_stream.str();
     FileHandler::saveFlowNetwork(data.txtFile, *network_);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::FlowNetwork);
     Visualizer::draw(data, network_->isDirected(), VisualizationType::Animation);
@@ -142,9 +143,10 @@ void Runner::runMinCostFlow() {
     }
 
     double default_target = std::floor((2.0 / 3.0) * last_max_flow_);
-    std::cout << "Целевой поток [2/3 максимального = " << default_target << "], использовать его? (1 - да, 0 - нет): ";
+    std::cout << "Целевой поток [floor(2/3 * max) = " << std::fixed << std::setprecision(2)
+              << default_target << "], использовать его? (1 - да, 0 - нет): ";
     bool use_default = static_cast<bool>(graph::readInt(""));
-    double target_flow = use_default ? default_target : graph::readInt("Введите целевой поток: ");
+    double target_flow = use_default ? default_target : graph::readDouble("Введите целевой поток: ");
 
     MinCostFlow min_cost_flow_algo(*network_);
     auto result = min_cost_flow_algo.findMinCostFlow(source, sink, target_flow);
@@ -162,8 +164,10 @@ void Runner::runMinCostFlow() {
                 std::cout << step.path[i];
                 if (i + 1 < step.path.size()) std::cout << " -> ";
             }
+            const double delta_cost = step.pathFlow * step.pathCost;
             std::cout << "\n  Добавленный поток: " << step.pathFlow
-                      << "\n  Стоимость шага: " << step.pathCost
+                      << "\n  Стоимость пути за 1 ед.: " << step.pathCost
+                      << "\n  Приращение стоимости: " << delta_cost
                       << "\n  Накопленный поток: " << step.cumulativeFlow
                       << "\n  Накопленная стоимость: " << step.cumulativeCost << "\n";
         }

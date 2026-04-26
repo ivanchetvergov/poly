@@ -1,6 +1,7 @@
 #include "KirchhoffTheorem.h"
 
 #include <CollectionUtils.h>
+#include <cmath>
 
 namespace graph {
 
@@ -8,8 +9,11 @@ using Matrix = CollectionUtils::Matrix<double>;
 
 size_t KirchhoffTheorem::countSpanningTrees(Graph const& graph) {
     size_t n = graph.vertexCount();
-    if (n <= 1) {
+    if (n == 0) {
         return 0;
+    }
+    if (n == 1) {
+        return 1;
     }
 
     Matrix laplacian = CollectionUtils::makeMatrix<double>(
@@ -29,7 +33,7 @@ size_t KirchhoffTheorem::countSpanningTrees(Graph const& graph) {
         }
     }
 
-    return static_cast<size_t>(KirchhoffTheorem::determinant(minor));
+    return static_cast<size_t>(std::llround(std::max(0.0, KirchhoffTheorem::determinant(minor))));
 }
 
 double KirchhoffTheorem::determinant(Matrix const& matrix) {

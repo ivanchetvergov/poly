@@ -21,7 +21,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 4", "Lab 5", "Lab 6"}
+    DISABLED_LABS = {"Lab 5", "Lab 6"}
 
     def __init__(self):
         self._s = st.session_state
@@ -32,7 +32,6 @@ class GraphLabApp:
     # ------------------------------------------------------------------
 
     def send_command(self, lab: str, command: str) -> None:
-        print(f"DEBUG: Sending command: {command}")
         if 'cpp_process' not in self._s:
             return
         proc = self._s.cpp_process['proc']
@@ -56,13 +55,16 @@ class GraphLabApp:
     def start_process(self, lab: str) -> None:
         if self.is_process_running(lab):
             return
+        env = os.environ.copy()
+        env["GRAPH_WEB_MODE"] = "1"
         proc = subprocess.Popen(
             [str(EXECUTABLE)],
             stdin=subprocess.PIPE,
             text=True,
             cwd=PROJECT_ROOT,
+            env=env,
         )
-        self._s.cpp_process = {'proc': proc, 'output': ''}
+        self._s.cpp_process = {'proc': proc}
 
     # ------------------------------------------------------------------
     # State helpers
@@ -177,6 +179,34 @@ class GraphLabApp:
         except Exception:
             pass
 
+    def _read_text_artifact(self, txt_path: Path) -> str:
+        if not txt_path.exists():
+            return ""
+        try:
+            return txt_path.read_text(encoding="utf-8").strip()
+        except Exception:
+            return ""
+
+    def _display_text_block(self, title: str, content: str) -> None:
+        if not content:
+            return
+        st.markdown(f"**{title}**")
+        st.code(content, language="text")
+
+    @staticmethod
+    def _matrix_to_latex(matrix: np.ndarray, precision: int = 2) -> str:
+        rows = []
+        for row in matrix:
+            cells = []
+            for value in row:
+                rounded = round(float(value), precision)
+                if abs(rounded - int(rounded)) < 1e-9:
+                    cells.append(str(int(rounded)))
+                else:
+                    cells.append(f"{rounded:.{precision}f}")
+            rows.append(" & ".join(cells))
+        return r"\\begin{bmatrix}" + r" \\\\ ".join(rows) + r"\\end{bmatrix}"
+
     def _display_visualizations(self) -> None:
         images = self._s.current_visualization
         dist_type = self._get('dist_type')
@@ -195,6 +225,48 @@ class GraphLabApp:
                 self.plot_weight_distribution()
         elif images:
             paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in images]
+            prufer_text_path = None
+            if any(p.name == '43_graph.png' for p in paths):
+                prufer_text_path = ASSETS_DIR / 'txt' / '43_prufer_sequence.txt'
+            elif any(p.name == '44_graph.png' for p in paths):
+                prufer_text_path = ASSETS_DIR / 'txt' / '44_prufer_sequence.txt'
+
+            if prufer_text_path is not None:
+                col_img, col_text = st.columns([2, 1], gap="small")
+                with col_img:
+                    for p in paths:
+                        self.display_image(p)
+                with col_text:
+                    self._display_text_block("Последовательность Прюфера", self._read_text_artifact(prufer_text_path))
+                return
+
+            if any(p.name == '41_kirchhoff_matrix_minor.png' for p in paths):
+                minor_path = ASSETS_DIR / 'txt' / '41_kirchhoff_matrix_minor.txt'
+                spanning_trees = None
+                minor_matrix = None
+                det_value = None
+                try:
+                    minor_matrix = np.loadtxt(minor_path)
+                    minor_matrix = np.atleast_2d(minor_matrix)
+                    det_value = float(np.linalg.det(minor_matrix))
+                    spanning_trees = int(round(det_value))
+                except Exception:
+                    spanning_trees = None
+
+                col_img, col_info = st.columns([2, 1], gap="small")
+                with col_img:
+                    for p in paths:
+                        self.display_image(p)
+                with col_info:
+                    st.markdown("**Кирхгоф**")
+                    st.latex(r"B(G)=(\beta_{ij})_{n\times n}=D(G)-A(G)")
+                    st.latex(r"\tau(G)=A_{ij}=\det(B^*)")
+                    if spanning_trees is None:
+                        st.info("Минор матрицы Кирхгофа пока не готов для расчета.")
+                    else:
+                        st.metric("Число остовных деревьев", max(0, spanning_trees))
+                return
+
             if len(paths) == 2:
                 col1, col2 = st.columns(2)
                 with col1:
@@ -448,6 +520,7 @@ class GraphLabApp:
                 self._render_lab6_actions(lab_name, lab_config)
             else:
                 self._render_default_actions(lab_name, lab_config)
+
         self._display_visualizations()
 
     # ------------------------------------------------------------------

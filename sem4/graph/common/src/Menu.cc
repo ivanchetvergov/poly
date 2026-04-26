@@ -63,10 +63,9 @@ void Menu::initializeActions() {
     actions_[35] = [this]() { lab3_runner_.runVisualizeCostMatrix(); };
 
     actions_[41] = [this]() { lab4_runner_.runCountSpanningTrees(*graph_); };
-    actions_[42] = [this]() { lab4_runner_.runFindMaxIndependentSet(*graph_); };
-    actions_[43] = [this]() { lab4_runner_.runFindMaxIndependentSetEdges(*graph_); };
-    actions_[44] = [this]() { lab4_runner_.runFindMinVertexCover(*graph_); };
-    actions_[45] = [this]() { lab4_runner_.runFindMinEdgeCover(*graph_); };
+    actions_[42] = [this]() { lab4_runner_.runBuildMinimalSpanningTree(*graph_); };
+    actions_[43] = [this]() { lab4_runner_.runPruferEncode(*graph_); };
+    actions_[44] = [this]() { lab4_runner_.runPruferDecode(*graph_); };
     actions_[46] = [this]() { lab4_runner_.runFindMinColoring(*graph_); };
 
     actions_[51] = [this]() { lab5_runner_.runCheckEulerian(*graph_); };
@@ -107,13 +106,12 @@ void Menu::show() const {
     std::cout << "34 - Визуализировать матрицу пропускных способностей\n";
     std::cout << "35 - Визуализировать матрицу стоимостей\n";
 
-    // std::cout << "\n[Lab 4 - Остовы и комбинаторика]\n";
-    // std::cout << "41 - Число остовных деревьев (Кирхгоф)\n";
-    // std::cout << "42 - Макс. независимое множество вершин\n";
-    // std::cout << "43 - Макс. независимое множество рёбер\n";
-    // std::cout << "44 - Мин. вершинное покрытие\n";
-    // std::cout << "45 - Мин. рёберное покрытие\n";
-    // std::cout << "46 - Минимальная раскраска графа\n";
+    std::cout << "\n[Lab 4 - Остовы и раскраска]\n";
+    std::cout << "41 - Число остовных деревьев (матричная теорема Кирхгофа)\n";
+    std::cout << "42 - Минимальный остов (алгоритм Борувки)\n";
+    std::cout << "43 - Кодирование дерева (код Прюфера)\n";
+    std::cout << "44 - Декодирование дерева (код Прюфера)\n";
+    std::cout << "46 - Минимальная раскраска графа\n";
 
     // std::cout << "\n[Lab 5 - Циклы]\n";
     // std::cout << "51 - Проверка эйлеровости\n";

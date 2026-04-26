@@ -23,6 +23,20 @@ inline int readInt(char const* prompt) {
     }
 }
 
+inline double readDouble(char const* prompt) {
+    double value;
+    for (;;) {
+        std::cout << prompt;
+        if (std::cin >> value) {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            return value;
+        }
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Ошибка ввода\n";
+    }
+}
+
 template <typename T>
 bool checkAndRun(std::unique_ptr<T> const& ptr, std::function<void()> action,
                  char const* errorMsg) {
