@@ -30,9 +30,6 @@ MENU = {
     "sub": [
         ("Run sub level", "level3"),
         ("Submissions", "submissions"),
-        ("Solution codes", "solution_codes"),
-        ("Evaluations", "evaluations"),
-        ("Leaderboard entries", "leaderboard_entries"),
         ("Back", "main"),
     ],
 }

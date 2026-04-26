@@ -3,32 +3,29 @@ from __future__ import annotations
 
 LEVEL_COEFFICIENTS: dict[str, dict[str, float]] = {
     "level1": {
-        "users": 0.5,
-        "datasets": 0.2,
-        "dataset_files": 0.1,
-        "competitions": 0.2,
+        "users": 0.644,
+        "datasets": 0.096,
+        "dataset_files": 0.08,
+        "competitions": 0.18,
     },
     "level2": {
-        "configurations": 0.2,
-        "competition_datasets": 0.2,
-        "teams": 0.2,
-        "team_members": 0.2,
-        "team_competitions": 0.1,
-        "participations": 0.1,
+        "configurations": 0.08,
+        "competition_datasets": 0.07,
+        "teams": 0.18,
+        "team_members": 0.37,
+        "team_competitions": 0.05,
+        "participations": 0.25,
     },
     "level3": {
-        "submissions": 0.4,
-        "solution_codes": 0.2,
-        "evaluations": 0.2,
-        "leaderboard_entries": 0.2,
+        "submissions": 1.0,
     },
 }
 
 
 ALL_LEVEL_RATIOS: dict[str, float] = {
-    "level1": 0.4,
-    "level2": 0.35,
-    "level3": 0.25,
+    "level1": 0.43,
+    "level2": 0.39,
+    "level3": 0.18,
 }
 
 

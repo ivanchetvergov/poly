@@ -53,10 +53,16 @@ def _apply_limit(sql: str, row_limit: int) -> str:
 def _normalize_sql(sql: str) -> str:
     # Minimal fixes for common schema naming mismatches from generated SQL.
     fixed = sql
-    fixed = re.sub(r"\bleaderboard_row\b", "leaderboard_entry", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bleaderboard_row\b", "participation", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bleaderboard_entry\b", "participation", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bevaluation\b", "submission", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bsolution_code\b", "submission", fixed, flags=re.IGNORECASE)
     fixed = re.sub(r"\bcompetition_config\b", "configuration", fixed, flags=re.IGNORECASE)
     fixed = re.sub(r"\bfile_artifact\b", "dataset_file", fixed, flags=re.IGNORECASE)
-    fixed = re.sub(r"\bcomputed_at\b", "evaluated_at", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bcomputed_at\b", "submitted_at", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bevaluated_at\b", "submitted_at", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bbest_evaluation_id\b", "submission_id", fixed, flags=re.IGNORECASE)
+    fixed = re.sub(r"\bdescription\b", "solution_description", fixed, flags=re.IGNORECASE)
     fixed = re.sub(r"\blr\.score\b", "lr.best_score", fixed, flags=re.IGNORECASE)
     fixed = re.sub(r"\bFROM\s+user\b", 'FROM "user"', fixed, flags=re.IGNORECASE)
     fixed = re.sub(r"\bJOIN\s+user\b", 'JOIN "user"', fixed, flags=re.IGNORECASE)

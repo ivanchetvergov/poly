@@ -21,9 +21,7 @@ from seed_core import (
 )
 from seed_dict import run_all_dictionaries
 from seed_sub import (
-    seed_evaluations,
-    seed_leaderboard_entries,
-    seed_solution_codes,
+    seed_participation_scores,
     seed_submissions,
 )
 
@@ -41,23 +39,21 @@ ACTION_SPECS = {
     "level2": {"defaults": {"total_count": 1000}},
     "level3": {"defaults": {"total_count": 1000}},
     "users": {"defaults": {"count": 50}},
-    "datasets": {"defaults": {"count": 10}},
-    "dataset_files": {"defaults": {"min_per_dataset": 3, "max_per_dataset": 5}},
+    "datasets": {"defaults": {"count": 8}},
+    "dataset_files": {"defaults": {"min_per_dataset": 3, "max_per_dataset": 10}},
     "competitions": {"defaults": {"count": 10}},
     "configurations": {"defaults": {"count": 10}},
     "competition_datasets": {
         "defaults": {"min_per_competition": 1, "max_per_competition": 3}
     },
-    "teams": {"defaults": {"count": 20}},
+    "teams": {"defaults": {"min_per_competition": 3, "max_per_competition": 15}},
     "team_members": {"defaults": {"min_per_team": 2, "max_per_team": 5}},
     "team_competitions": {"defaults": {"min_per_team": 1, "max_per_team": 2}},
     "participations": {"defaults": {"count": 50}},
     "submissions": {
         "defaults": {"min_per_participation": 1, "max_per_participation": 3}
     },
-    "solution_codes": {"defaults": {}},
-    "evaluations": {"defaults": {}},
-    "leaderboard_entries": {"defaults": {}},
+    "participation_scores": {"defaults": {}},
 }
 
 
@@ -79,6 +75,15 @@ def _bounds_for_target(target_total: int, parent_total: int) -> tuple[int, int]:
     return base, base + 1
 
 
+def _clamp_bounds(bounds: tuple[int, int], min_allowed: int, max_allowed: int) -> tuple[int, int]:
+    lo, hi = bounds
+    lo = max(min_allowed, min(lo, max_allowed))
+    hi = max(min_allowed, min(hi, max_allowed))
+    if lo > hi:
+        lo = hi
+    return lo, hi
+
+
 async def run_level1_from_total(
     conn,
     inserter: Inserter,
@@ -98,7 +103,11 @@ async def run_level1_from_total(
     await seed_users(inserter, fake, count=counts["users"])
     await seed_datasets(inserter, fake, count=counts["datasets"])
     datasets_total = await _table_count(conn, "dataset")
-    files_min, files_max = _bounds_for_target(counts["dataset_files"], datasets_total)
+    files_min, files_max = _clamp_bounds(
+        _bounds_for_target(counts["dataset_files"], datasets_total),
+        min_allowed=3,
+        max_allowed=10,
+    )
     await seed_dataset_files(
         inserter,
         fake,
@@ -141,9 +150,14 @@ async def run_level2_from_total(
     await seed_configurations(inserter, count=counts["configurations"])
 
     competitions_total = await _table_count(conn, "competition")
-    comp_data_min, comp_data_max = _bounds_for_target(
-        counts["competition_datasets"],
-        competitions_total,
+    datasets_total = await _table_count(conn, "dataset")
+    comp_data_min, comp_data_max = _clamp_bounds(
+        _bounds_for_target(
+            counts["competition_datasets"],
+            competitions_total,
+        ),
+        min_allowed=1,
+        max_allowed=max(1, min(6, datasets_total)),
     )
     await seed_competition_datasets(
         inserter,
@@ -151,12 +165,27 @@ async def run_level2_from_total(
         max_per_competition=comp_data_max,
     )
 
-    await seed_teams(inserter, fake, count=counts["teams"])
+    teams_min, teams_max = _clamp_bounds(
+        _bounds_for_target(counts["teams"], competitions_total),
+        min_allowed=3,
+        max_allowed=15,
+    )
+    await seed_teams(
+        inserter,
+        fake,
+        min_per_competition=teams_min,
+        max_per_competition=teams_max,
+    )
 
     teams_total = await _table_count(conn, "team")
     team_members_min, team_members_max = _bounds_for_target(
         counts["team_members"],
         teams_total,
+    )
+    team_members_min, team_members_max = _clamp_bounds(
+        (team_members_min, team_members_max),
+        min_allowed=2,
+        max_allowed=5,
     )
     await seed_team_members(
         inserter,
@@ -202,9 +231,9 @@ async def run_level3_from_total(
     # Track initial counts
     initial_counts = {
         "submission": await _table_count(conn, "submission"),
-        "solution_code": await _table_count(conn, "solution_code"),
-        "evaluation": await _table_count(conn, "evaluation"),
-        "leaderboard_entry": await _table_count(conn, "leaderboard_entry"),
+        "scored_participation": int(
+            await conn.fetchval("SELECT COUNT(*) FROM participation WHERE best_score IS NOT NULL")
+        ),
     }
 
     participations_total = await _table_count(conn, "participation")
@@ -219,20 +248,16 @@ async def run_level3_from_total(
         max_per_participation=submissions_max,
     )
 
-    if counts["solution_codes"] > 0:
-        await seed_solution_codes(inserter, fake)
-    if counts["evaluations"] > 0:
-        await seed_evaluations(inserter)
-    if counts["leaderboard_entries"] > 0:
-        await seed_leaderboard_entries(inserter)
+    if counts["submissions"] > 0:
+        await seed_participation_scores(inserter)
 
     # Report added counts
     print("\nLevel 3 - Records added:")
     final_counts = {
         "submission": await _table_count(conn, "submission"),
-        "solution_code": await _table_count(conn, "solution_code"),
-        "evaluation": await _table_count(conn, "evaluation"),
-        "leaderboard_entry": await _table_count(conn, "leaderboard_entry"),
+        "scored_participation": int(
+            await conn.fetchval("SELECT COUNT(*) FROM participation WHERE best_score IS NOT NULL")
+        ),
     }
     for table, final in final_counts.items():
         added = final - initial_counts[table]
@@ -377,11 +402,7 @@ async def execute_action(
         return await seed_participations(inserter, **kwargs)
     if action == "submissions":
         return await seed_submissions(inserter, fake, **kwargs)
-    if action == "solution_codes":
-        return await seed_solution_codes(inserter, fake)
-    if action == "evaluations":
-        return await seed_evaluations(inserter)
-    if action == "leaderboard_entries":
-        return await seed_leaderboard_entries(inserter)
+    if action == "participation_scores":
+        return await seed_participation_scores(inserter)
 
     raise ValueError(f"Unknown action: {action}")

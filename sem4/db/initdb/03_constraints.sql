@@ -22,8 +22,8 @@ ALTER TABLE dataset_file
 ALTER TABLE submission
     ADD CONSTRAINT chk_submission_attempt_number CHECK (attempt_number > 0);
 
-ALTER TABLE leaderboard_entry
-    ADD CONSTRAINT chk_leaderboard_rank CHECK (rank IS NULL OR rank > 0);
+ALTER TABLE participation
+    ADD CONSTRAINT chk_participation_rank CHECK (rank IS NULL OR rank > 0);
 
 -- -----------------------------------------------------------------------
 --* UNIQUE CONSTRAINTS
@@ -43,8 +43,5 @@ ALTER TABLE participation
 
 ALTER TABLE submission
     ADD CONSTRAINT uq_submission_attempt UNIQUE (participation_id, attempt_number);
-
-ALTER TABLE leaderboard_entry
-    ADD CONSTRAINT uq_leaderboard_entry UNIQUE (participation_id, competition_id);
 
 COMMIT;

@@ -1,6 +1,31 @@
 import random
 from faker import Faker
 
+
+DATASET_TOPICS = [
+    "vision",
+    "nlp",
+    "speech",
+    "ranking",
+    "forecast",
+    "recommendation",
+    "tabular",
+    "timeseries",
+]
+
+COMPETITION_THEMES = [
+    "Fraud Sprint",
+    "Noise Hunters",
+    "Anomaly Arena",
+    "Feature Masters",
+    "Leaderboard Clash",
+    "Signal Quest",
+    "Model Cup",
+    "Data Derby",
+]
+
+DATASET_FILE_EXTENSIONS = ["csv", "parquet", "jsonl", "tsv"]
+
 # === уровни: 2, 3 ===
 
 async def seed_users(inserter, fake: Faker, count: int = 50) -> int:
@@ -30,10 +55,10 @@ async def seed_datasets(inserter, fake: Faker, count: int = 10) -> int:
             'ON CONFLICT (name, version) DO NOTHING'
         ),
         generator=lambda deps: (
-            fake.word()[:30],
+            f"{random.choice(DATASET_TOPICS)}_{fake.word()}_{random.randint(1, 999)}"[:30],
             random.choice(deps['purpose']),
-            random.choice([True, False]),
-            round(random.uniform(1.0, 100.0), 2),
+            random.choice([False, False, True]),
+            round(random.uniform(1.0, 25.0), 2),
         ),
         count=count,
         dependencies={'purpose': 'SELECT purpose_id FROM dataset_purpose'},
@@ -43,7 +68,7 @@ async def seed_dataset_files(
     inserter,
     fake: Faker,
     min_per_dataset: int = 3,
-    max_per_dataset: int = 5,
+    max_per_dataset: int = 10,
 ) -> int:
     return await inserter.seed(
         table='dataset_file',
@@ -53,9 +78,9 @@ async def seed_dataset_files(
         ),
         generator=lambda deps: (
             deps.get('current_id'),
-            fake.file_name(extension='csv')[:50],
-            fake.file_path()[:100],
-            random.randint(1024, 10485760),
+            fake.file_name(extension=random.choice(DATASET_FILE_EXTENSIONS))[:50],
+            fake.file_path(depth=3, extension=random.choice(DATASET_FILE_EXTENSIONS))[:100],
+            random.randint(2048, 52428800),
             fake.sha256()[:64],
         ),
         dependencies={'dataset': 'SELECT dataset_id FROM dataset'},
@@ -75,9 +100,13 @@ async def seed_competitions(inserter, fake: Faker, count: int = 10) -> int:
         generator=lambda deps: (
             random.choice(deps['organizers']),
             random.choice(deps['status']),
-            fake.unique.sentence(nb_words=3)[:50],
-            fake.sentence(nb_words=10)[:200],
-            fake.date_time_between(start_date='+1d', end_date='+30d'),
+            f"{random.choice(COMPETITION_THEMES)} #{random.randint(1, 9999)}"[:50],
+            (
+                f"Track focus: {random.choice(DATASET_TOPICS)}. "
+                f"Prize vibe: {fake.word()}. "
+                f"Baseline score to beat: {round(random.uniform(0.45, 0.92), 3)}"
+            )[:200],
+            fake.date_time_between(start_date='+3d', end_date='+90d'),
         ),
         dependencies={
             'organizers': (
