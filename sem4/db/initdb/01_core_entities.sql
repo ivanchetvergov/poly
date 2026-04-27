@@ -65,9 +65,8 @@ CREATE TABLE IF NOT EXISTS dataset_file (
 
 CREATE TABLE IF NOT EXISTS team (
     team_id SERIAL PRIMARY KEY,
-    competition_id INT NOT NULL REFERENCES competition(competition_id) ON DELETE CASCADE,
     status_id INT NOT NULL REFERENCES team_status(status_id),
-    name VARCHAR(30) NOT NULL,
+    name VARCHAR(30) NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
