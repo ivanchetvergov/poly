@@ -5,7 +5,7 @@ from typing import Any
 
 import asyncpg
 
-from .plots import build_histogram, OUTPUT_DIR
+from .plots import OUTPUT_DIR, build_histogram, build_q05_2d
 
 QUERIES_DIR = Path(__file__).parent.parent / "queries"
 
@@ -14,6 +14,10 @@ PLOT_REGISTRY = {
         rows,
         output_path=OUTPUT_DIR / "q03_histogram.png",
         kde=False,
+    ),
+    "q05_2d": lambda rows: build_q05_2d(
+        rows,
+        output_path=OUTPUT_DIR / "q05_2d.png",
     ),
 }
 

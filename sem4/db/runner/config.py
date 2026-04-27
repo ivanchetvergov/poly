@@ -69,6 +69,6 @@ QUERIES = [
         "param_queries": [],
         "retries": 1,
         "on_empty": "warn",
-        "plot": None,
+        "plot": "q05_2d",
     },
 ]
