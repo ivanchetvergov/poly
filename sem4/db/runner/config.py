@@ -50,12 +50,21 @@ QUERIES = [
         "param_queries": [],
         "retries": 1,
         "on_empty": "warn",
-        "plot": "q03_histogram",
+        "plot": "q03",
     },
     {
-        "name": "q04",
+        "name": "q04_01",
         "description": "Пользователи с максимальным числом участий",
-        "sql_file": "q04.sql",
+        "sql_file": "q04_01.sql",
+        "param_queries": [],
+        "retries": 1,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
+        "name": "q04_02",
+        "description": "Пользователи с минимальным числом участий",
+        "sql_file": "q04_02.sql",
         "param_queries": [],
         "retries": 1,
         "on_empty": "warn",
@@ -68,6 +77,59 @@ QUERIES = [
         "param_queries": [],
         "retries": 1,
         "on_empty": "warn",
-        "plot": "q05_2d",
+        "plot": "q05",
+    },
+    {
+        "name": "q06",
+        "description": "Команды, у которых число участий больше, чем у другой команды",
+        "sql_file": "q06.sql",
+        "param_queries": "SELECT t.name FROM team t",
+        "retries": 3,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
+        "name": "q07",
+        "description": "Пользователи, которые не отправили решение для заданного файла",
+        "sql_file": "q07.sql",
+        "param_queries": "SELECT fd.filename FROM dataset_file fd",
+        "retries": 3,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
+        "name": "q08",
+        "description": "Роли команд и число участников",
+        "sql_file": "q08.sql",
+        "param_queries": [],
+        "retries": 1,
+        "on_empty": "warn",
+        "plot": "q08",
+    },
+    {
+        "name": "q09",
+        "type": "update",
+        "description": "Обновить метрику попытки для команды A в соревновании B",
+        "sql_file": "q09.sql",
+        "param_queries": """
+            SELECT
+                s.submission_id,
+                ROUND(s.metric_value * 1.1, 6),
+                s.metric_value,
+                t.name,
+                c.title,
+                s.attempt_number
+            FROM submission s
+                JOIN participation p  ON p.participation_id = s.participation_id
+                JOIN team t           ON t.team_id          = p.team_id
+                JOIN competition c    ON c.competition_id   = p.competition_id
+            WHERE s.metric_value IS NOT NULL
+            AND p.team_id IS NOT NULL
+            ORDER BY RANDOM()
+            LIMIT 1
+        """,
+        "retries": 5,
+        "on_empty": "warn",
+        "plot": None,
     },
 ]

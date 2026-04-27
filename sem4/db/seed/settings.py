@@ -16,7 +16,7 @@ TEAM_COMPETITIONS_MIN = 1
 TEAM_COMPETITIONS_MAX = 5
 
 SUBMISSIONS_PER_PARTICIPATION_MIN = 1
-SUBMISSIONS_PER_PARTICIPATION_MAX = 10
+SUBMISSIONS_PER_PARTICIPATION_MAX = 2
 
 
 DEFAULT_USERS_COUNT = 50
@@ -33,10 +33,10 @@ LEVEL_COEFFICIENTS: dict[str, dict[str, float]] = {
     },
     "level2": {
         "configurations": 0.06,
-        "competition_datasets": 0.12,
+        "competition_datasets": 0.15,
         "teams": 0.25,
-        "team_members": 0.37,
-        "participations": 0.20,
+        "team_members": 0.39,
+        "participations": 0.15,
     },
     "level3": {
         "submissions": 1.0,
