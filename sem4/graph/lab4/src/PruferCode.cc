@@ -14,7 +14,6 @@ PruferCode::PruferEncoding PruferCode::encode(Graph const& tree) {
     result.vertices = vertices;
     std::unordered_map<int, int> degree;
 
-    // Calculate degrees
     for (int v : vertices) {
         degree[v] = tree.degree(v);
     }
@@ -32,9 +31,7 @@ PruferCode::PruferEncoding PruferCode::encode(Graph const& tree) {
         return result;
     }
 
-    // Build Prufer sequence
     for (size_t i = 0; i < vertices.size() - 2; ++i) {
-        // Find leaf with minimum label
         int leaf = -1;
         for (int v : vertices) {
             if (degree[v] == 1) {
@@ -46,7 +43,6 @@ PruferCode::PruferEncoding PruferCode::encode(Graph const& tree) {
         if (leaf == -1)
             break;
 
-        // Find neighbor of leaf
         for (auto const& [u, weight] : tree.neighbors(leaf)) {
             if (degree[u] > 0) {
                 result.sequence.push_back(u);
@@ -66,7 +62,6 @@ std::unique_ptr<Graph> PruferCode::decode(PruferEncoding const& encoding) {
     auto vertices = encoding.vertices;
     std::sort(vertices.begin(), vertices.end());
 
-    // Add all vertices
     for (int v : vertices) {
         tree->addVertex(v);
     }
@@ -91,7 +86,6 @@ std::unique_ptr<Graph> PruferCode::decode(PruferEncoding const& encoding) {
         return tree;
     }
 
-    // Calculate degrees from Prufer sequence
     std::unordered_map<int, int> degree;
     for (int v : vertices) {
         degree[v] = 1;
@@ -100,9 +94,7 @@ std::unique_ptr<Graph> PruferCode::decode(PruferEncoding const& encoding) {
         degree[v]++;
     }
 
-    // Reconstruct edges
     for (int v : encoding.sequence) {
-        // Find leaf with minimum label
         int leaf = -1;
         for (int candidate : vertices) {
             if (degree[candidate] == 1) {
@@ -119,7 +111,6 @@ std::unique_ptr<Graph> PruferCode::decode(PruferEncoding const& encoding) {
         degree[v]--;
     }
 
-    // Add final edge between two remaining degree-1 vertices
     int v1 = -1, v2 = -1;
     for (int candidate : vertices) {
         if (degree[candidate] == 1) {

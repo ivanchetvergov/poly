@@ -15,7 +15,7 @@ Boruvka::UnionFind::UnionFind(std::vector<int> const& vertices) {
 
 int Boruvka::UnionFind::find(int v) {
     if (parent_[v] != v) {
-        parent_[v] = find(parent_[v]);  // Path compression
+        parent_[v] = find(parent_[v]);
     }
     return parent_[v];
 }
@@ -27,7 +27,6 @@ void Boruvka::UnionFind::unite(int u, int v) {
     if (root_u == root_v)
         return;
 
-    // Union by rank
     if (rank_[root_u] < rank_[root_v]) {
         parent_[root_u] = root_v;
     } else if (rank_[root_u] > rank_[root_v]) {
@@ -48,18 +47,16 @@ std::unique_ptr<Graph> Boruvka::buildMST(Graph const& graph) {
 
     auto mst = std::make_unique<Graph>(false);
 
-    // Add all vertices to MST
     for (int v : vertices) {
         mst->addVertex(v);
     }
 
     UnionFind uf(vertices);
 
-    // Collect all edges
     std::vector<Edge> edges;
     for (int u : vertices) {
         for (auto const& [v, weight] : graph.neighbors(u)) {
-            if (u < v) {  // Avoid duplicates in undirected graph
+            if (u < v) {
                 edges.push_back({u, v, weight});
             }
         }

@@ -54,7 +54,7 @@ LAB_CONFIGS = {
             "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
             "Spanning Trees Count": ActionConfig(execute_cmd="41", images=["41_kirchhoff_matrix_minor.png"]),
             "Minimal Spanning Tree": ActionConfig(execute_cmd="42", images=["41_spanning_tree.png"]),
-            "Prufer Encode": ActionConfig(execute_cmd="43", images=["41_spanning_tree.png", "43_graph.png"]),
+            "Prufer Encode": ActionConfig(execute_cmd="43", images=["41_spanning_tree.png"]),
             "Prufer Decode": ActionConfig(execute_cmd="44", images=["44_graph.png"]),
             "Min Coloring": ActionConfig(execute_cmd="46", images=["46_coloring.png"]),
         }

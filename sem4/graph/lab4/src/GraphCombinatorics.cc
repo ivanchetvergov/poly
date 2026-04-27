@@ -25,7 +25,7 @@ VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph) {
         std::fill(colors.begin(), colors.end(), -1);
         if (backtrackColoring(graph, 0, vertices, colors, num_colors, vertex_to_index)) {
             best_colors = colors;
-            break; // found minimal
+            break;
         }
     }
     return best_colors;

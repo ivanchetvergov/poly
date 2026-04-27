@@ -55,23 +55,6 @@ bool MinCostFlow::bellmanFord(int source, int sink, std::unordered_map<int, doub
             break;
     }
 
-    for (int u : m_network_.vertexIds()) {
-        if (dist[u] == std::numeric_limits<double>::infinity())
-            continue;
-
-        for (int v : m_network_.neighbors(u)) {
-            double residual = m_network_.getResidualCapacity(u, v);
-
-            if (residual > 0) {
-                double new_dist = dist[u] + m_network_.getCost(u, v);
-
-                if (new_dist < dist[v]) {
-                    return false;
-                }
-            }
-        }
-    }
-
     return dist[sink] != std::numeric_limits<double>::infinity();
 }
 

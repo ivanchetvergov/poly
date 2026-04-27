@@ -209,8 +209,23 @@ class GraphLabApp:
 
     def _display_visualizations(self) -> None:
         images = self._s.current_visualization
+        current_action = self._get('current_action')
         dist_type = self._get('dist_type')
         show_dist = dist_type and any(('01_graph' in img) or ('31_flow_network' in img) for img in (images or []))
+
+        if current_action == 'Prufer Encode':
+            prufer_text = self._read_text_artifact(ASSETS_DIR / 'txt' / '43_prufer_sequence.txt')
+            paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in (images or [])]
+            if paths or prufer_text:
+                col_img, col_text = st.columns([2, 1], gap="small")
+                with col_img:
+                    for p in paths:
+                        self.display_image(p)
+                with col_text:
+                    if prufer_text:
+                        st.markdown("**Последовательность Прюфера**")
+                        st.code(prufer_text, language="text")
+            return
 
         if not images and not show_dist:
             return
@@ -241,15 +256,12 @@ class GraphLabApp:
                 return
 
             if any(p.name == '41_kirchhoff_matrix_minor.png' for p in paths):
-                minor_path = ASSETS_DIR / 'txt' / '41_kirchhoff_matrix_minor.txt'
+                count_path = ASSETS_DIR / 'txt' / '41_kirchhoff_count.txt'
                 spanning_trees = None
-                minor_matrix = None
-                det_value = None
                 try:
-                    minor_matrix = np.loadtxt(minor_path)
-                    minor_matrix = np.atleast_2d(minor_matrix)
-                    det_value = float(np.linalg.det(minor_matrix))
-                    spanning_trees = int(round(det_value))
+                    count_text = self._read_text_artifact(count_path).strip()
+                    if count_text:
+                        spanning_trees = int(count_text.split()[0])
                 except Exception:
                     spanning_trees = None
 
@@ -482,6 +494,7 @@ class GraphLabApp:
                             cmd = action_config.execute_cmd
                             full_cmd = f"{cmd}\n{params_str}" if params_str else cmd
                             self.send_command(lab, full_cmd)
+                            self._set('current_action', action_name)
                             if is_gen:
                                 self._set(f'{lab}_graph_generated', True)
                                 self._set(f'{lab}_maxflow_done', False)
@@ -500,6 +513,7 @@ class GraphLabApp:
                                 self._set(f'{lab}_maxflow_done', True)
                 with col2:
                     if st.button("Visualize", disabled=disabled, key=f"{lab}_{action_name}_visualize"):
+                        self._set('current_action', action_name)
                         self._s.current_visualization = action_config.images
 
     # ------------------------------------------------------------------

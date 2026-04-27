@@ -39,15 +39,14 @@ std::vector<std::vector<double>> buildKirchhoffMinor(graph::Graph const& graph) 
             }
 
             int v = vertices[j];
-            double weight = graph.getEdgeWeight(u, v).value_or(0.0);
-            minor[i][j] = -weight;
+            minor[i][j] = graph.hasEdge(u, v) ? -1.0 : 0.0;
         }
 
         for (int v : vertices) {
             if (v == u) {
                 continue;
             }
-            degree += graph.getEdgeWeight(u, v).value_or(0.0);
+            degree += graph.hasEdge(u, v) ? 1.0 : 0.0;
         }
 
         minor[i][i] = degree;
@@ -99,6 +98,7 @@ void Runner::runCountSpanningTrees(Graph const& graph) {
 
     size_t count = KirchhoffTheorem::countSpanningTrees(graph);
     std::cout << "\n[OK] Количество остовных деревьев (матричная теорема Кирхгофа): " << count << "\n";
+    FileHandler::saveToFile("assets/txt/41_kirchhoff_count.txt", std::to_string(count) + "\n");
 
     auto data = DrawDataConfig::getConfigs().at(41);
     data.pngFile = "assets/png/41_kirchhoff_matrix_minor.png";
