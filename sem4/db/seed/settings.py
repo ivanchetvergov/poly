@@ -34,9 +34,8 @@ LEVEL_COEFFICIENTS: dict[str, dict[str, float]] = {
     "level2": {
         "configurations": 0.06,
         "competition_datasets": 0.12,
-        "teams": 0.20,
+        "teams": 0.25,
         "team_members": 0.37,
-        "team_competitions": 0.05,
         "participations": 0.20,
     },
     "level3": {

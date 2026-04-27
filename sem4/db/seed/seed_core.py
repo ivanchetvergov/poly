@@ -13,52 +13,66 @@ from seed.settings import (
     TEAMS_PER_COMPETITION_MIN,
 )
 
+async def seed_participations(
+    inserter,
+    min_competitions_per_team: int = TEAM_COMPETITIONS_MIN,
+    max_competitions_per_team: int = TEAM_COMPETITIONS_MAX,
+) -> int:
+    teams = await inserter.conn.fetch("SELECT team_id FROM team")
+    competitions = await inserter.conn.fetch("SELECT competition_id FROM competition")
+    members = await inserter.conn.fetch("SELECT team_id, user_id FROM team_member")
+    statuses = await inserter.conn.fetch("SELECT status_id FROM participation_status")
 
-def _pick_competition_dataset(deps):
-    team_id, competition_id = deps['current_id']
-    matching_datasets = [
-        dataset_id
-        for comp_id, dataset_id in deps['competition_datasets']
-        if comp_id == competition_id
-    ]
-    if not matching_datasets:
-        matching_datasets = [dataset_id for _, dataset_id in deps['competition_datasets']]
-    return team_id, random.choice(matching_datasets)
+    if not teams or not competitions or not members or not statuses:
+        print("Skip participation: dependencies are empty")
+        return 0
 
+    team_members_map = {}
+    for m in members:
+        team_members_map.setdefault(m['team_id'], []).append(m['user_id'])
 
-async def seed_participations(inserter, count: int = 50) -> int:
-    return await inserter.seed(
-        table='participation',
-        query=(
-            'INSERT INTO participation (user_id, competition_id, team_id, status_id, best_score, rank)\n'
-            'VALUES ($1, $2, $3, $4, $5, $6)\n'
-            'ON CONFLICT (user_id, competition_id) DO NOTHING'
-        ),
-        generator=lambda deps: (
-            deps.get('current_id')[0],
-            deps.get('current_id')[1],
-            deps.get('current_id')[2],
-            random.choice(deps['status']),
-            None,
-            None,
-        ),
-        dependencies={
-            'team_members': (
-                'SELECT DISTINCT ON (tm.user_id, t.competition_id) '
-                'tm.user_id, t.competition_id, tm.team_id\n'
-                'FROM team_member tm\n'
-                'JOIN team t ON t.team_id = tm.team_id\n'
-                'LEFT JOIN participation p '
-                'ON p.user_id = tm.user_id AND p.competition_id = t.competition_id\n'
-                'WHERE p.participation_id IS NULL\n'
-                'ORDER BY tm.user_id, t.competition_id, tm.member_id'
-            ),
-            'status': 'SELECT status_id FROM participation_status',
-        },
-        per_dependency='team_members',
-        min_per_dependency=1,
-        max_per_dependency=1,
+    status_ids = [s['status_id'] for s in statuses]
+    comp_ids = [c['competition_id'] for c in competitions]
+
+    items = []
+    for t in teams:
+        t_id = t['team_id']
+        t_members = team_members_map.get(t_id, [])
+        if not t_members:
+            continue
+
+        num_comps = inserter.rng.randint(min_competitions_per_team, max_competitions_per_team)
+        chosen_comps = inserter.rng.sample(comp_ids, min(num_comps, len(comp_ids)))
+
+        for c_id in chosen_comps:
+            for u_id in t_members:
+                items.append((
+                    u_id,
+                    c_id,
+                    t_id,
+                    inserter.rng.choice(status_ids),
+                    None,
+                    None,
+                ))
+
+    if not items:
+        return 0
+
+    query = (
+        'INSERT INTO participation (user_id, competition_id, team_id, status_id, best_score, rank)\n'
+        'VALUES ($1, $2, $3, $4, $5, $6)\n'
+        'ON CONFLICT (user_id, competition_id) DO NOTHING'
     )
+
+    inserted = 0
+    batch_size = 2000
+    for start in range(0, len(items), batch_size):
+        chunk = items[start:start + batch_size]
+        await inserter.conn.executemany(query, chunk)
+        inserted += len(chunk)
+
+    print(f"Insert {inserted} items into participation.")
+    return inserted
 
 async def seed_configurations(inserter) -> int:
     return await inserter.seed(
@@ -118,35 +132,23 @@ async def seed_competition_datasets(
 async def seed_teams(
     inserter,
     fake: Faker,
-    min_per_competition: int = TEAMS_PER_COMPETITION_MIN,
-    max_per_competition: int = TEAMS_PER_COMPETITION_MAX,
+    count: int = 50,
 ) -> int:
     return await inserter.seed(
         table='team',
         query=(
-            'INSERT INTO team (competition_id, name, status_id)\n'
-            'VALUES ($1, $2, $3)\n'
-            'ON CONFLICT (competition_id, name) DO NOTHING'
+            'INSERT INTO team (name, status_id)\n'
+            'VALUES ($1, $2)\n'
+            'ON CONFLICT (name) DO NOTHING'
         ),
         generator=lambda deps: (
-            deps.get('current_id'),
-            f"{random.choice(TEAM_NAMES)} {random.choice(TEAM_SUFFIXES)} {deps['current_ordinal']}"[:30],
+            f"{random.choice(TEAM_NAMES)} {random.choice(TEAM_SUFFIXES)} {random.randint(1, 999999)}"[:30],
             random.choice(deps['status']),
         ),
         dependencies={
-            'competition': (
-                'SELECT c.competition_id\n'
-                'FROM competition c\n'
-                'LEFT JOIN team t ON t.competition_id = c.competition_id\n'
-                'GROUP BY c.competition_id\n'
-                'HAVING COUNT(t.team_id) = 0\n'
-                'ORDER BY c.competition_id'
-            ),
             'status': 'SELECT status_id FROM team_status',
         },
-        per_dependency='competition',
-        min_per_dependency=min_per_competition,
-        max_per_dependency=max_per_competition,
+        count=count,
     )
 
 async def seed_team_members(
@@ -175,32 +177,9 @@ async def seed_team_members(
         max_per_dependency=max_per_team,
     )
 
-async def seed_team_competitions(
-    inserter,
-    min_per_team: int = TEAM_COMPETITIONS_MIN,
-    max_per_team: int = TEAM_COMPETITIONS_MAX,
-) -> int:
-    return await inserter.seed(
-        table='team_competition',
-        query=(
-            'INSERT INTO team_competition (team_id, dataset_id)\n'
-            'VALUES ($1, $2)\n'
-            'ON CONFLICT (team_id, dataset_id) DO NOTHING'
-        ),
-        generator=_pick_competition_dataset,
-        dependencies={
-            'team': 'SELECT team_id, competition_id FROM team',
-            'competition_datasets': 'SELECT competition_id, dataset_id FROM competition_dataset',
-        },
-        per_dependency='team',
-        min_per_dependency=min_per_team,
-        max_per_dependency=max_per_team,
-    )
-
 async def run_level2(inserter, fake: Faker) -> None:
     await seed_configurations(inserter)
     await seed_competition_datasets(inserter)
     await seed_teams(inserter, fake)
     await seed_team_members(inserter)
-    await seed_team_competitions(inserter)
     await seed_participations(inserter)
