@@ -30,13 +30,12 @@ QUERIES = [
         "param_queries": """
             SELECT m.name, t.name, d.name
             FROM team t
-            JOIN team_competition tc    ON tc.team_id        = t.team_id
-            JOIN dataset d              ON d.dataset_id      = tc.dataset_id
-            JOIN competition c          ON c.competition_id  = t.competition_id
-            JOIN configuration cfg      ON cfg.competition_id = c.competition_id
-            JOIN metric m               ON m.metric_id       = cfg.metric_id
+            JOIN participation p ON p.team_id = t.team_id
+            JOIN competition c ON c.competition_id = p.competition_id
+            JOIN configuration cfg ON cfg.competition_id = c.competition_id
+            JOIN metric m ON m.metric_id = cfg.metric_id
             JOIN competition_dataset cd ON cd.competition_id = c.competition_id
-                                        AND cd.dataset_id    = tc.dataset_id
+            JOIN dataset d ON d.dataset_id = cd.dataset_id
             ORDER BY RANDOM()
             LIMIT 1
         """,
