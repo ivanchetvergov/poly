@@ -16,7 +16,6 @@ from seed_core import (
     seed_competition_datasets,
     seed_configurations,
     seed_participations,
-    seed_team_competitions,
     seed_team_members,
     seed_teams,
 )
@@ -127,7 +126,6 @@ async def run_level2_from_total(
         "competition_dataset": await _table_count(conn, "competition_dataset"),
         "team": await _table_count(conn, "team"),
         "team_member": await _table_count(conn, "team_member"),
-        "team_competition": await _table_count(conn, "team_competition"),
         "participation": await _table_count(conn, "participation"),
     }
 
@@ -152,20 +150,13 @@ async def run_level2_from_total(
     await seed_teams(
         inserter,
         fake,
-        min_per_competition=TEAMS_PER_COMPETITION_MIN,
-        max_per_competition=TEAMS_PER_COMPETITION_MAX,
+        count=counts["teams"],
     )
 
     await seed_team_members(
         inserter,
         min_per_team=TEAM_MEMBERS_MIN,
         max_per_team=TEAM_MEMBERS_MAX,
-    )
-
-    await seed_team_competitions(
-        inserter,
-        min_per_team=TEAM_COMPETITIONS_MIN,
-        max_per_team=TEAM_COMPETITIONS_MAX,
     )
 
     await seed_participations(inserter)
@@ -177,7 +168,6 @@ async def run_level2_from_total(
         "competition_dataset": await _table_count(conn, "competition_dataset"),
         "team": await _table_count(conn, "team"),
         "team_member": await _table_count(conn, "team_member"),
-        "team_competition": await _table_count(conn, "team_competition"),
         "participation": await _table_count(conn, "participation"),
     }
     for table, final in final_counts.items():
@@ -353,8 +343,6 @@ async def execute_action(
         return await seed_teams(inserter, fake, **kwargs)
     if action == "team_members":
         return await seed_team_members(inserter, **kwargs)
-    if action == "team_competitions":
-        return await seed_team_competitions(inserter, **kwargs)
     if action == "participations":
         return await seed_participations(inserter, **kwargs)
     if action == "submissions":
