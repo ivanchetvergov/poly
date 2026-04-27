@@ -3,6 +3,7 @@ from __future__ import annotations
 from faker import Faker
 
 from cli import bootstrap  # noqa: F401
+from cli.constants import ACTION_SPECS
 from cli.level_distribution import ALL_LEVEL_RATIOS, distribute_total, level_counts
 from inserter import Inserter
 from seed_base import (
@@ -24,37 +25,20 @@ from seed_sub import (
     seed_participation_scores,
     seed_submissions,
 )
-
-ACTION_SPECS = {
-    "all": {"defaults": {"total_count": 3000}},
-    "dict": {"defaults": {}},
-    "table_counts": {"defaults": {}},
-    "clear_all_data": {"defaults": {"confirm": "NO"}},
-    "llm_query": {
-        "defaults": {
-            "prompt": "",
-        }
-    },
-    "level1": {"defaults": {"total_count": 1000}},
-    "level2": {"defaults": {"total_count": 1000}},
-    "level3": {"defaults": {"total_count": 1000}},
-    "users": {"defaults": {"count": 50}},
-    "datasets": {"defaults": {"count": 8}},
-    "dataset_files": {"defaults": {"min_per_dataset": 3, "max_per_dataset": 10}},
-    "competitions": {"defaults": {"count": 10}},
-    "configurations": {"defaults": {"count": 10}},
-    "competition_datasets": {
-        "defaults": {"min_per_competition": 1, "max_per_competition": 3}
-    },
-    "teams": {"defaults": {"min_per_competition": 3, "max_per_competition": 15}},
-    "team_members": {"defaults": {"min_per_team": 2, "max_per_team": 5}},
-    "team_competitions": {"defaults": {"min_per_team": 1, "max_per_team": 2}},
-    "participations": {"defaults": {"count": 50}},
-    "submissions": {
-        "defaults": {"min_per_participation": 1, "max_per_participation": 3}
-    },
-    "participation_scores": {"defaults": {}},
-}
+from seed.settings import (
+    COMPETITION_DATASETS_MAX,
+    COMPETITION_DATASETS_MIN,
+    DATASET_FILES_MAX,
+    DATASET_FILES_MIN,
+    SUBMISSIONS_PER_PARTICIPATION_MAX,
+    SUBMISSIONS_PER_PARTICIPATION_MIN,
+    TEAM_COMPETITIONS_MAX,
+    TEAM_COMPETITIONS_MIN,
+    TEAM_MEMBERS_MAX,
+    TEAM_MEMBERS_MIN,
+    TEAMS_PER_COMPETITION_MAX,
+    TEAMS_PER_COMPETITION_MIN,
+)
 
 
 async def _table_count(conn, table: str) -> int:
@@ -105,8 +89,8 @@ async def run_level1_from_total(
     datasets_total = await _table_count(conn, "dataset")
     files_min, files_max = _clamp_bounds(
         _bounds_for_target(counts["dataset_files"], datasets_total),
-        min_allowed=3,
-        max_allowed=10,
+        min_allowed=DATASET_FILES_MIN,
+        max_allowed=DATASET_FILES_MAX,
     )
     await seed_dataset_files(
         inserter,
@@ -147,7 +131,7 @@ async def run_level2_from_total(
         "participation": await _table_count(conn, "participation"),
     }
 
-    await seed_configurations(inserter, count=counts["configurations"])
+    await seed_configurations(inserter)
 
     competitions_total = await _table_count(conn, "competition")
     datasets_total = await _table_count(conn, "dataset")
@@ -156,8 +140,8 @@ async def run_level2_from_total(
             counts["competition_datasets"],
             competitions_total,
         ),
-        min_allowed=1,
-        max_allowed=max(1, min(6, datasets_total)),
+        min_allowed=COMPETITION_DATASETS_MIN,
+        max_allowed=max(COMPETITION_DATASETS_MIN, min(COMPETITION_DATASETS_MAX, datasets_total)),
     )
     await seed_competition_datasets(
         inserter,
@@ -165,45 +149,26 @@ async def run_level2_from_total(
         max_per_competition=comp_data_max,
     )
 
-    teams_min, teams_max = _clamp_bounds(
-        _bounds_for_target(counts["teams"], competitions_total),
-        min_allowed=3,
-        max_allowed=15,
-    )
     await seed_teams(
         inserter,
         fake,
-        min_per_competition=teams_min,
-        max_per_competition=teams_max,
+        min_per_competition=TEAMS_PER_COMPETITION_MIN,
+        max_per_competition=TEAMS_PER_COMPETITION_MAX,
     )
 
-    teams_total = await _table_count(conn, "team")
-    team_members_min, team_members_max = _bounds_for_target(
-        counts["team_members"],
-        teams_total,
-    )
-    team_members_min, team_members_max = _clamp_bounds(
-        (team_members_min, team_members_max),
-        min_allowed=2,
-        max_allowed=5,
-    )
     await seed_team_members(
         inserter,
-        min_per_team=team_members_min,
-        max_per_team=team_members_max,
+        min_per_team=TEAM_MEMBERS_MIN,
+        max_per_team=TEAM_MEMBERS_MAX,
     )
 
-    team_comp_min, team_comp_max = _bounds_for_target(
-        counts["team_competitions"],
-        teams_total,
-    )
     await seed_team_competitions(
         inserter,
-        min_per_team=team_comp_min,
-        max_per_team=team_comp_max,
+        min_per_team=TEAM_COMPETITIONS_MIN,
+        max_per_team=TEAM_COMPETITIONS_MAX,
     )
 
-    await seed_participations(inserter, count=counts["participations"])
+    await seed_participations(inserter)
 
     # Report added counts
     print("\nLevel 2 - Records added:")
@@ -226,8 +191,6 @@ async def run_level3_from_total(
     fake: Faker,
     total_count: int,
 ) -> None:
-    counts = level_counts("level3", total_count)
-
     # Track initial counts
     initial_counts = {
         "submission": await _table_count(conn, "submission"),
@@ -236,20 +199,14 @@ async def run_level3_from_total(
         ),
     }
 
-    participations_total = await _table_count(conn, "participation")
-    submissions_min, submissions_max = _bounds_for_target(
-        counts["submissions"],
-        participations_total,
-    )
     await seed_submissions(
         inserter,
         fake,
-        min_per_participation=submissions_min,
-        max_per_participation=submissions_max,
+        min_per_participation=SUBMISSIONS_PER_PARTICIPATION_MIN,
+        max_per_participation=SUBMISSIONS_PER_PARTICIPATION_MAX,
     )
 
-    if counts["submissions"] > 0:
-        await seed_participation_scores(inserter)
+    await seed_participation_scores(conn)
 
     # Report added counts
     print("\nLevel 3 - Records added:")
@@ -403,6 +360,6 @@ async def execute_action(
     if action == "submissions":
         return await seed_submissions(inserter, fake, **kwargs)
     if action == "participation_scores":
-        return await seed_participation_scores(inserter)
+        return await seed_participation_scores(conn)
 
     raise ValueError(f"Unknown action: {action}")

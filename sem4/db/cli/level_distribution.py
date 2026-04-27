@@ -1,26 +1,6 @@
 from __future__ import annotations
 
-
-LEVEL_COEFFICIENTS: dict[str, dict[str, float]] = {
-    "level1": {
-        "users": 0.644,
-        "datasets": 0.096,
-        "dataset_files": 0.08,
-        "competitions": 0.18,
-    },
-    "level2": {
-        "configurations": 0.08,
-        "competition_datasets": 0.07,
-        "teams": 0.18,
-        "team_members": 0.37,
-        "team_competitions": 0.05,
-        "participations": 0.25,
-    },
-    "level3": {
-        "submissions": 1.0,
-    },
-}
-
+from seed.settings import LEVEL_COEFFICIENTS
 
 ALL_LEVEL_RATIOS: dict[str, float] = {
     "level1": 0.43,

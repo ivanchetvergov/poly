@@ -12,6 +12,11 @@ from faker import Faker
 import requests
 
 from cli import bootstrap  # noqa: F401
+from cli.constants import (
+    DEFAULT_LLM_TIMEOUT_SECONDS,
+    DEFAULT_LLM_URL,
+    DEFAULT_OPENROUTER_MODEL,
+)
 from cli.action_dispatcher import execute_action
 from infra.db_config import get_pg_connect_kwargs
 from inserter import Inserter
@@ -24,16 +29,16 @@ def _run_llm_query(params: dict) -> ActionOutcome:
     url = str(
         params.get(
             "url",
-            "http://localhost:8000/generate",
+            DEFAULT_LLM_URL,
         )
     ).strip()
     model = str(
         params.get(
             "model",
-            os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b:free"),
+            os.getenv("OPENROUTER_MODEL", DEFAULT_OPENROUTER_MODEL),
         )
     ).strip()
-    timeout = 20.0
+    timeout = DEFAULT_LLM_TIMEOUT_SECONDS
 
     if not prompt:
         return ActionOutcome(

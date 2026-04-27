@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from cli.action_dispatcher import ACTION_SPECS
+from cli.constants import ACTION_SPECS
 from cli.services import run_seed_action
 from cli.ui.config import BINDINGS, MAX_PARAM_FIELDS, MENU
 from cli.ui.styles import APP_CSS
