@@ -3,8 +3,8 @@ SELECT
     tr.name                    AS team_role,
     COUNT(DISTINCT tm.user_id) AS member_count
 FROM team t
-    JOIN team_member tm ON tm.team_id      = t.team_id
-    JOIN team_role tr   ON tr.team_role_id = tm.team_role_id
+    CROSS JOIN team_member tm
+    CROSS JOIN team_role tr
 GROUP BY
     t.team_id,
     t.name,
@@ -12,4 +12,8 @@ GROUP BY
     tr.name
 ORDER BY
     t.name,
-    tr.name;
+    tr.name
+LIMIT 15;
+
+-- cross join
+-- ограничить число команд в запросе

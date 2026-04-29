@@ -72,10 +72,9 @@ CREATE TABLE IF NOT EXISTS team (
 
 CREATE TABLE IF NOT EXISTS participation (
     participation_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
     competition_id INT NOT NULL REFERENCES competition(competition_id) ON DELETE CASCADE,
+    team_id INT NOT NULL REFERENCES team(team_id) ON DELETE CASCADE,
     status_id INT NOT NULL REFERENCES participation_status(status_id),
-    team_id INT REFERENCES team(team_id) ON DELETE SET NULL,
     best_score NUMERIC(12,6),
     rank SMALLINT,
     registered_at TIMESTAMP NOT NULL DEFAULT NOW()

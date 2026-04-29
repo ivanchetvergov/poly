@@ -36,7 +36,7 @@ ALTER TABLE dataset
     ADD CONSTRAINT uq_dataset_name_version UNIQUE (name, version);
 
 ALTER TABLE participation
-    ADD CONSTRAINT uq_participation_user_competition UNIQUE (user_id, competition_id);
+    ADD CONSTRAINT uq_participation_team_competition UNIQUE (team_id, competition_id);
 
 ALTER TABLE submission
     ADD CONSTRAINT uq_submission_attempt UNIQUE (participation_id, attempt_number);

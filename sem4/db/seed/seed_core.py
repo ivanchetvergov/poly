@@ -45,23 +45,21 @@ async def seed_participations(
         chosen_comps = inserter.rng.sample(comp_ids, min(num_comps, len(comp_ids)))
 
         for c_id in chosen_comps:
-            for u_id in t_members:
-                items.append((
-                    u_id,
-                    c_id,
-                    t_id,
-                    inserter.rng.choice(status_ids),
-                    None,
-                    None,
-                ))
+            items.append((
+                c_id,
+                t_id,
+                inserter.rng.choice(status_ids),
+                None,
+                None,
+            ))
 
     if not items:
         return 0
 
     query = (
-        'INSERT INTO participation (user_id, competition_id, team_id, status_id, best_score, rank)\n'
-        'VALUES ($1, $2, $3, $4, $5, $6)\n'
-        'ON CONFLICT (user_id, competition_id) DO NOTHING'
+        'INSERT INTO participation (competition_id, team_id, status_id, best_score, rank)\n'
+        'VALUES ($1, $2, $3, $4, $5)\n'
+        'ON CONFLICT (team_id, competition_id) DO NOTHING'
     )
 
     inserted = 0

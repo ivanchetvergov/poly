@@ -11,8 +11,11 @@ FROM team t
             COUNT(p2.participation_id) AS participation_count
         FROM team t2
             JOIN participation p2 ON p2.team_id = t2.team_id
-        WHERE t2.name = $1
-        GROUP BY t2.team_id, t2.name
+        WHERE
+            t2.name = $1
+        GROUP BY
+            t2.team_id,
+            t2.name
     ) ref
 GROUP BY
     t.team_id,
@@ -22,3 +25,35 @@ GROUP BY
 HAVING COUNT(p.participation_id) > ref.participation_count
 ORDER BY
     score_b DESC;
+
+-- написать в having с джойном селект и проверить что шустрее
+
+-- SELECT
+--     $1                        AS team_a,
+--     (
+--         SELECT COUNT(p2.participation_id)
+--         FROM team t2
+--             JOIN participation p2 ON p2.team_id = t2.team_id
+--         WHERE
+--             t2.name = $1
+--         GROUP BY
+--             t2.team_id
+--     )                         AS score_a,
+--     t.name                    AS team_b,
+--     COUNT(p.participation_id) AS score_b
+-- FROM team t
+--     JOIN participation p ON p.team_id = t.team_id
+-- GROUP BY
+--     t.team_id,
+--     t.name
+-- HAVING COUNT(p.participation_id) > (
+--     SELECT COUNT(p2.participation_id)
+--     FROM team t2
+--         JOIN participation p2 ON p2.team_id = t2.team_id
+--     WHERE
+--         t2.name = $1
+--     GROUP BY
+--         t2.team_id
+-- )
+-- ORDER BY
+--     score_b DESC;

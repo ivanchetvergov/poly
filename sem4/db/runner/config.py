@@ -9,7 +9,8 @@ QUERIES = [
         "param_queries":  """
             SELECT u.username, r.name, d.name
             FROM participation p
-            JOIN "user" u               ON u.user_id          = p.user_id
+            JOIN team_member tm         ON tm.team_id         = p.team_id
+            JOIN "user" u               ON u.user_id          = tm.user_id
             JOIN role r                 ON r.role_id          = u.role_id
             JOIN submission s           ON s.participation_id = p.participation_id
             JOIN competition_dataset cd ON cd.competition_id  = p.competition_id

@@ -5,7 +5,8 @@ SELECT DISTINCT
     df.filename  AS file_name
 FROM competition c
     JOIN participation p        ON p.competition_id   = c.competition_id    -- участие
-    JOIN "user" u               ON u.user_id          = p.user_id           -- пользователь
+    JOIN team_member tm         ON tm.team_id         = p.team_id           -- участники
+    JOIN "user" u               ON u.user_id          = tm.user_id           -- пользователь
     JOIN role r                 ON r.role_id          = u.role_id           -- роль пользователя
     JOIN submission s           ON s.participation_id = p.participation_id  -- отправки (пост)
     JOIN competition_dataset cd ON cd.competition_id  = c.competition_id    -- датасет в соревновании

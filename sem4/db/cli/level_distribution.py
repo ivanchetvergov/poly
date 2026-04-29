@@ -3,8 +3,8 @@ from __future__ import annotations
 from seed.settings import LEVEL_COEFFICIENTS
 
 ALL_LEVEL_RATIOS: dict[str, float] = {
-    "level1": 0.43,
-    "level2": 0.39,
+    "level1": 0.42,
+    "level2": 0.40,
     "level3": 0.18,
 }
 
