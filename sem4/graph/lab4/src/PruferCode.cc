@@ -18,7 +18,6 @@ PruferCode::PruferEncoding PruferCode::encode(Graph const& tree) {
         degree[v] = tree.degree(v);
     }
 
-    // Store edge weights
     for (int u : vertices) {
         for (auto const& [v, weight] : tree.neighbors(u)) {
             if (u < v) {

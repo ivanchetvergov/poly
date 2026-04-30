@@ -7,7 +7,6 @@
 
 namespace graph {
 
-// Hash function for pair<int, int>
 struct PairHash {
     std::size_t operator()(const std::pair<int, int>& p) const {
         auto h1 = std::hash<int>{}(p.first);
@@ -20,8 +19,6 @@ class PruferCode {
 public:
     explicit PruferCode() = default;
 
-    /// Encode tree to Prufer sequence preserving weights
-    /// Returns vector of vertex IDs
     struct PruferEncoding {
         std::vector<int> vertices;
         std::vector<int> sequence;
@@ -30,7 +27,6 @@ public:
 
     [[nodiscard]] PruferEncoding encode(Graph const& tree);
 
-    /// Decode Prufer sequence back to tree with original weights
     [[nodiscard]] std::unique_ptr<Graph> decode(PruferEncoding const& encoding);
 };
 

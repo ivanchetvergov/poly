@@ -16,7 +16,6 @@ class Runner {
 public:
     Runner() = default;
 
-    // Lab 4 requirements
     void runCountSpanningTrees(Graph const& graph);
     void runBuildMinimalSpanningTree(Graph const& graph);
     void runPruferEncode(Graph const& graph);

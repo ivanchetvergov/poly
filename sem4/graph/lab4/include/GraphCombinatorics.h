@@ -12,7 +12,7 @@ class GraphCombinatorics {
 public:
     explicit GraphCombinatorics() = default;
 
-    /// Find minimum coloring of graph (chromatic number)
+
     [[nodiscard]] VerticesSet findMinColoring(Graph const& graph);
 
 
