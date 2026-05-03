@@ -6,6 +6,7 @@ from matplotlib.lines import Line2D
 from ..core.graph_loader import GraphLoader
 from ..core.renderer import Renderer
 from ..core.config import node_cfg, edge_cfg, colormap_cfg, legend_cfg
+from ..core.helpers import normalize_edge
 
 
 def main():
@@ -40,6 +41,15 @@ def main():
     renderer.setup_plot()
     pos = renderer.compute_layout(G)
 
+    try:
+        import json
+        pos_file = args.graph_file + '.pos.json'
+        serializable = {str(n): [float(x), float(y)] for n, (x, y) in pos.items()}
+        with open(pos_file, 'w', encoding='utf-8') as pf:
+            json.dump(serializable, pf)
+    except Exception:
+        pass
+
     if network_type == 'graph':
         weights = [G[u][v]['weight'] for u, v in G.edges()]
         min_w = min(weights) if weights else 0
@@ -52,7 +62,7 @@ def main():
         edge_colors = []
         edge_widths = []
         for i, (u, v) in enumerate(G.edges()):
-            edge = (u, v) if not directed else (min(u, v), max(u, v))
+            edge = normalize_edge(u, v, directed)
             if edge in added_edges or (v, u) in added_edges:
                 edge_colors.append(edge_cfg.highlight_edge_color)
                 edge_widths.append(edge_cfg.added_edge_width)

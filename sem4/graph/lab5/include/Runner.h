@@ -11,8 +11,7 @@ public:
     Runner() = default;
 
     void runCheckEulerian(Graph& graph);
-    void runCheckHamiltonian(Graph& graph);
-    void runSolveTSP(Graph const& graph);
+    void runFundamentalCuts(Graph const& graph);
 };
 
 }  // namespace lab5

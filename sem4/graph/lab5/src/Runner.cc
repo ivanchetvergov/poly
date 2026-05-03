@@ -1,169 +1,229 @@
 #include "../include/Runner.h"
 
+#include "../include/CutSystem.h"
 #include "../include/EulerianCycle.h"
-#include "../include/HamiltonianCycle.h"
-#include "../include/TSPSolver.h"
+#include "../../lab4/include/Boruvka.h"
 
+#include <algorithm>
+#include <cstdlib>
 #include <iostream>
+#include <sstream>
 
 #include <FileHandler.h>
 #include <DrawDataConfig.h>
+#include <Utils.h>
 #include <Visualizer.h>
 
 namespace lab5 {
 
 using graph::EulerianCycle;
-using graph::HamiltonianCycle;
-using graph::TSPSolver;
+using graph::CutSystem;
+using graph::Boruvka;
 using graph::FileHandler;
 using graph::DrawDataConfig;
 using graph::Visualizer;
 using graph::DrawData;
 using graph::VisualizationType;
+using graph::readInt;
+
+namespace {
+
+std::string edgeToString(std::pair<int,int> const& e) {
+    std::ostringstream out;
+    out << "(" << e.first << ", " << e.second << ")";
+    return out.str();
+}
+
+std::string cutEdgesToText(std::vector<std::pair<int,int>> const& edges) {
+    std::ostringstream out;
+    for (size_t i = 0; i < edges.size(); ++i) {
+        out << edgeToString(edges[i]);
+        if (i + 1 < edges.size()) out << " ";
+    }
+    return out.str();
+}
+
+std::string verticesToText(std::vector<int> const& vertices) {
+    std::ostringstream out;
+    out << "{";
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        out << vertices[i];
+        if (i + 1 < vertices.size()) out << ", ";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string pathToArrowText(std::vector<int> const& path) {
+    std::ostringstream out;
+    for (size_t i = 0; i < path.size(); ++i) {
+        out << path[i];
+        if (i + 1 < path.size()) out << " -> ";
+    }
+    return out.str();
+}
+
+bool isWebMode() {
+    if (char const* env = std::getenv("GRAPH_WEB_MODE"); env != nullptr) {
+        return std::string(env) == "1";
+    }
+    return false;
+}
+
+}  // namespace
 
 void Runner::runCheckEulerian(Graph& graph) {
+    if (graph.isDirected() || graph.vertexCount() == 0) {
+        std::cout << "[FAIL] Граф должен быть неориентированным и инициализированным\n";
+        return;
+    }
+
     auto data = DrawDataConfig::getConfigs().at(51);
     EulerianCycle euler(graph);
 
     std::cout << "\n=== Проверка эйлеровости ===\n";
 
+    FileHandler::saveGraph(data.txtFile, graph);
+
+    Visualizer::draw(data, false, VisualizationType::Graph);
+    try {
+        DrawData orig = data;
+        orig.pngFile = "assets/png/51_graph_original.png";
+        FileHandler::saveGraph(orig.txtFile, graph);
+        Visualizer::draw(orig, false, VisualizationType::Graph);
+    } catch (...) {
+    }
+
+    // ── Достройка до замкнутого эйлерова цикла ───────────────────────────────
     if (euler.isEulerian()) {
-        std::cout << "[OK] Граф является эйлеровым\n";
-        auto cycle = euler.findCycle();
-        if (cycle.has_value()) {
-            std::cout << "Эйлеров цикл найден, длина: " << cycle->size() << "\n";
-
-            data.path = *cycle;
-            FileHandler::saveGraph(data.txtFile, graph);
-            FileHandler::savePaths(data.txtPathsFile, {data.path});
-            DrawData pathsData = data;
-            pathsData.paths = {data.path};
-            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
-            std::cout << "[OK] Эйлеров цикл визуализирован\n";
-        }
+        std::cout << "[OK] Граф уже является эйлеровым\n";
     } else if (euler.isSemiEulerian()) {
-        std::cout << "[INFO] Граф является полуэйлеровым (есть эйлеров путь, но нет цикла)\n";
-        auto odd_vertices = euler.getOddDegreeVertices();
-        std::cout << "Вершины с нечётной степенью: ";
-        for (int v : odd_vertices) {
-            std::cout << v << " ";
-        }
-        std::cout << "\n";
+        std::cout << "[INFO] Граф полуэйлеровый — пытаемся замкнуть в эйлеров цикл, если это возможно\n";
     } else {
-        std::cout << "[INFO] Граф не является эйлеровым\n";
-        auto odd_vertices = euler.getOddDegreeVertices();
-        std::cout << "Вершин с нечётной степенью: " << odd_vertices.size() << "\n";
+        std::cout << "[INFO] Граф не эйлеров, вершин с нечётной степенью: "
+                  << euler.getOddDegreeVertices().size() << " — выполняется достройка\n";
+    }
 
-        std::cout << "\nПопытка модификации графа...\n";
-        FileHandler::saveGraph(data.txtFile, graph);
-        euler.makeEulerian();
-        auto added_edges = euler.getAddedEdges();
-        if (!added_edges.empty()) {
-            std::cout << "[ИНФО] Добавлено рёбер: " << added_edges.size() << "\n";
-        }
-        auto cycle = euler.findCycle();
-        if (cycle.has_value()) {
-            std::cout << "[OK] После модификации найден эйлеров цикл, длина: " << cycle->size() << "\n";
+    euler.makeEulerian();
 
-            data.path = *cycle;
-            data.addedEdges = added_edges;
-            FileHandler::savePaths(data.txtPathsFile, {data.path});
-            FileHandler::saveAddedEdges(data.txtPathsFile, data.addedEdges);
-            DrawData pathsData = data;
-            pathsData.paths = {data.path};
-            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
-            std::cout << "[OK] Эйлеров цикл после модификации визуализирован\n";
-        } else {
-            std::cout << "[FAIL] Не удалось найти эйлеров цикл после модификации\n";
+    auto const& added = euler.getAddedEdges();
+    if (!added.empty()) {
+        std::cout << "[INFO] Добавлено рёбер: " << added.size() << "\n";
+        for (auto const& [u, v] : added) {
+            std::cout << "  + " << u << " -- " << v << "\n";
         }
     }
-}
 
-void Runner::runCheckHamiltonian(Graph& graph) {
-    auto data = DrawDataConfig::getConfigs().at(52);
-    HamiltonianCycle hamilton(graph);
-
-    std::cout << "\n=== Проверка гамильтоновости ===\n";
-
-    if (hamilton.isHamiltonian()) {
-        std::cout << "[OK] Граф является гамильтоновым\n";
-        auto cycle = hamilton.findCycle();
-        if (cycle.has_value()) {
-            std::cout << "Гамильтонов цикл найден\n";
-
-            data.path = *cycle;
-            FileHandler::saveGraph(data.txtFile, graph);
-            FileHandler::savePaths(data.txtPathsFile, {data.path});
-            DrawData pathsData = data;
-            pathsData.paths = {data.path};
-            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
-            std::cout << "[OK] Гамильтонов цикл визуализирован\n";
-        }
-    } else {
-        std::cout << "[INFO] Граф не является гамильтоновым\n";
-        std::cout << "Попытка модификации графа...\n";
-        FileHandler::saveGraph(data.txtFile, graph);
-        hamilton.makeHamiltonian();
-        auto added_edges = hamilton.getAddedEdges();
-        if (!added_edges.empty()) {
-            std::cout << "[ИНФО] Добавлено рёбер: " << added_edges.size() << "\n";
-        }
-        auto cycle = hamilton.findCycle();
-        if (cycle.has_value()) {
-            std::cout << "[OK] После модификации найден гамильтонов цикл\n";
-
-            data.path = *cycle;
-            data.addedEdges = added_edges;
-            FileHandler::savePaths(data.txtPathsFile, {data.path});
-            FileHandler::saveAddedEdges("assets/txt/added_edges.txt", data.addedEdges);
-            DrawData pathsData = data;
-            pathsData.paths = {data.path};
-            Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
-            std::cout << "[OK] Гамильтонов цикл после модификации визуализирован\n";
-        } else {
-            std::cout << "[FAIL] Не удалось найти гамильтонов цикл после модификации\n";
-        }
+    if (!euler.isEulerian() && !euler.isSemiEulerian()) {
+        std::cout << "[FAIL] После модификации граф не является ни эйлеровым, ни полуэйлеровым. "
+                  << "Вершин с нечётной степенью: " << euler.getOddDegreeVertices().size() << "\n";
+        return;
     }
-}
+    if (euler.isEulerian()) {
+        std::cout << "[OK] После модификации граф эйлеровый\n";
+    } else {
+        std::cout << "[OK] После модификации граф полуэйлеровый\n";
+    }
 
-void Runner::runSolveTSP(Graph const& graph) {
-    std::cout << "\n=== Задача коммивояжёра (TSP) ===\n";
-
-    TSPSolver solver(graph);
-    auto result = solver.findAllCycles(100);
-
-    if (result.empty()) {
-        std::cout << "[INFO] Не найдено гамильтоновых циклов\n";
+    auto cycle = euler.findCycle();
+    if (!cycle.has_value()) {
+        std::cout << "[FAIL] Не удалось найти эйлеров цикл после модификации\n";
         return;
     }
 
-    std::cout << "[OK] Найдено циклов: " << result.size() << "\n\n";
+    bool closed = !cycle->empty() && cycle->front() == cycle->back();
+    std::cout << "[OK] Найден маршрут, длина: " << cycle->size()
+              << (closed ? " (замкнутый цикл)\n" : " (эйлеров путь)\n");
+    std::cout << "[PATH] " << pathToArrowText(*cycle) << "\n";
 
-    size_t show_count = std::min(result.size(), static_cast<size_t>(5));
-    std::cout << "Лучшие " << show_count << " циклов:\n";
+    data.paths = {*cycle};
+    FileHandler::savePaths(data.txtPathsFile, data.paths);
+    FileHandler::saveAddedEdges(data.txtGraphFile, added);
+    Visualizer::drawEulerCycle(data, VisualizationType::Graph);
 
-    for (size_t i = 0; i < show_count; ++i) {
-        auto const& cycle = result[i];
-        std::cout << (i + 1) << ". Стоимость: " << cycle.cost << ", Путь: ";
-        for (size_t j = 0; j < cycle.path.size(); ++j) {
-            std::cout << cycle.path[j];
-            if (j < cycle.path.size() - 1)
-                std::cout << " -> ";
-        }
-        std::cout << "\n";
+    std::cout << "[OK] Результат визуализирован\n";
+}
+
+void Runner::runFundamentalCuts(Graph const& graph) {
+    if (graph.isDirected() || graph.vertexCount() < 2) {
+        std::cout << "[FAIL] Граф должен быть неориентированным и содержать >= 2 вершин\n";
+        return;
     }
 
-    auto best_cycle = result.front().path;
-    std::cout << "\nЛучший цикл визуализирован\n";
+    Boruvka boruvka;
+    auto mst = boruvka.buildMST(graph);
+    if (!mst || mst->edgeCount() == 0) {
+        std::cout << "[FAIL] Не удалось построить кратчайший остов\n";
+        return;
+    }
 
-    auto data = DrawDataConfig::getConfigs().at(53);
-    data.path = best_cycle;
+    const size_t expectedMstEdges = graph.vertexCount() - 1;
+    if (mst->edgeCount() != expectedMstEdges) {
+        std::cout << "[FAIL] Некорректный остов: ожидалось " << expectedMstEdges
+                  << " ребер, получено " << mst->edgeCount() << "\n";
+        return;
+    }
+
+    CutSystem cutSystem(graph, *mst);
+    auto fundamentalCuts = cutSystem.buildFundamentalCuts();
+
+    std::ostringstream report;
+    report << "Фундаментальная система разрезов (по рёбрам MST):\n";
+
+    std::cout << "\n=== Фундаментальная система разрезов ===\n";
+    for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
+        auto const& c = fundamentalCuts[i];
+        std::cout << i << ") tree edge " << edgeToString(c.treeEdge)
+                  << " -> { " << cutEdgesToText(c.cutEdges) << " }\n";
+         std::cout << "    A=" << verticesToText(c.leftComponent)
+                << " B=" << verticesToText(c.rightComponent) << "\n";
+        report << i << ") tree edge " << edgeToString(c.treeEdge)
+               << " -> { " << cutEdgesToText(c.cutEdges) << " }\n";
+         report << "    A=" << verticesToText(c.leftComponent)
+             << " B=" << verticesToText(c.rightComponent) << "\n";
+    }
+
+    std::vector<int> selected;
+    if (isWebMode()) {
+        for (size_t i = 0; i < std::min<size_t>(2, fundamentalCuts.size()); ++i) {
+            selected.push_back(static_cast<int>(i));
+        }
+    } else {
+        int k = readInt("\nСколько фундаментальных разрезов использовать? ");
+        for (int i = 0; i < k; ++i) {
+            int idx = readInt("Введите индекс разреза: ");
+            selected.push_back(idx);
+        }
+    }
+
+    std::vector<int> validSelected;
+    validSelected.reserve(selected.size());
+    for (int idx : selected) {
+        if (idx < 0 || idx >= static_cast<int>(fundamentalCuts.size())) {
+            std::cout << "[WARN] Игнорируется некорректный индекс разреза: " << idx << "\n";
+            report << "[WARN] Игнорируется некорректный индекс разреза: " << idx << "\n";
+            continue;
+        }
+        validSelected.push_back(idx);
+    }
+
+    auto symDiff = cutSystem.symmetricDifference(fundamentalCuts, validSelected);
+    std::cout << "\nСимметрическая разность: { " << cutEdgesToText(symDiff) << " }\n";
+
+    report << "\nВыбраны индексы: ";
+    for (int idx : selected) report << idx << " ";
+    report << "\nВалидные индексы: ";
+    for (int idx : validSelected) report << idx << " ";
+    report << "\nСимметрическая разность: { " << cutEdgesToText(symDiff) << " }\n";
+
+    auto data = DrawDataConfig::getConfigs().at(52);
+    data.addedEdges = symDiff;
+
     FileHandler::saveGraph(data.txtFile, graph);
-    FileHandler::savePaths(data.txtPathsFile, {data.path});
-    DrawData pathsData = data;
-    pathsData.paths = {data.path};
-    Visualizer::drawPaths(pathsData, graph.isDirected(), graph::VisualizationType::Graph);
-    std::cout << "[OK] Лучший TSP цикл визуализирован\n";
+    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+    FileHandler::saveToFile("assets/txt/52_fundamental_cuts.txt", report.str());
+    Visualizer::draw(data, false, VisualizationType::Graph);
+    std::cout << "[OK] Разрезы построены и визуализированы\n";
 }
 
 }  // namespace lab5

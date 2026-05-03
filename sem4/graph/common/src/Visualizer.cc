@@ -103,6 +103,28 @@ void Visualizer::drawPaths(DrawData const& data, bool directed, VisualizationTyp
     runPythonScript("plot_paths.py", args);
 }
 
+// Эйлеров цикл: граф undirected по топологии, стрелки только на рёбрах пути.
+// plot_paths.py получает --euler и сам разруливает логику отрисовки.
+void Visualizer::drawEulerCycle(DrawData const& data, VisualizationType type) {
+    if (type != VisualizationType::Graph) return;
+
+    std::string graph_title = data.title.empty() ? "Эйлеров цикл" : data.title;
+    Args args = {
+        data.txtFile,
+        data.txtPathsFile,
+        data.pngFile,
+        "undirected",
+        "\"" + graph_title + "\"",
+        "--type", "graph",
+        "--euler"
+    };
+    if (!data.txtGraphFile.empty()) {
+        args.push_back("--added_edges_file");
+        args.push_back(data.txtGraphFile);
+    }
+    runPythonScript("plot_paths.py", args);
+}
+
 void Visualizer::drawBFSAnimation(DrawData const& data, bool directed) {
     std::string graphType = directed ? "directed" : "undirected";
     Args args = {

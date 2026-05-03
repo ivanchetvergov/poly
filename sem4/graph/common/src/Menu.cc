@@ -68,9 +68,14 @@ void Menu::initializeActions() {
     actions_[44] = [this]() { lab4_runner_.runPruferDecode(*graph_); };
     actions_[46] = [this]() { lab4_runner_.runFindMinColoring(*graph_); };
 
-    actions_[51] = [this]() { lab5_runner_.runCheckEulerian(*graph_); };
-    actions_[52] = [this]() { lab5_runner_.runCheckHamiltonian(*graph_); };
-    actions_[53] = [this]() { lab5_runner_.runSolveTSP(*graph_); };
+    actions_[51] = [this]() {
+        checkAndRun(graph_, [this]() { lab5_runner_.runCheckEulerian(*graph_); },
+                    "Граф не инициализирован");
+    };
+    actions_[52] = [this]() {
+        checkAndRun(graph_, [this]() { lab5_runner_.runFundamentalCuts(*graph_); },
+                    "Граф не инициализирован");
+    };
 
     actions_[61] = [this]() { lab6_runner_.runHashTableDemo(); };
     actions_[62] = [this]() { lab6_runner_.runRBTreeDemo(); };
@@ -113,10 +118,9 @@ void Menu::show() const {
     std::cout << "44 - Декодирование дерева (код Прюфера)\n";
     std::cout << "46 - Минимальная раскраска графа\n";
 
-    // std::cout << "\n[Lab 5 - Циклы]\n";
-    // std::cout << "51 - Проверка эйлеровости\n";
-    // std::cout << "52 - Проверка гамильтоновости\n";
-    // std::cout << "53 - Задача коммивояжера (TSP)\n";
+    std::cout << "\n[Lab 5 - Эйлеров цикл и разрезы]\n";
+    std::cout << "51 - Проверка эйлеровости, модификация и построение цикла\n";
+    std::cout << "52 - Фундаментальная система разрезов и симметрическая разность\n";
 
     // std::cout << "\n[Lab 6 - HashTable and RBTree]\n";
     // std::cout << "61 - HashTable демо\n";

@@ -38,6 +38,12 @@ clean:
 	rm -rf build
 	for d in $(LABS); do rm -rf $$d/build; done
 
+clean-assets:
+	@echo "Cleaning generated assets (png, gif, txt) in assets/ ..."
+	@rm -f assets/png/*.png || true
+	@rm -f assets/gif/*.gif || true
+	@rm -f assets/txt/*.txt || true
+
 check: main
 	@echo "Running clang-tidy analysis (read-only)..."
 	@if [ ! -f build/compile_commands.json ]; then \

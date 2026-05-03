@@ -6,10 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(graph_lab5_lib STATIC
     src/EulerianCycle.cc
-    src/HamiltonianCycle.cc
-    src/TSPSolver.cc
+    src/CutSystem.cc
     src/Runner.cc
 )
 target_include_directories(graph_lab5_lib PUBLIC include ${CMAKE_CURRENT_SOURCE_DIR}/../common/include)
-target_link_libraries(graph_lab5_lib PUBLIC graph_common)
+target_link_libraries(graph_lab5_lib PUBLIC graph_common graph_lab4_lib)
 target_compile_options(graph_lab5_lib PRIVATE -Wall -Wextra)

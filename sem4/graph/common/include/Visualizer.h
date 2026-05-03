@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <Graph.h>
+
 namespace graph {
 
 class Graph;
@@ -24,7 +26,6 @@ struct DrawData {
     std::vector<std::string> colorLabels{};
 };
 
-
 enum class VisualizationType {
     Graph,
     FlowNetwork,
@@ -34,13 +35,16 @@ enum class VisualizationType {
 class Visualizer {
 public:
     static void draw(DrawData const& data, bool directed, VisualizationType type);
+
     static void drawPaths(DrawData const& data, bool directed, VisualizationType type);
+
+    static void drawEulerCycle(DrawData const& data, VisualizationType type);
+
     static void drawBFSAnimation(DrawData const& data, bool directed);
     static void drawCompare(DrawData const& data);
     static void drawColoredGraph(DrawData const& data, bool directed);
     static void drawMatrix(DrawData const& data, std::string const& defaultTitle,
                            bool hideOffDiagonalZeros = false);
-
     static void drawHashTable(DrawData const& data);
     static void drawRBTree(DrawData const& data, VisualizationType type);
 };

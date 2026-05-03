@@ -59,6 +59,15 @@ LAB_CONFIGS = {
             "Min Coloring": ActionConfig(execute_cmd="46", images=["46_coloring.png"]),
         }
     ),
+    "Lab 5": LabConfig(
+        number="5",
+        sub_actions={
+            "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges", "weight_sign"], images=["01_graph.png"]),
+            "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
+            "Eulerian Check + Cycle": ActionConfig(execute_cmd="51", images=["51_graph_original.png", "51_euler_cycle.png"]),
+            "Fundamental Cuts": ActionConfig(execute_cmd="52", images=["52_cuts.png"]),
+        }
+    ),
     "Lab 6": LabConfig(
         number="6",
         sub_actions={

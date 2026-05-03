@@ -2,7 +2,6 @@ import base64
 import os
 import shutil
 import subprocess
-import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -22,7 +21,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 5"}
+    DISABLED_LABS = {}
 
     def __init__(self):
         self._s = st.session_state
@@ -180,53 +179,45 @@ class GraphLabApp:
         except Exception:
             pass
 
-    def _read_text_artifact(self, txt_path: Path) -> str:
-        if not txt_path.exists():
+    def _read_euler_path_text(self) -> str:
+        path_file = ASSETS_DIR / 'txt' / '51_path.txt'
+        if not path_file.exists():
             return ""
         try:
-            return txt_path.read_text(encoding="utf-8").strip()
+            with open(path_file, 'r', encoding='utf-8') as f:
+                lines = [line.strip() for line in f if line.strip()]
+            if len(lines) < 2:
+                return ""
+            vertices = lines[1].split()
+            if not vertices:
+                return ""
+            return "[PATH] " + " -> ".join(vertices)
         except Exception:
             return ""
 
-    def _display_text_block(self, title: str, content: str) -> None:
-        if not content:
+    def _display_euler_path_badge(self, images: list[str] | None) -> None:
+        if not images or '51_euler_cycle.png' not in images:
             return
-        st.markdown(f"**{title}**")
-        st.code(content, language="text")
-
-    @staticmethod
-    def _matrix_to_latex(matrix: np.ndarray, precision: int = 2) -> str:
-        rows = []
-        for row in matrix:
-            cells = []
-            for value in row:
-                rounded = round(float(value), precision)
-                if abs(rounded - int(rounded)) < 1e-9:
-                    cells.append(str(int(rounded)))
-                else:
-                    cells.append(f"{rounded:.{precision}f}")
-            rows.append(" & ".join(cells))
-        return r"\\begin{bmatrix}" + r" \\\\ ".join(rows) + r"\\end{bmatrix}"
+        path_text = self._read_euler_path_text()
+        if not path_text:
+            return
+        st.markdown(
+            (
+                '<div style="margin-top: 0.75rem; padding: 0.45rem 0.7rem; '
+                'border: 1px solid #b8c0cc; border-radius: 8px; '
+                'font-family: monospace; font-size: 0.82rem; color: #111827; '
+                'background: #f3f4f6; '
+                'display: inline-block;">'
+                f'{path_text}'
+                '</div>'
+            ),
+            unsafe_allow_html=True,
+        )
 
     def _display_visualizations(self) -> None:
         images = self._s.current_visualization
-        current_action = self._get('current_action')
         dist_type = self._get('dist_type')
         show_dist = dist_type and any(('01_graph' in img) or ('31_flow_network' in img) for img in (images or []))
-
-        if current_action == 'Prufer Encode':
-            prufer_text = self._read_text_artifact(ASSETS_DIR / 'txt' / '43_prufer_sequence.txt')
-            paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in (images or [])]
-            if paths or prufer_text:
-                col_img, col_text = st.columns([2, 1], gap="small")
-                with col_img:
-                    for p in paths:
-                        self.display_image(p)
-                with col_text:
-                    if prufer_text:
-                        st.markdown("**Последовательность Прюфера**")
-                        st.code(prufer_text, language="text")
-            return
 
         if not images and not show_dist:
             return
@@ -241,42 +232,6 @@ class GraphLabApp:
                 self.plot_weight_distribution()
         elif images:
             paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in images]
-            prufer_text_path = None
-            if any(p.name == '43_graph.png' for p in paths):
-                prufer_text_path = ASSETS_DIR / 'txt' / '43_prufer_sequence.txt'
-            elif any(p.name == '44_graph.png' for p in paths):
-                prufer_text_path = ASSETS_DIR / 'txt' / '44_prufer_sequence.txt'
-
-            if prufer_text_path is not None:
-                col_img, col_text = st.columns([2, 1], gap="small")
-                with col_img:
-                    for p in paths:
-                        self.display_image(p)
-                with col_text:
-                    self._display_text_block("Последовательность Прюфера", self._read_text_artifact(prufer_text_path))
-                return
-
-            if any(p.name == '41_kirchhoff_matrix_minor.png' for p in paths):
-                count_path = ASSETS_DIR / 'txt' / '41_kirchhoff_count.txt'
-                spanning_trees = None
-                try:
-                    count_text = self._read_text_artifact(count_path).strip()
-                    if count_text:
-                        spanning_trees = int(count_text.split()[0])
-                except Exception:
-                    spanning_trees = None
-
-                col_img, col_info = st.columns([2, 1], gap="small")
-                with col_img:
-                    for p in paths:
-                        self.display_image(p)
-                with col_info:
-                    if spanning_trees is None:
-                        st.info("Минор матрицы Кирхгофа пока не готов для расчета.")
-                    else:
-                        st.metric("Число остовных деревьев", max(0, spanning_trees))
-                return
-
             if len(paths) == 2:
                 col1, col2 = st.columns(2)
                 with col1:
@@ -286,6 +241,8 @@ class GraphLabApp:
             else:
                 for p in paths:
                     self.display_image(p)
+
+        self._display_euler_path_badge(images)
 
     # ------------------------------------------------------------------
     # Main menu
@@ -332,7 +289,7 @@ class GraphLabApp:
         if param == "directed":
             st.checkbox("Directed", value=DEFAULT_PARAMS.directed, key=key)
         elif param == "vertices":
-            st.number_input("Vertices", 3, 50, DEFAULT_PARAMS.vertices, key=key)
+            st.number_input("Vertices", 2, 50, DEFAULT_PARAMS.vertices, key=key)
         elif param == "edges":
             st.number_input("Edges", 5, 100, DEFAULT_PARAMS.edges, key=key)
         elif param == "start_vertex":
@@ -439,23 +396,6 @@ class GraphLabApp:
                 self._set(open_key, False)
                 self._set(entered_key, False)
                 st.rerun()
-            uploaded_file = st.file_uploader("Upload text file (one word per line)", type=["txt"], key=f"{open_key}_uploader")
-            if uploaded_file is not None:
-                save_path = ASSETS_DIR / 'txt' / uploaded_file.name
-                try:
-                    with open(save_path, 'wb') as f:
-                        f.write(uploaded_file.getvalue())
-                    st.success(f"Saved to assets: {save_path.name}")
-                except Exception as e:
-                    st.error(f"Failed to save uploaded file: {e}")
-                # Choose n-gram size for tokenization
-                ngram_key = f"{open_key}_ngram"
-                ngram = st.number_input("n-gram size", 1, 5, 1, key=ngram_key)
-                if st.button("Load file", key=f"{open_key}_load"):
-                    # send load command to C++ process; pass path relative to project and ngram size
-                    rel_path = str((ASSETS_DIR / 'txt' / uploaded_file.name))
-                    self.send_command(lab, f"load {rel_path} {int(ngram)}")
-                    st.info(f"Sent load command: {uploaded_file.name} (n={int(ngram)})")
             col1, col2 = st.columns(2, gap="small")
             with col1:
                 if st.button("Visualize", key=f"{lab}_{action_name}_draw"):
@@ -463,18 +403,8 @@ class GraphLabApp:
                     self._s.current_visualization = action_config.images
             with col2:
                 if "RBTree" in action_name and st.button("GIF", key=f"{lab}_{action_name}_gif"):
-                    gif_path = ASSETS_DIR / "gif" / "65_rbtree_growth.gif"
-                    prev_mtime = gif_path.stat().st_mtime if gif_path.exists() else 0.0
                     self.send_command(lab, "gif")
-                    # Wait briefly for regeneration so UI doesn't render stale gif bytes.
-                    for _ in range(25):
-                        if gif_path.exists() and gif_path.stat().st_mtime > prev_mtime:
-                            break
-                        time.sleep(0.12)
                     self._s.current_visualization = ["65_rbtree_growth.gif"]
-                if st.button("Clear", key=f"{lab}_{action_name}_clear"):
-                    self.send_command(lab, "clear")
-                    st.info("Sent clear command")
 
     def _render_lab6_simple_action(self, lab: str, action_name: str, action_config, is_any_open: bool) -> None:
         if is_any_open:
@@ -519,7 +449,6 @@ class GraphLabApp:
                             cmd = action_config.execute_cmd
                             full_cmd = f"{cmd}\n{params_str}" if params_str else cmd
                             self.send_command(lab, full_cmd)
-                            self._set('current_action', action_name)
                             if is_gen:
                                 self._set(f'{lab}_graph_generated', True)
                                 self._set(f'{lab}_maxflow_done', False)
@@ -538,7 +467,6 @@ class GraphLabApp:
                                 self._set(f'{lab}_maxflow_done', True)
                 with col2:
                     if st.button("Visualize", disabled=disabled, key=f"{lab}_{action_name}_visualize"):
-                        self._set('current_action', action_name)
                         self._s.current_visualization = action_config.images
 
     # ------------------------------------------------------------------
@@ -559,7 +487,6 @@ class GraphLabApp:
                 self._render_lab6_actions(lab_name, lab_config)
             else:
                 self._render_default_actions(lab_name, lab_config)
-
         self._display_visualizations()
 
     # ------------------------------------------------------------------

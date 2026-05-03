@@ -23,6 +23,8 @@ class NodeConfig:
     flow_node_color: str = 'lightblue'
     highlight_node_color: str = '#8A2BE2'
     default_node_color: str = '#4682B4'
+    start_node_color: str = 'lime'
+    end_node_color: str = 'magenta'
 
 
 @dataclass(frozen=True)
