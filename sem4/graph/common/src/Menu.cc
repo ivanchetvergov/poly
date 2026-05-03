@@ -76,6 +76,10 @@ void Menu::initializeActions() {
         checkAndRun(graph_, [this]() { lab5_runner_.runFundamentalCuts(*graph_); },
                     "Граф не инициализирован");
     };
+    actions_[53] = [this]() {
+        checkAndRun(graph_, [this]() { lab5_runner_.runSymmetricDifferenceSubset(*graph_); },
+                    "Граф не инициализирован");
+    };
 
     actions_[61] = [this]() { lab6_runner_.runHashTableDemo(); };
     actions_[62] = [this]() { lab6_runner_.runRBTreeDemo(); };

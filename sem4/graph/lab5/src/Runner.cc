@@ -70,6 +70,17 @@ bool isWebMode() {
     return false;
 }
 
+std::unique_ptr<Graph> cloneGraph(Graph const& src) {
+    auto copy = std::make_unique<Graph>(src.isDirected());
+    for (int v : src.vertexIds()) {
+        copy->addVertex(v);
+    }
+    for (auto const& e : src.edges()) {
+        copy->addEdge(e.from, e.to, e.weight);
+    }
+    return copy;
+}
+
 }  // namespace
 
 void Runner::runCheckEulerian(Graph& graph) {
@@ -79,7 +90,8 @@ void Runner::runCheckEulerian(Graph& graph) {
     }
 
     auto data = DrawDataConfig::getConfigs().at(51);
-    EulerianCycle euler(graph);
+    auto workingGraph = cloneGraph(graph);
+    EulerianCycle euler(*workingGraph);
 
     std::cout << "\n=== Проверка эйлеровости ===\n";
 
@@ -142,6 +154,7 @@ void Runner::runCheckEulerian(Graph& graph) {
     Visualizer::drawEulerCycle(data, VisualizationType::Graph);
 
     std::cout << "[OK] Результат визуализирован\n";
+    std::cout << "[INFO] Исходный граф не изменён (модификация выполнялась на копии)\n";
 }
 
 void Runner::runFundamentalCuts(Graph const& graph) {
@@ -164,57 +177,77 @@ void Runner::runFundamentalCuts(Graph const& graph) {
         return;
     }
 
+    std::ostringstream report;
+    report << "Минимальный остов (Борувка):\n";
+    std::cout << "\n=== Минимальный остов (Борувка) ===\n";
+    double mstTotalWeight = 0.0;
+    auto mstEdges = mst->edges();
+    std::sort(mstEdges.begin(), mstEdges.end(), [](auto const& a, auto const& b) {
+        if (a.from != b.from) return a.from < b.from;
+        if (a.to != b.to) return a.to < b.to;
+        return a.weight < b.weight;
+    });
+    for (auto const& e : mstEdges) {
+        mstTotalWeight += e.weight;
+        std::cout << "  " << e.from << " -- " << e.to << " (w=" << e.weight << ")\n";
+        report << "  " << e.from << " -- " << e.to << " (w=" << e.weight << ")\n";
+    }
+    std::cout << "[INFO] Вес остова: " << mstTotalWeight << "\n";
+    report << "[INFO] Вес остова: " << mstTotalWeight << "\n\n";
+
+    // Снапшот MST для web: первая картинка слева.
+    DrawData mstData{
+        .pngFile = "assets/png/52_mst.png",
+        .txtFile = "assets/txt/52_mst.txt",
+        .txtColorsFile = "",
+        .txtPathsFile = "",
+        .txtGraphFile = "",
+        .gifFile = "",
+        .title = "Минимальный остов (Борувка)",
+        .colors = {},
+        .path = {},
+        .addedEdges = {},
+        .paths = {}
+    };
+    FileHandler::saveGraph(mstData.txtFile, *mst);
+    Visualizer::draw(mstData, false, VisualizationType::Graph);
+
     CutSystem cutSystem(graph, *mst);
     auto fundamentalCuts = cutSystem.buildFundamentalCuts();
-
-    std::ostringstream report;
     report << "Фундаментальная система разрезов (по рёбрам MST):\n";
 
     std::cout << "\n=== Фундаментальная система разрезов ===\n";
     for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
         auto const& c = fundamentalCuts[i];
-        std::cout << i << ") tree edge " << edgeToString(c.treeEdge)
-                  << " -> { " << cutEdgesToText(c.cutEdges) << " }\n";
-         std::cout << "    A=" << verticesToText(c.leftComponent)
-                << " B=" << verticesToText(c.rightComponent) << "\n";
-        report << i << ") tree edge " << edgeToString(c.treeEdge)
-               << " -> { " << cutEdgesToText(c.cutEdges) << " }\n";
-         report << "    A=" << verticesToText(c.leftComponent)
-             << " B=" << verticesToText(c.rightComponent) << "\n";
+         std::cout << i << ") Удаляем ребро остова " << edgeToString(c.treeEdge)
+                << ". Остов распадается на две части:\n";
+         std::cout << "    A = " << verticesToText(c.leftComponent)
+                << ", B = " << verticesToText(c.rightComponent) << "\n";
+         std::cout << "    Рёбра исходного графа, которые пересекают границу A|B: { "
+                << cutEdgesToText(c.cutEdges) << " }\n";
+
+         report << i << ") Удаляем ребро остова " << edgeToString(c.treeEdge)
+             << ". Остов распадается на две части:\n";
+         report << "    A = " << verticesToText(c.leftComponent)
+             << ", B = " << verticesToText(c.rightComponent) << "\n";
+         report << "    Рёбра исходного графа, которые пересекают границу A|B: { "
+             << cutEdgesToText(c.cutEdges) << " }\n";
     }
 
-    std::vector<int> selected;
-    if (isWebMode()) {
-        for (size_t i = 0; i < std::min<size_t>(2, fundamentalCuts.size()); ++i) {
-            selected.push_back(static_cast<int>(i));
-        }
-    } else {
-        int k = readInt("\nСколько фундаментальных разрезов использовать? ");
-        for (int i = 0; i < k; ++i) {
-            int idx = readInt("Введите индекс разреза: ");
-            selected.push_back(idx);
-        }
+    // Вычисляем XOR по ВСЕм разрезам
+    std::vector<int> allIndices;
+    for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
+        allIndices.push_back(static_cast<int>(i));
     }
 
-    std::vector<int> validSelected;
-    validSelected.reserve(selected.size());
-    for (int idx : selected) {
-        if (idx < 0 || idx >= static_cast<int>(fundamentalCuts.size())) {
-            std::cout << "[WARN] Игнорируется некорректный индекс разреза: " << idx << "\n";
-            report << "[WARN] Игнорируется некорректный индекс разреза: " << idx << "\n";
-            continue;
-        }
-        validSelected.push_back(idx);
-    }
+    auto symDiff = cutSystem.symmetricDifference(fundamentalCuts, allIndices);
+    std::cout << "\n[INFO] Симметрическая разность по всем разрезам (индексы: ";
+    for (int idx : allIndices) std::cout << idx << " ";
+    std::cout << "): { " << cutEdgesToText(symDiff) << " }\n";
 
-    auto symDiff = cutSystem.symmetricDifference(fundamentalCuts, validSelected);
-    std::cout << "\nСимметрическая разность: { " << cutEdgesToText(symDiff) << " }\n";
-
-    report << "\nВыбраны индексы: ";
-    for (int idx : selected) report << idx << " ";
-    report << "\nВалидные индексы: ";
-    for (int idx : validSelected) report << idx << " ";
-    report << "\nСимметрическая разность: { " << cutEdgesToText(symDiff) << " }\n";
+    report << "\n[INFO] Симметрическая разность по всем разрезам (индексы: ";
+    for (int idx : allIndices) report << idx << " ";
+    report << "): { " << cutEdgesToText(symDiff) << " }\n";
 
     auto data = DrawDataConfig::getConfigs().at(52);
     data.addedEdges = symDiff;
@@ -224,6 +257,99 @@ void Runner::runFundamentalCuts(Graph const& graph) {
     FileHandler::saveToFile("assets/txt/52_fundamental_cuts.txt", report.str());
     Visualizer::draw(data, false, VisualizationType::Graph);
     std::cout << "[OK] Разрезы построены и визуализированы\n";
+}
+
+void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
+    if (graph.isDirected() || graph.vertexCount() < 2) {
+        std::cout << "[FAIL] Граф должен быть неориентированным и содержать >= 2 вершин\n";
+        return;
+    }
+
+    std::cout << "\n=== Симметрическая разность подмножества разрезов ===\n";
+
+    // Строим MST и ФСР
+    Boruvka boruvka;
+    auto mst = boruvka.buildMST(graph);
+    if (!mst || mst->edgeCount() == 0) {
+        std::cout << "[FAIL] Не удалось построить кратчайший остов\n";
+        return;
+    }
+
+    const size_t expectedMstEdges = graph.vertexCount() - 1;
+    if (mst->edgeCount() != expectedMstEdges) {
+        std::cout << "[FAIL] Некорректный остов: ожидалось " << expectedMstEdges
+                  << " ребер, получено " << mst->edgeCount() << "\n";
+        return;
+    }
+
+    CutSystem cutSystem(graph, *mst);
+    auto fundamentalCuts = cutSystem.buildFundamentalCuts();
+
+    std::cout << "\nФундаментальная система разрезов:\n";
+    for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
+        auto const& c = fundamentalCuts[i];
+        std::cout << i << ") Ребро остова " << edgeToString(c.treeEdge)
+                  << " | Рёбра разреза: { " << cutEdgesToText(c.cutEdges) << " }\n";
+    }
+
+    std::cout << "\nВыберите подмножество разрезов для XOR:\n";
+    int k = readInt("Сколько разрезов использовать? ");
+
+    std::vector<int> selected;
+    for (int i = 0; i < k; ++i) {
+        int idx = readInt("Введите индекс разреза: ");
+        selected.push_back(idx);
+    }
+
+    std::vector<int> validSelected;
+    validSelected.reserve(selected.size());
+    for (int idx : selected) {
+        if (idx < 0 || idx >= static_cast<int>(fundamentalCuts.size())) {
+            std::cout << "[WARN] Игнорируется некорректный индекс разреза: " << idx << "\n";
+            continue;
+        }
+        validSelected.push_back(idx);
+    }
+
+    if (validSelected.empty()) {
+        std::cout << "[FAIL] Нет корректных индексов разрезов\n";
+        return;
+    }
+
+    std::cout << "\nВыбранные разрезы:\n";
+    for (int idx : validSelected) {
+        auto const& c = fundamentalCuts[idx];
+        std::cout << idx << ") Ребро остова " << edgeToString(c.treeEdge)
+                  << " | Рёбра разреза: { " << cutEdgesToText(c.cutEdges) << " }\n";
+    }
+
+    auto symDiff = cutSystem.symmetricDifference(fundamentalCuts, validSelected);
+
+    std::cout << "\nПроцесс XOR:\n";
+    std::unordered_map<unsigned long long, int> edgeCount;
+    auto encode = [](std::pair<int, int> e) {
+        return (static_cast<unsigned long long>(e.first) << 32U) |
+               static_cast<unsigned int>(e.second);
+    };
+
+    for (int idx : validSelected) {
+        for (auto const& edge : fundamentalCuts[idx].cutEdges) {
+            edgeCount[encode(edge)]++;
+        }
+    }
+
+    std::cout << "Вхождения рёбер в выбранные разрезы:\n";
+    for (auto const& [code, count] : edgeCount) {
+        int u = static_cast<int>(code >> 32U);
+        int v = static_cast<int>(code & 0xFFFFFFFFU);
+        std::cout << "  (" << u << ", " << v << "): " << count
+                  << " раз" << (count == 1 ? "а" : "")
+                  << " → " << (count % 2 == 1 ? "ОСТАВИТЬ" : "УДАЛИТЬ") << "\n";
+    }
+
+    std::cout << "\n[RESULT] Симметрическая разность (индексы: ";
+    for (int idx : validSelected) std::cout << idx << " ";
+    std::cout << "): { " << cutEdgesToText(symDiff) << " }\n";
 }
 
 }  // namespace lab5

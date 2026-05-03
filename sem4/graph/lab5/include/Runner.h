@@ -12,6 +12,7 @@ public:
 
     void runCheckEulerian(Graph& graph);
     void runFundamentalCuts(Graph const& graph);
+    void runSymmetricDifferenceSubset(Graph const& graph);
 };
 
 }  // namespace lab5
