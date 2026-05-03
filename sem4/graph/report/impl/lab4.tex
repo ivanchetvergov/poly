@@ -1,0 +1,311 @@
+\subsection{Модуль lab4}
+
+\subsubsection{KirchhoffTheorem: подсчёт числа остовных деревьев}
+
+\textbf{Вход:} \texttt{Graph const\&}~--- неориентированный граф.
+
+\textbf{Выход:} \texttt{size\_t}~--- число различных остовных деревьев.
+
+\textbf{Описание:} Метод \texttt{countSpanningTrees} строит матрицу
+Лапласа $L$ размера $n \times n$ по формуле: $\ell_{ii} = \deg v_i$
+на диагонали, $\ell_{ij} = -1$ если ребро $(i,j)$ существует,
+иначе $\ell_{ij} = 0$. Матрица строится через вспомогательный шаблон
+\texttt{CollectionUtils::makeMatrix}, принимающий лямбду-заполнитель.
+Затем удаляется нулевая строка и нулевой столбец~--- получается минор
+$L_{00}$ размера $(n-1)\times(n-1)$, определитель которого по теореме
+Кирхгофа равен числу остовных деревьев. Определитель вычисляется
+рекурсивным разложением по первой строке с построением подматриц:
+для каждого элемента $L_{00}[0][p]$ формируется подматрица размера
+$(n-2)\times(n-2)$ вычеркиванием нулевой строки и столбца $p$,
+после чего рекурсивно вычисляется её определитель. Базовые случаи~---
+матрицы $1\times1$ и $2\times2$ вычисляются напрямую. Результат
+округляется до ближайшего целого через \texttt{std::llround} и
+зажимается снизу нулём через \texttt{std::max}, чтобы исключить
+артефакты плавающей точки. Граничные случаи: граф из нуля вершин
+возвращает $0$, из одной вершины~--- $1$.
+Сложность: $O(n^3)$, пространственная: $O(n^2)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Построение матрицы Лапласа, минора и вычисление определителя (KirchhoffTheorem.cc)}]
+size_t KirchhoffTheorem::countSpanningTrees(Graph const& graph);
+
+Matrix laplacian = CollectionUtils::makeMatrix<double>(
+    graph.vertexIds(), graph.vertexIds(),
+    [&graph](int i, int j) {
+        if (i == j)
+            return static_cast<double>(graph.degree(i));
+        return graph.hasEdge(i, j) ? -1.0 : 0.0;
+    });
+
+Matrix minor(n - 1, std::vector<double>(n - 1));
+for (size_t i = 1; i < n; ++i)
+    for (size_t j = 1; j < n; ++j)
+        minor[i - 1][j - 1] = laplacian[i][j];
+
+return static_cast<size_t>(
+    std::llround(std::max(0.0, determinant(minor))));
+
+double KirchhoffTheorem::determinant(Matrix const& matrix);
+
+double det = 0.0;
+for (size_t p = 0; p < n; ++p) {
+    Matrix submatrix(n - 1, std::vector<double>(n - 1));
+    for (size_t i = 1; i < n; ++i) {
+        size_t col = 0;
+        for (size_t j = 0; j < n; ++j)
+            if (j != p)
+                submatrix[i - 1][col++] = matrix[i][j];
+    }
+    double cofactor = (p % 2 == 0 ? 1 : -1) * matrix[0][p];
+    det += cofactor * determinant(submatrix);
+}
+\end{lstlisting}
+
+\subsubsection{Boruvka: алгоритм Борувки}
+
+\textbf{Вход:} \texttt{Graph const\&}~--- связный неориентированный
+взвешенный граф.
+
+\textbf{Выход:} \texttt{unique\_ptr<Graph>}~--- минимальное остовное
+дерево; \texttt{nullptr} если граф ориентирован, пуст или несвязен.
+
+\textbf{Описание:} Метод \texttt{buildMST} реализует алгоритм Борувки.
+На этапе инициализации список всех рёбер собирается однократно~---
+каждое ребро добавляется ровно один раз благодаря условию \texttt{u < v},
+исключающему дублирование для неориентированного графа. Все вершины
+добавляются в результирующий граф \texttt{mst} заранее.
+
+Компоненты связности отслеживаются внутренней структурой
+\texttt{UnionFind}. Метод \texttt{find} реализует сжатие пути:
+при каждом вызове родитель вершины перезаписывается непосредственно
+на корень компоненты. Метод \texttt{unite} объединяет две компоненты
+по рангу: корень с меньшим рангом подвешивается под корень с большим;
+при равных рангах ранг нового корня увеличивается на $1$.
+
+На каждой итерации главного цикла для каждого ребра $(u, v)$
+определяются корни компонент \texttt{set\_u} и \texttt{set\_v};
+ребро пропускается если они совпадают. Иначе для каждой из двух
+компонент обновляется словарь \texttt{cheapest}: кандидат заменяется
+только если его вес строго меньше текущего минимума. После обхода
+всех рёбер каждое ребро из \texttt{cheapest} перед добавлением
+в остов проверяется повторно~--- условие \texttt{find(u) == find(v)}
+отсеивает дубли, возникающие когда одно ребро является наилучшим
+сразу для двух компонент. Принятое ребро добавляется в \texttt{mst},
+компоненты объединяются, счётчик \texttt{components} уменьшается.
+Итерации продолжаются пока \texttt{components > 1}. Если за итерацию
+ни одного слияния не произошло~--- граф несвязен, возвращается
+\texttt{nullptr}.
+Сложность: $O(E \log V)$, пространственная: $O(V + E)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Сбор рёбер, выбор дешевейшего ребра для каждой компоненты и слияние (Boruvka.cc)}]
+std::unique_ptr<Graph> Boruvka::buildMST(Graph const& graph);
+int Boruvka::UnionFind::find(int v);
+void Boruvka::UnionFind::unite(int u, int v);
+
+std::vector<Edge> edges;
+for (int u : vertices)
+    for (auto const& [v, weight] : graph.neighbors(u))
+        if (u < v)
+            edges.push_back({u, v, weight});
+
+while (components > 1) {
+    std::unordered_map<int, Edge> cheapest;
+
+    for (auto const& edge : edges) {
+        int set_u = uf.find(edge.from);
+        int set_v = uf.find(edge.to);
+        if (set_u == set_v) continue;
+
+        auto update_cheapest = [&cheapest](int component,
+                                           Edge const& candidate) {
+            auto it = cheapest.find(component);
+            if (it == cheapest.end()
+                    || candidate.weight < it->second.weight)
+                cheapest[component] = candidate;
+        };
+        update_cheapest(set_u, edge);
+        update_cheapest(set_v, edge);
+    }
+
+    if (cheapest.empty()) return nullptr;
+
+    bool merged_any = false;
+    for (auto const& [component, edge] : cheapest) {
+        (void)component;
+        if (uf.find(edge.from) == uf.find(edge.to)) continue;
+        uf.unite(edge.from, edge.to);
+        mst->addEdge(edge.from, edge.to, edge.weight);
+        --components;
+        merged_any = true;
+    }
+    if (!merged_any) return nullptr;
+}
+\end{lstlisting}
+
+\subsubsection{PruferCode: кодирование и декодирование кода Прюфера}
+
+\textbf{Вход (encode):} \texttt{Graph const\&}~--- дерево (как правило,
+результат алгоритма Борувки).
+
+\textbf{Выход (encode):} \texttt{PruferEncoding}~--- структура с полями:
+\texttt{sequence}~--- последовательность Прюфера длины $n-2$;
+\texttt{vertices}~--- отсортированный список вершин;
+\texttt{edgeWeights}~--- словарь весов рёбер, индексированный
+парой $(\min(u,v),\, \max(u,v))$.
+
+\textbf{Описание (encode):} Перед началом кодирования все веса рёбер
+сохраняются в \texttt{edgeWeights}~--- это необходимо для последующего
+восстановления взвешенного дерева при декодировании, поскольку в ходе
+кодирования структура дерева логически разрушается. Степени вершин
+хранятся в локальном словаре \texttt{degree}; граф не модифицируется.
+На каждом из $n-2$ шагов линейным поиском по отсортированному списку
+вершин находится висячая вершина с минимальным номером (степень равна
+$1$). Среди её соседей выбирается тот, чья степень строго больше $0$~---
+он записывается в \texttt{sequence}. Затем степени обоих концов
+уменьшаются на $1$. Для деревьев из $\leq 2$ вершин последовательность
+остаётся пустой~--- граничный случай обрабатывается явным ранним
+выходом.
+
+\textbf{Вход (decode):} \texttt{PruferEncoding const\&}~--- структура,
+полученная при кодировании.
+
+\textbf{Выход (decode):} \texttt{unique\_ptr<Graph>}~--- восстановленное
+взвешенное дерево.
+
+\textbf{Описание (decode):} Степени вершин восстанавливаются из кода:
+каждая вершина получает начальную степень $1$, затем степень
+увеличивается на $1$ за каждое вхождение в \texttt{sequence}. На
+каждом шаге линейным поиском по отсортированному списку вершин
+находится наименьшая вершина со степенью $1$~--- она не встречается
+в ещё не обработанной части кода, поскольку её степень не будет
+увеличиваться. Добавляется ребро между найденной вершиной и текущим
+элементом \texttt{sequence}; вес берётся из \texttt{edgeWeights} по
+ключу $(\min, \max)$, при отсутствии~--- подставляется $1.0$.
+Степени обоих концов уменьшаются на $1$. После $n-2$ шагов ровно
+две вершины имеют степень $1$~--- они соединяются последним ребром.
+Сложность кодирования и декодирования: $O(n^2)$,
+пространственная: $O(n)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Кодирование: сохранение весов, поиск листа и заполнение последовательности (PruferCode.cc)}]
+PruferCode::PruferEncoding PruferCode::encode(Graph const& tree);
+
+for (int u : vertices)
+    for (auto const& [v, weight] : tree.neighbors(u))
+        if (u < v)
+            result.edgeWeights[{u, v}] = weight;
+
+for (size_t i = 0; i < vertices.size() - 2; ++i) {
+    int leaf = -1;
+    for (int v : vertices)
+        if (degree[v] == 1) { leaf = v; break; }
+
+    for (auto const& [u, weight] : tree.neighbors(leaf)) {
+        if (degree[u] > 0) {
+            result.sequence.push_back(u);
+            degree[leaf]--;
+            degree[u]--;
+            break;
+        }
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppstyle, caption={Декодирование: восстановление степеней, добавление рёбер и последнее ребро (PruferCode.cc)}]
+std::unique_ptr<Graph> PruferCode::decode(
+    PruferEncoding const& encoding);
+
+std::unordered_map<int, int> degree;
+for (int v : vertices) degree[v] = 1;
+for (int v : encoding.sequence) degree[v]++;
+
+for (int v : encoding.sequence) {
+    int leaf = -1;
+    for (int candidate : vertices)
+        if (degree[candidate] == 1) { leaf = candidate; break; }
+
+    tree->addEdge(leaf, v, lookupWeight(leaf, v));
+    degree[leaf]--;
+    degree[v]--;
+}
+
+int v1 = -1, v2 = -1;
+for (int candidate : vertices)
+    if (degree[candidate] == 1) {
+        if (v1 == -1) v1 = candidate;
+        else        { v2 = candidate; break; }
+    }
+if (v1 != -1 && v2 != -1)
+    tree->addEdge(v1, v2, lookupWeight(v1, v2));
+\end{lstlisting}
+
+\subsubsection{GraphCombinatorics: минимальная раскраска графа}
+
+\textbf{Вход:} \texttt{Graph const\&}~--- произвольный граф
+(исходный или МОД~--- по выбору пользователя).
+
+\textbf{Выход:} \texttt{vector<int>}~--- вектор цветов длины $n$,
+где элемент с индексом $i$ соответствует $i$-й вершине в
+отсортированном порядке; цвета нумеруются с $0$.
+
+\textbf{Описание:} Метод \texttt{findMinColoring} перебирает
+число цветов $k$ от $1$ до $n$ включительно. Для каждого $k$
+вектор \texttt{colors} сбрасывается в $-1$ и запускается
+рекурсивный \texttt{backtrackColoring}. На каждом шаге рекурсии
+обрабатывается вершина с индексом \texttt{index} в отсортированном
+порядке. Для неё перебираются цвета от $0$ до $k-1$: цвет считается
+допустимым, если ни один из уже окрашенных соседей не имеет такого
+же цвета~--- соседи ищутся через \texttt{graph.getNeighbors},
+их индекс в векторе цветов определяется через \texttt{vertex\_to\_index}.
+Если допустимый цвет найден, он присваивается и рекурсия идёт
+на следующую вершину; при неудаче цвет сбрасывается в $-1$
+и перебирается следующий. Первое $k$, при котором рекурсия
+вернула \texttt{true}, является хроматическим числом $\chi(G)$~---
+найденная раскраска сохраняется в \texttt{best\_colors} и цикл
+прерывается. После завершения правильность раскраски дополнительно
+верифицируется методом \texttt{isValidColoring}, обходящим все рёбра
+графа.
+Сложность в худшем случае: $O(n \cdot k^n)$,
+пространственная: $O(n)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Перебор числа цветов, backtracking и проверка допустимости (GraphCombinatorics.cc)}]
+VerticesSet GraphCombinatorics::findMinColoring(
+    Graph const& graph);
+
+bool GraphCombinatorics::backtrackColoring(
+    Graph const& graph, int index,
+    VerticesSet const& vertices, VerticesSet& colors,
+    int num_colors,
+    std::unordered_map<int, int> const& vertex_to_index);
+
+bool GraphCombinatorics::isValidColoring(
+    Graph const& graph, VerticesSet const& colors,
+    VerticesSet const& vertices,
+    std::unordered_map<int, int> const& vertex_to_index) const;
+
+for (int num_colors = 1; num_colors <= static_cast<int>(n); ++num_colors) {
+    std::fill(colors.begin(), colors.end(), -1);
+    if (backtrackColoring(graph, 0, vertices, colors,
+                          num_colors, vertex_to_index)) {
+        best_colors = colors;
+        break;
+    }
+}
+
+int vertex = vertices[index];
+for (int color = 0; color < num_colors; ++color) {
+    bool canColor = true;
+    for (int neighbor : graph.getNeighbors(vertex)) {
+        int neighbor_idx = vertex_to_index.at(neighbor);
+        if (colors[neighbor_idx] == color) {
+            canColor = false;
+            break;
+        }
+    }
+    if (canColor) {
+        colors[index] = color;
+        if (backtrackColoring(graph, index + 1, vertices, colors,
+                              num_colors, vertex_to_index))
+            return true;
+        colors[index] = -1;
+    }
+}
+\end{lstlisting}

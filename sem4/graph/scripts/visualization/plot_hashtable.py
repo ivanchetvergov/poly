@@ -12,11 +12,17 @@ def _read_entries(path: str):
     entries = []
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
-            parts = line.strip().split()
-            if len(parts) != 3:
+            parts = line.rstrip("\n").split()
+            if len(parts) < 3:
                 continue
-            word, h, bucket = parts
-            entries.append((word, int(h), int(bucket)))
+            # support keys that contain spaces (n-grams): last two tokens are hash and bucket
+            try:
+                h = int(parts[-2])
+                bucket = int(parts[-1])
+            except ValueError:
+                continue
+            word = " ".join(parts[:-2])
+            entries.append((word, h, bucket))
     return entries
 
 
@@ -81,6 +87,14 @@ def main():
     title = sys.argv[3] if len(sys.argv) > 3 else "HashTable Visualization"
 
     entries = _read_entries(data_file)
+
+    if not entries:
+        fig, ax = plt.subplots(figsize=(6, 2))
+        ax.axis('off')
+        ax.text(0.5, 0.5, 'No data to visualize', ha='center', va='center')
+        fig.savefig(output_file, dpi=plot_cfg.dpi, bbox_inches='tight')
+        plt.close(fig)
+        return
 
     bucket_order = sorted({b for *_, b in entries})
     buckets = defaultdict(list)

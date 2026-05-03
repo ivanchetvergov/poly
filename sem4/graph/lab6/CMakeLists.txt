@@ -10,6 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR}/../common/include)
 add_library(graph_lab6_lib STATIC
     src/HashTable.cc
     src/RBTree.cc
+    src/Tokenizer.cc
     src/TextGenerator.cc
     src/Runner.cc
 )

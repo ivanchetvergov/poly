@@ -4,6 +4,9 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <sstream>
+#include <cctype>
+#include "Tokenizer.h"
 
 using graph::FileHandler;
 
@@ -164,12 +167,36 @@ std::string RBTree::serialize() const {
         if (!node) return;
         std::string parent = node->parent ? node->parent->key : "null";
         std::string color = node->color == RED ? "RED" : "BLACK";
-        content += node->key + " " + parent + " " + color + "\n";
+        content += node->key + "\t" + parent + "\t" + color + "\n";
         collect(node->left);
         collect(node->right);
     };
     collect(m_root);
     return content;
+}
+
+void RBTree::clear() {
+    destroy(m_root);
+    m_root = nullptr;
+}
+
+bool RBTree::saveToFile(std::string const& filename) const {
+    std::string content;
+    std::function<void(RBNode const*)> collect = [&](RBNode const* node) {
+        if (!node) return;
+        collect(node->left);
+        content += node->key + "\n";
+        collect(node->right);
+    };
+    collect(m_root);
+    return FileHandler::saveToFile(filename, content);
+}
+
+bool RBTree::loadFromFile(std::string const& filename, int ngramSize) {
+    std::vector<std::string> ngrams;
+    if (!Tokenizer::ngramsFromFile(filename, ngramSize, ngrams)) return false;
+    for (auto const& ng : ngrams) insert(ng);
+    return true;
 }
 
 void RBTree::deleteFixup(RBNode* pt) {

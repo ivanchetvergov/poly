@@ -22,21 +22,62 @@ def main():
     G = nx.DiGraph()
     node_colors = {}
 
-    with open(data_file, 'r') as f:
+    nodes = []
+    edges = []
+    with open(data_file, 'r', encoding='utf-8') as f:
         for line in f:
-            parts = line.strip().split()
-            if len(parts) != 3:
+            raw = line.rstrip('\n')
+            if not raw:
                 continue
-            node, parent, color = parts
-            G.add_node(node)
-            node_colors[node] = 'red' if color == 'RED' else 'black'
-            if parent != 'null' and parent in node_colors:
-                G.add_edge(parent, node)
 
-    node_color_list = [node_colors[node] for node in G.nodes()]
+            if '\t' in raw:
+                fields = raw.split('\t')
+                if len(fields) != 3:
+                    continue
+                node, parent, color = fields
+            else:
+                parts = raw.split()
+                if len(parts) < 3:
+                    continue
+                parent = parts[-2]
+                color = parts[-1]
+                node = ' '.join(parts[:-2])
 
-    root = [n for n in G.nodes() if G.in_degree(n) == 0][0]
-    pos = hierarchy_pos(G, root, width=4.0, vert_gap=0.5, vert_loc=1)
+            nodes.append((node, color))
+            if parent != 'null':
+                edges.append((parent, node))
+
+    if not nodes:
+        renderer = Renderer()
+        renderer.setup_plot()
+        renderer.finalize(output_file, title + ' (no data)')
+        return
+
+    for node, color in nodes:
+        G.add_node(node)
+        node_colors[node] = 'red' if color == 'RED' else 'black'
+
+    for parent, node in edges:
+        if parent in node_colors and node in node_colors:
+            G.add_edge(parent, node)
+
+    node_color_list = [node_colors.get(node, 'black') for node in G.nodes()]
+
+    roots = [n for n in G.nodes() if G.in_degree(n) == 0]
+    if not roots:
+        roots = [next(iter(G.nodes()))]
+
+    # Build layout for all roots/components so every node has a position.
+    pos = {}
+    span = 4.0
+    for i, root in enumerate(roots):
+        xcenter = i * (span + 1.0)
+        pos.update(hierarchy_pos(G, root, width=span, vert_gap=0.5, vert_loc=1, xcenter=xcenter))
+
+    # Safety fallback: place any still-unplaced nodes into a side column.
+    missing = [n for n in G.nodes() if n not in pos]
+    for i, node in enumerate(missing):
+        pos[node] = (len(roots) * (span + 1.0) + 1.0, 1 - i * 0.5)
 
     renderer = Renderer()
     renderer.setup_plot()

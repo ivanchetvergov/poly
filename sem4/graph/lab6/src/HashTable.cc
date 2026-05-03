@@ -4,6 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <cctype>
+#include "Tokenizer.h"
 
 using graph::FileHandler;
 
@@ -103,6 +106,18 @@ std::string HashTable::serialize() const {
         }
     }
     return content;
+}
+
+bool HashTable::loadFromFile(std::string const& filename, bool append, int ngramSize) {
+    std::string content;
+    if (!FileHandler::loadFromFile(filename, content)) return false;
+    if (!append) clear();
+
+        // Use Tokenizer to obtain n-grams
+        std::vector<std::string> ngrams;
+        if (!dict::Tokenizer::ngramsFromFile(filename, ngramSize, ngrams)) return false;
+        for (auto const& ng : ngrams) insert(ng);
+        return true;
 }
 
 }  // namespace dict

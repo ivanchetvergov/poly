@@ -30,6 +30,8 @@ public:
 
     [[nodiscard]] std::string serialize() const;
 
+    bool loadFromFile(std::string const& filename, bool append = true, int ngramSize = 1);
+
 private:
     std::vector<std::unique_ptr<HashNode>> m_table;
     size_t m_capacity;

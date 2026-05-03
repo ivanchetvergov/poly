@@ -31,6 +31,10 @@ public:
 
     [[nodiscard]] std::string serialize() const;
 
+    bool saveToFile(std::string const& filename) const;
+
+    bool loadFromFile(std::string const& filename, int ngramSize = 1);
+
     bool validate() const;
 
 private:

@@ -1,0 +1,120 @@
+\subsection{Модуль lab2}
+
+\subsubsection{BFS: обход рёбер}
+
+\textbf{Вход:} \texttt{Graph const\&} (конструктор), \texttt{int start}.
+
+\textbf{Выход:} \texttt{BFSResult}~--- \texttt{visited\_order}
+(\texttt{vector<int>}), \texttt{edges\_traversed}
+(\texttt{vector<pair<int,int>>}), \texttt{parent}
+(\texttt{unordered\_map<int,int>}), \\ \texttt{dist\_steps}
+(\texttt{unordered\_map<int,int>}), \texttt{iterations} (\texttt{size\_t}).
+
+\textbf{Описание:} BFS с очередью. Счётчик
+\texttt{iterations} инкрементируется при каждом рассмотрении ребра $(u, v)$ и его извлечения из очереди. \texttt{dist\_steps[v] = -1}
+означает недостижимость.
+
+\begin{lstlisting}[style=cppstyle, caption={Обход рёбер в ширину (BFS.cc)}]
+BFSResult BFS::traverse(int start) const {
+    BFSResult result;
+    for (int v : m_graph_.vertexIds()) {
+        result.dist_steps[v] = -1;
+        result.parent[v]     = -1;
+    }
+    result.dist_steps[start] = 0;
+    result.visited_order.push_back(start);
+
+    std::queue<int> q;
+    q.push(start);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        ++result.iterations;
+        for (auto const& [v, w] : m_graph_.neighbors(u)) {
+            ++result.iterations;
+            if (result.dist_steps[v] == -1) {
+                result.dist_steps[v] = result.dist_steps[u] + 1;
+                result.parent[v]     = u;
+                result.edges_traversed.emplace_back(u, v);
+                result.visited_order.push_back(v);
+                q.push(v);
+            }
+        }
+    }
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{Dijkstra: кратчайшие пути}
+
+\textbf{Вход:} \texttt{Graph const\&} (конструктор), \texttt{int start}.
+
+\textbf{Выход:} \texttt{DijkstraResult}~--- \texttt{dist}
+(\texttt{unordered\_map<int,double>}), \texttt{parent}
+(\texttt{unordered\_map<int,int>}), \texttt{iterations} (\texttt{size\_t}).
+
+\textbf{Описание:} Min-heap на \texttt{priority\_queue} с
+\texttt{std::greater<>}. Счётчик \texttt{iterations} инкрементируется
+при каждой попытке релаксации ребра и работой с кучей. Устаревшие записи в
+куче отфильтровываются проверкой \texttt{d > dist[u]}.
+Путь восстанавливается через \texttt{PathUtils::reconstructPath}
+по массиву \texttt{parent}. Сложность: $O((V+E)\log{V})$.
+
+\begin{lstlisting}[style=cppstyle, caption={Алгоритм Дейкстры (Dijkstra.cc)}]
+DijkstraResult Dijkstra::compute(int start) const {
+    DijkstraResult result;
+    for (int v : m_graph_.vertexIds()) {
+        result.dist[v]   = INF;
+        result.parent[v] = -1;
+    }
+    result.dist[start] = 0.0;
+
+    using Entry = std::pair<double, int>;
+    std::priority_queue<Entry, std::vector<Entry>,
+                        std::greater<Entry>> pq;
+    pq.push({0.0, start});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        ++result.iterations;
+        if (d > result.dist[u]) continue;
+        for (auto const& [v, w] : m_graph_.neighbors(u)) {
+            ++result.iterations;
+            double nd = result.dist[u] + w;
+            if (nd < result.dist[v]) {
+                result.dist[v]   = nd;
+                result.parent[v] = u;
+                pq.push({nd, v});
+            }
+        }
+    }
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{Comparator: сравнение алгоритмов}
+
+\textbf{Вход:} \texttt{Graph const\&}, \texttt{int start}.
+
+\textbf{Выход:} \texttt{CompareResults}~$=$~\texttt{vector<CompareResult>},
+каждый элемент содержит \texttt{algorithm\_name} и \texttt{iterations}.
+
+\textbf{Описание:} Запускает BFS и Дейкстру на одном графе с одной
+стартовой вершиной и собирает счётчики итераций в единый вектор.
+
+\begin{lstlisting}[style=cppstyle, caption={Сравнение алгоритмов (Comparator.cc)}]
+Comparator::CompareResults
+Comparator::compare(Graph const& graph, int start) {
+    CompareResults results;
+    {
+        BFS bfs(graph);
+        auto r = bfs.traverse(start);
+        results.push_back({"BFS", r.iterations});
+    }
+    {
+        Dijkstra dijk(graph);
+        auto r = dijk.compute(start);
+        results.push_back({"Dijkstra", r.iterations});
+    }
+    return results;
+}
+\end{lstlisting}

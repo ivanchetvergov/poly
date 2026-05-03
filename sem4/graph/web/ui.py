@@ -2,6 +2,7 @@ import base64
 import os
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ EXECUTABLE = BUILD_DIR / "graph_main"
 
 class GraphLabApp:
     LABS = ["Lab 1", "Lab 2", "Lab 3", "Lab 4", "Lab 5", "Lab 6"]
-    DISABLED_LABS = {"Lab 5", "Lab 6"}
+    DISABLED_LABS = {"Lab 5"}
 
     def __init__(self):
         self._s = st.session_state
@@ -270,9 +271,6 @@ class GraphLabApp:
                     for p in paths:
                         self.display_image(p)
                 with col_info:
-                    st.markdown("**Кирхгоф**")
-                    st.latex(r"B(G)=(\beta_{ij})_{n\times n}=D(G)-A(G)")
-                    st.latex(r"\tau(G)=A_{ij}=\det(B^*)")
                     if spanning_trees is None:
                         st.info("Минор матрицы Кирхгофа пока не готов для расчета.")
                     else:
@@ -441,6 +439,23 @@ class GraphLabApp:
                 self._set(open_key, False)
                 self._set(entered_key, False)
                 st.rerun()
+            uploaded_file = st.file_uploader("Upload text file (one word per line)", type=["txt"], key=f"{open_key}_uploader")
+            if uploaded_file is not None:
+                save_path = ASSETS_DIR / 'txt' / uploaded_file.name
+                try:
+                    with open(save_path, 'wb') as f:
+                        f.write(uploaded_file.getvalue())
+                    st.success(f"Saved to assets: {save_path.name}")
+                except Exception as e:
+                    st.error(f"Failed to save uploaded file: {e}")
+                # Choose n-gram size for tokenization
+                ngram_key = f"{open_key}_ngram"
+                ngram = st.number_input("n-gram size", 1, 5, 1, key=ngram_key)
+                if st.button("Load file", key=f"{open_key}_load"):
+                    # send load command to C++ process; pass path relative to project and ngram size
+                    rel_path = str((ASSETS_DIR / 'txt' / uploaded_file.name))
+                    self.send_command(lab, f"load {rel_path} {int(ngram)}")
+                    st.info(f"Sent load command: {uploaded_file.name} (n={int(ngram)})")
             col1, col2 = st.columns(2, gap="small")
             with col1:
                 if st.button("Visualize", key=f"{lab}_{action_name}_draw"):
@@ -448,8 +463,18 @@ class GraphLabApp:
                     self._s.current_visualization = action_config.images
             with col2:
                 if "RBTree" in action_name and st.button("GIF", key=f"{lab}_{action_name}_gif"):
+                    gif_path = ASSETS_DIR / "gif" / "65_rbtree_growth.gif"
+                    prev_mtime = gif_path.stat().st_mtime if gif_path.exists() else 0.0
                     self.send_command(lab, "gif")
+                    # Wait briefly for regeneration so UI doesn't render stale gif bytes.
+                    for _ in range(25):
+                        if gif_path.exists() and gif_path.stat().st_mtime > prev_mtime:
+                            break
+                        time.sleep(0.12)
                     self._s.current_visualization = ["65_rbtree_growth.gif"]
+                if st.button("Clear", key=f"{lab}_{action_name}_clear"):
+                    self.send_command(lab, "clear")
+                    st.info("Sent clear command")
 
     def _render_lab6_simple_action(self, lab: str, action_name: str, action_config, is_any_open: bool) -> None:
         if is_any_open:

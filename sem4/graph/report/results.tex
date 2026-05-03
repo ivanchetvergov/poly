@@ -152,13 +152,13 @@ BFS запускается из вершины, заданной пользов�
 
 \subsection{Алгоритм Форда--Фалкерсона: Максимальный поток}
 
-Для нахождения максимального потока между истоком и стоком использовался алгоритм Форда--Фалкерсона. Программа итеративно находит увеличивающие пути в остаточной сети до тех пор, пока они существуют. 
+Для нахождения максимального потока между истоком и стоком использовался алгоритм Форда--Фалкерсона. Программа итеративно находит увеличивающие пути в остаточной сети до тех пор, пока они существуют.
 
 На рис.~\ref{fig:max_flow_graph} представлена финальная визуализация сети, из 1 в 7 вершину.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/lab3/max_flow.png}
+    \includegraphics[width=1\linewidth]{images/lab3/max_flow.png}
     \caption{Распределение максимального потока в транспортной сети}
     \label{fig:max_flow_graph}
 \end{figure}
@@ -171,16 +171,95 @@ BFS запускается из вершины, заданной пользов�
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/lab3/min_cost.png}
+    \includegraphics[width=0.82\linewidth]{images/lab3/min_cost.png}
     \caption{Визуализация потока минимальной стоимости для величины $2/3$ от максимального}
     \label{fig:min_cost_res}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\linewidth]{images/lab3/min_cost_output.png}
+    \includegraphics[width=0.42\linewidth]{images/lab3/min_cost_output.png}
     \caption{Консольный вывод: значение потока, итоговая стоимость и количество итераций}
     \label{fig:min_cost_console}
 \end{figure}
 
 Программа успешно нашла оптимальное распределение. Как видно из рис.~\ref{fig:min_cost_console}, алгоритм прекратил работу ровно при достижении заданного пользователем значения потока, выбрав пути с наименьшей суммарной стоимостью дуг.
+
+Неорграф был сгенерирован
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8 \linewidth]{images/lab4/graph.png}
+    \caption{Минор матрицы Кирхгофа}
+    \label{fig:kirchhoff_matrix}
+\end{figure}
+
+\subsection{Матричная теорема Кирхгофа}
+
+Программа строит матрицу Лапласа по исходному неориентированному графу,
+вычисляет минор $L_{00}$ удалением первой строки и первого столбца
+и находит его определитель. Результат~--- число различных остовных
+деревьев~--- выводится в консоль. Визуализация минора матрицы Кирхгофа
+представлена на рис.~\ref{fig:kirchhoff_matrix}.
+
+
+
+\begin{figure}[H]
+    \centering
+        \includegraphics[width=0.48\linewidth]{images/lab4/capacities.png}
+    \includegraphics[width=0.48\linewidth]{images/lab4/kirchhoff_matrix.png}
+    \caption{Минор матрицы Кирхгофа}
+    \label{fig:kirchhoff_matrix}
+\end{figure}
+
+Консольный вывод: 10075 число остовных деревьев
+
+\subsection{Минимальный остов алгоритмом Борувки}
+
+Программа строит минимальное остовное дерево исходного графа алгоритмом
+Борувки. В консоль выводится число рёбер остова и его суммарный вес.
+Визуализация построенного МОД приведена на рис.~\ref{fig:boruvka_mst}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{images/lab4/boruvka_mst.png}
+    \caption{Минимальное остовное дерево, построенное алгоритмом Борувки}
+    \label{fig:boruvka_mst}
+\end{figure}
+
+Вершины: 0 1 2 3 4 5 6 7 8 9 10
+Последовательность Прюфера: 3 5 3 1 2 10 4 4 0
+
+\subsection{Кодирование и декодирование кода Прюфера}
+
+Построенный МОД кодируется последовательностью Прюфера длины $n-2$.
+Программа выводит список вершин дерева и саму последовательность.
+Затем выполняется декодирование~--- дерево восстанавливается по коду
+с сохранёнными весами рёбер. Программа выводит число вершин и рёбер
+восстановленного дерева, его суммарный вес. Визуализация декодированного
+дерева представлена на рис.~\ref{fig:prufer_decoded}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/lab4/prufer_decoded.png}
+    \caption{Дерево, восстановленное из кода Прюфера}
+    \label{fig:prufer_decoded}
+\end{figure}
+
+
+\subsection{Минимальная раскраска графа}
+
+Пользователь выбирает, на каком графе выполнять раскраску~--- исходном
+или построенном МОД. Программа перебором с возвратом находит
+хроматическое число $\chi(G)$ и выводит назначенные цвета для каждой
+вершины. На визуализации (рис.~\ref{fig:coloring_graph}) вершины
+раскрашены в соответствии с найденной оптимальной раскраской.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/lab4/coloring_graph.png}
+    \caption{Граф с минимальной раскраской вершин}
+    \label{fig:coloring_graph}
+\end{figure}
+

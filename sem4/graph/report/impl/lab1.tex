@@ -1,0 +1,193 @@
+\subsection{Модуль lab1}
+
+\subsubsection{GraphMetrics: эксцентриситеты}
+
+\textbf{Вход:} \texttt{Graph const\&} (конструктор).
+
+\textbf{Выход:} \texttt{MetricsResult}~--- \texttt{unordered\_map<int,double>}
+эксцентриситетов, \texttt{vector<int>} центра и диаметральных вершин,
+\texttt{double} радиус и диаметр.
+
+\textbf{Описание:} Граф ациклический и невзвешенный с точки зрения метрик:
+эксцентриситет считается по числу рёбер. Поэтому  используется BFS~--- приватный метод \texttt{bfsSteps},
+который возвращает расстояния в шагах от источника. Сложность одного
+обхода $O(V + E)$, итоговая~--- $O(V(V+E))$.
+
+После обхода \texttt{compute} вычисляет эксцентриситет каждой вершины
+как максимум расстояний по всем остальным. $+\infty$ означает, что
+вершина недостижима.
+
+\begin{lstlisting}[style=cppstyle, caption={BFS и вычисление метрик (GraphMetrics.cc)}]
+unordered_map<int, double> GraphMetrics::bfsSteps(int src) const
+{
+    constexpr double INF = numeric_limits<double>::infinity();
+    std::unordered_map<int, double> dist;
+    for (int v : m_graph_.vertexIds()) dist[v] = INF;
+    dist[src] = 0.0;
+
+    std::queue<int> q;
+    q.push(src);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (auto const& [v, w] : m_graph_.neighbors(u)) {
+            if (dist[v] == INF) {
+                dist[v] = dist[u] + 1.0;
+                q.push(v);
+            }
+        }
+    }
+    return dist;
+}
+
+MetricsResult GraphMetrics::compute() const {
+    constexpr double INF = std::numeric_limits<double>::infinity();
+    auto ids = m_graph_.vertexIds();
+    MetricsResult result;
+    double radius = INF, diameter = 0.0;
+
+    for (int v : ids) {
+        auto dist = bfsSteps(v);
+        double ecc = 0.0;
+        for (int u : ids) {
+            if (u == v) continue;
+            double d = dist.at(u);
+            if (d == INF) { ecc = INF; break; }
+            ecc = std::max(ecc, d);
+        }
+        result.eccentricities[v] = ecc;
+        if (ecc != INF) {
+            radius   = std::min(radius, ecc);
+            diameter = std::max(diameter, ecc);
+        }
+    }
+    result.radius   = radius == INF ? 0.0 : radius;
+    result.diameter = diameter;
+    for (int v : ids) {
+        double ecc = result.eccentricities[v];
+        if (ecc == result.radius)   result.center.push_back(v);
+        if (ecc == result.diameter) result.diametralVerts.push_back(v);
+    }
+    std::sort(result.center.begin(), result.center.end());
+    std::sort(result.diametralVerts.begin(), result.diametralVerts.end());
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{ShimbellMethod: матричная степень}
+
+\textbf{Вход:} \texttt{Graph const\&} (конструктор), \texttt{int pathLength}.
+
+\textbf{Выход:} \texttt{ShimbellResult} --- два поля имеют тип вида
+\texttt{DistanceMatrix}~$=$~\\\texttt{vector<vector<optional<double>>>}:
+\texttt{min\_distances} и \texttt{max\_distances}, и \texttt{int path\_length}.
+
+\textbf{Описание:} Начальная матрица строится через вспомогательный метод\\
+\texttt{CollectionUtils::makeSquareMatrix} с геттером-лямбдой:
+диагональ~--- нули, ребро~--- его вес из \texttt{getEdgeWeight},
+иначе~--- \texttt{nullopt}. Матрица итеративно умножается $k-1$ раз.
+Умножение вынесено в приватные методы \texttt{multiplyMin} и
+\texttt{multiplyMax}, которые делегируют в
+\texttt{CollectionUtils::multiplyOptionalMatrix} с соответствующим
+компаратором. Использование \texttt{nullopt}
+исключает ложные пути через несуществующие рёбра. Краевой случай $k=0$ возвращает единичную матрицу.
+
+\begin{lstlisting}[style=cppstyle, caption={Матрица смежности и метод Шимбелла (ShimbellMethod.cc)}]
+DistanceMatrix ShimbellMethod::createAdjacencyMatrix() const {
+    return CollectionUtils::makeSquareMatrix<optional<double>>(
+        m_vertex_ids_,
+        [&](int u, int v) -> std::optional<double> {
+            if (u == v) return 0.0;
+            auto w = m_graph_.getEdgeWeight(u, v);
+            return w.has_value() ? w : std::nullopt;
+        }
+    );
+}
+
+ShimbellResult const& ShimbellMethod::compute(int pathLength) {
+    if (pathLength == 0) {
+        DistanceMatrix identity(m_size_,
+            vector<optional<double>>(m_size_, nullopt)
+        );
+        for (int i = 0; i < m_size_; ++i) identity[i][i] = 1;
+        result_ = ShimbellResult{identity, identity, 0};
+        return result_;
+    }
+
+    DistanceMatrix current_min = createAdjacencyMatrix();
+    DistanceMatrix current_max = createAdjacencyMatrix();
+
+    DistanceMatrix base_min    = current_min;
+    DistanceMatrix base_max    = current_max;
+
+    for (int step = 2; step <= pathLength; ++step) {
+        current_min = multiplyMin(current_min, base_min);
+        current_max = multiplyMax(current_max, base_max);
+    }
+    result_ = ShimbellResult{
+        .min_distances = current_min,
+        .max_distances = current_max,
+        .path_length   = pathLength
+    };
+    return result_;
+}
+
+DistanceMatrix ShimbellMethod::multiplyMin(DistanceMatrix const& a, DistanceMatrix const& b) const {
+    return CollectionUtils::multiplyOptionalMatrix(
+    a, b, std::less<>()
+    );
+}
+
+DistanceMatrix ShimbellMethod::multiplyMax(DistanceMatrix const& a, DistanceMatrix const& b) const {
+    return CollectionUtils::multiplyOptionalMatrix(
+    a, b, std::greater<>()
+    );
+}
+\end{lstlisting}
+
+\subsubsection{PathCounter: подсчёт маршрутов}
+
+\textbf{Вход:} \texttt{Graph const\&} (конструктор), \texttt{int from},
+\texttt{int to}.
+
+\textbf{Выход:} \texttt{PathMatrix}~$=$~\texttt{vector<vector<int>>} --- все пути от \texttt{from} до \texttt{to}.
+
+\textbf{Описание:} Публичный метод \texttt{getAllPaths} сначала проверяет
+наличие обеих вершин через \texttt{hasVertex} и возвращает пустой результат
+при отсутствии, не запуская обход. Затем вызывается рекурсивный
+\texttt{backtrackAllPaths}~--- DFS с маской посещённых вершин
+\texttt{unordered\_map<int,bool>}. При достижении цели текущий путь
+копируется в результат; при выходе из рекурсии вершина снимается с
+отметки (\emph{backtracking}). Сложность: $O(n!)$ в худшем случае.
+
+\begin{lstlisting}[style=cppstyle, caption={Backtracking-поиск маршрутов (PathCounter.cc)}]
+PathMatrix PathCounter::getAllPaths(int from, int to) {
+    if (!m_graph_.hasVertex(from) || !m_graph_.hasVertex(to))
+        return {};
+    PathMatrix all_paths;
+    std::vector<int> current_path;
+    std::unordered_map<int, bool> visited;
+    backtrackAllPaths(from, to, visited,
+                      current_path, all_paths
+    );
+    return all_paths;
+}
+
+void PathCounter::backtrackAllPaths(
+    int current, int target,
+    std::unordered_map<int, bool>& visited,
+    std::vector<int>& currentPath, PathMatrix& allPaths)
+{
+    currentPath.push_back(current);
+    visited[current] = true;
+    if (current == target) {
+        allPaths.push_back(currentPath);
+    } else {
+        for (auto const& [neighborId, _] : m_graph_.neighbors(current))
+            if (!visited[neighborId])
+                backtrackAllPaths(neighborId, target, visited,
+                                  currentPath, allPaths);
+    }
+    currentPath.pop_back();
+    visited[current] = false;
+}
+\end{lstlisting}

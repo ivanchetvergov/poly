@@ -1,0 +1,403 @@
+\section{Особенности реализации}
+
+\subsection{Общий поток выполнения}
+
+Проект собирается как набор статических библиотек через CMake. Точка входа~---
+единый исполняемый файл \texttt{graph\_main}, который инициализирует
+\texttt{Menu} и запускает цикл ввода. Зависимости между модулями
+однонаправленные: лабораторные зависят от \texttt{common}, \texttt{common}
+не знает ни о каких лабораторных.
+
+Типичный сценарий выполнения выглядит так. Пользователь выбирает пункт меню,
+\texttt{Menu} вызывает соответствующий метод \texttt{Runner}'а из нужной лабы.
+\texttt{Runner} читает параметры из консоли, делегирует работу алгоритмическому
+классу (\texttt{Generator}, \texttt{ShimbellMethod} и т.\,д.), затем передаёт
+результат в \texttt{FileHandler} для сохранения и в \texttt{Visualizer} для
+отрисовки. \texttt{Visualizer} вызывает Python-скрипт через \texttt{system()},
+передавая пути к файлам как аргументы командной строки. Python читает данные
+из \texttt{assets/txt/} и сохраняет картинку в \texttt{assets/png/}.
+
+\begin{figure}[h]
+\centering
+\begin{verbatim}
+main.cc -> Menu -> Runner (lab1/lab2/...) -> Generator ->
+    -> Algorithms -> FileHandler -> assets/txt/ ->
+        -> Visualizer -> Python -> assets/png/
+\end{verbatim}
+
+\caption{Поток выполнения}
+\end{figure}
+
+\subsection{Модуль common}
+
+Модуль содержит весь код, который переиспользуется несколькими лабораторными:
+базовый граф, генератор, визуализатор, файловый обработчик, утилиты и меню.
+Сборка через CMake в статическую библиотеку \texttt{graph\_common}.
+
+\subsubsection{GraphBase: шаблонный граф}
+
+\texttt{GraphBase<VertexT, EdgeT>}~--- базовый шаблонный класс, параметризованный
+типами вершины и ребра.
+
+\begin{lstlisting}[style=cppstyle, caption={Объявление GraphBase (GraphBase.h)}]
+template <VertexType VertexT, EdgeType EdgeT>
+class GraphBase {
+    unordered_map<uint64_t, unique_ptr<VertexT>> m_vertices_;
+    unordered_map<uint64_t, EdgeT> m_edges_;
+    bool is_directed_ = false;
+    ...
+};
+\end{lstlisting}
+
+Класс служит основой для \texttt{Graph} (\texttt{GraphBase<Vertex, EdgeData>})
+и \\ \texttt{FlowNetwork} (\texttt{GraphBase<FlowVertex, FlowEdge>}).
+
+\paragraph{Хранение данных.} Вершины и рёбра лежат в хэш-таблицах с ключом
+$\mathit{key}(from, to) = (from \ll 32)\;|\;to$. Для неориентированных
+графов пара нормализуется перед хешированием: $from \leq to$. Это даёт
+$O(1)$ проверку наличия ребра и автоматически обеспечивает симметрию.
+
+\paragraph{Список инцидентности.} Смежные вершины хранятся в каждом объекте
+вершины в \texttt{vector<int> m\_neighbors\_}. При вызове \texttt{addEdge}
+обновляются и хэш-таблица рёбер, и список соседей. Запрос
+\texttt{neighbors(v)} возвращает этот вектор за $O(\deg v)$. Такая
+двойная структура~--- хэш по рёбрам плюс список соседей в вершине~---
+позволяет не выбирать между скоростью обхода и скоростью проверки.
+
+\paragraph{RAII и владение.} RAII (\textit{Resource Acquisition Is Initialization})~---
+идиома C++, при которой ресурс захватывается в конструкторе и освобождается
+в деструкторе, время жизни ресурса привязано к времени жизни объекта.
+Вершины хранятся как \texttt{unique\_ptr<VertexT>}~---
+владение однозначно, удаление происходит автоматически при разрушении
+контейнера, утечки памяти исключены на уровне типа.
+
+Ребро хранится как значение \texttt{EdgeT}~--- копирование дёшево
+(структура из двух \texttt{int} и \texttt{double}). Вершина~--- указатель, потому что
+\texttt{VertexT} содержит \texttt{vector<int> m\_neighbors\_},
+который растёт динамически; хранение по значению в \texttt{unordered\_map}
+привело бы к инвалидации ссылок при рехешировании.
+
+Все немодифицирующие методы помечены \texttt{[[nodiscard]]}~---
+атрибут стандарта C++17, при котором компилятор предупреждает об игнорировании
+возвращаемого значения:
+
+\begin{lstlisting}[style=cppstyle, caption={Публичный интерфейс GraphBase (GraphBase.h)}]
+[[nodiscard]] bool hasVertex(int id) const noexcept;
+[[nodiscard]] bool hasEdge(int from, int to)  const;
+[[nodiscard]] std::optional<EdgeT> getEdge(int from, int to);
+[[nodiscard]] std::vector<int> vertexIds() const;
+[[nodiscard]] std::vector<EdgeT> edges() const;
+[[nodiscard]] std::vector<int> neighbors(int id) const;
+[[nodiscard]] int degree(int v) const;
+\end{lstlisting}
+
+Возвращаемые значения с неопределённым результатом (отсутствующее ребро)
+возвращаются через \texttt{std::optional<EdgeT>}~--- явный способ
+выразить «может не быть», без исключений и без неявного кода ошибки.
+
+\subsubsection{Graph (DAG)}
+
+\texttt{Graph} наследует \texttt{GraphBase<Vertex, EdgeData>}.
+
+\begin{lstlisting}[style=cppstyle, caption={Graph, Vertex, EdgeData (Graph.h)}]
+struct EdgeData {
+    int from{-1};
+    int to{-1};
+    double weight{1.0};
+
+    EdgeData() = default;
+    EdgeData(int f, int t, double w) : from(f), to(t), weight(w) {}
+    bool operator<(EdgeData const& other) const { return weight < other.weight; }
+};
+
+class Vertex {
+public:
+    explicit Vertex(int id) : m_id_(id) {}
+    [[nodiscard]] int id() const noexcept { return m_id_; }
+    void addNeighbor(int neighborId);
+    [[nodiscard]] std::vector<int> neighbors() const;
+private:
+    int m_id_;
+    std::vector<int> m_neighbors_;
+};
+
+class Graph : public GraphBase<Vertex, EdgeData> {
+public:
+    explicit Graph(bool isDirected = false) : GraphBase(isDirected) {}
+    bool addEdge(int from, int to, double weight);
+    [[nodiscard]] std::optional<double> getEdgeWeight(int from, int to) const;
+    [[nodiscard]] std::vector<std::pair<int, double>> neighbors(int id) const;
+    [[nodiscard]] std::vector<int> getNeighbors(int id) const;
+    void printGraphInfo() const;
+};
+\end{lstlisting}
+
+\texttt{EdgeData} хранит поля \texttt{from}, \texttt{to} и \texttt{weight}.
+Оператор \texttt{<} по весу позволяет сортировать рёбра без дополнительных
+компараторов~--- используется в алгоритмах, требующих упорядочения рёбер.
+
+\texttt{Vertex} хранит идентификатор и список смежных вершин
+\texttt{m\_neighbors\_}. Метод \texttt{addNeighbor} вызывается из
+\texttt{Graph::addEdge}: для неориентированного графа смежность
+добавляется в обоих направлениях~--- ребро регистрируется в хэш-таблице
+через \texttt{GraphBase::addEdge}, а входящая вершина получает обратную
+запись через явный вызов \texttt{m\_vertices\_[to]->addNeighbor(from)}.
+
+\texttt{Graph} расширяет интерфейс базового класса тремя методами. \\
+\texttt{getEdgeWeight(from, to)} возвращает \texttt{optional<double>}~---
+вес ребра или \texttt{nullopt} если ребра нет.
+\texttt{neighbors(id)} возвращает список смежных вершин с весами
+\texttt{vector<pair<int,double>>}, объединяя данные из списка соседей
+и хэш-таблицы рёбер за один проход.
+\texttt{getNeighbors(id)} делегирует в \texttt{GraphBase::neighbors}
+и возвращает только идентификаторы~--- используется там, где вес не нужен.
+
+\subsubsection{Generator: генерация графов}
+
+Генератор использует шаблонный приватный метод,
+принимающий лямбды \texttt{addEdge} и \texttt{genWeight}. Это позволяет
+переиспользовать один алгоритм структурной генерации для разных типов
+графов и способов генерации весов. Публичные методы лишь собирают
+нужные лямбды и передают их в шаблонный метод.
+
+Для управления режимами используются \texttt{enum class}~--- исключают
+неявное преобразование в \texttt{int}:
+
+\begin{lstlisting}[style=cppstyle, caption={Перечисления параметров генератора (Generator.h)}]
+enum class EdgeCountDist { Uniform, TruncatedNormal };
+enum class WeightSign    { Positive, Negative, Mixed };
+\end{lstlisting}
+
+\paragraph{Степенная генерация: generateRiceGraphByDegrees.}
+Метод строит граф в три шага, связанных через \texttt{buildByRice}.
+
+\textbf{Шаг~1: число рёбер (\texttt{sampleEdgeCount}).}
+
+\textbf{Вход:} $m_{\min} = n-1$, $m_{\max} = \frac{n(n-1)}{2}$,
+режим \texttt{EdgeCountDist}.
+
+\textbf{Выход:} \texttt{int}~--- число рёбер $m$.
+
+\textbf{Описание:} \texttt{Uniform}~--- равномерная выборка из
+$[m_{\min}, m_{\max}]$. \texttt{TruncatedNormal}~--- нормальное
+распределение $\mathcal{N}(\mu, \sigma^2)$ с $\mu = (m_{\min} + m_{\max})/2$
+и $\sigma = (m_{\max} - m_{\min})/6$, усечённое методом отклонения.
+
+\begin{lstlisting}[style=cppstyle, caption={Выбор числа рёбер (Generator.cc)}]
+int Generator::sampleEdgeCount(int minE,
+                               int maxE,
+                               EdgeCountDist dist)
+{
+    if (minE >= maxE) return minE;
+    if (dist == EdgeCountDist::Uniform)
+        return randomInt(minE, maxE);
+    double mu    = (minE + maxE) / 2.0;
+    double sigma = (maxE - minE) / 6.0;
+    double val;
+
+    do { val = mu + sigma * normal_dist_(rng_); }
+    while (val < minE || val > maxE);
+
+    return static_cast<int>(std::round(val));
+}
+\end{lstlisting}
+
+\textbf{Шаг~2: целевые степени (\texttt{computeDegreesFromRice}).}
+
+\textbf{Вход:} $n$, $a$, $h$, $m$.
+
+\textbf{Выход:} \texttt{vector<int>} длины $n$.
+
+\textbf{Описание:} Для каждой вершины сэмплируется
+$x_i = \sqrt{(h + au_1)^2 + (au_2)^2}$, $u_1, u_2 \sim \mathcal{N}(0,1)$.
+Вектор нормируется через softmax со стабилизацией. Степень вершины~$i$:
+$q_i = p_i \cdot \mathit{cap}_i$, где $\mathit{cap}_i = n - 1 - i$~---
+максимальная степень в топологическом порядке. Квоты масштабируются к
+сумме $m$, целые части берутся через \texttt{floor}, остаток
+распределяется жадно по убыванию дробных частей.
+
+\begin{lstlisting}[style=cppstyle, caption={Вычисление целевых степеней (Generator.cc)}]
+vector<int> Generator::computeDegreesFromRice(int n,
+                                              bool isDirected,
+                                              double a,
+                                              double h,
+                                              int totalEdges)
+{
+    std::vector<double> prob(n);
+    for (auto& v : prob) v = riceWeight(a, h);
+
+    double maxVal = *std::max_element(prob.begin(), prob.end());
+    double sumExp = 0.0;
+    for (auto& v : prob) { v = std::exp(v - maxVal); sumExp += v; }
+    for (auto& v : prob) v /= sumExp;
+
+    std::vector<int> cap(n);
+    for (int i = 0; i < n; ++i) cap[i] = n - 1 - i;
+
+    std::vector<double> quota(n);
+    double sumW = 0.0;
+    for (int i = 0; i < n; ++i) { quota[i] = prob[i] * cap[i]; sumW += quota[i]; }
+    if (sumW > 0.0)
+        for (auto& q : quota) q *= static_cast<double>(totalEdges) / sumW;
+
+    std::vector<int> degrees(n);
+    int allocated = 0;
+    for (int i = 0; i < n; ++i) {
+        degrees[i] = std::min((int)std::floor(quota[i]), cap[i]);
+        allocated += degrees[i];
+    }
+    int remainder = totalEdges - allocated;
+    std::vector<int> order(n);
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](int a, int b) {
+        return (quota[a] - std::floor(quota[a]))
+             > (quota[b] - std::floor(quota[b]));
+    });
+    for (int idx : order) {
+        if (remainder <= 0) break;
+        if (degrees[idx] < cap[idx]) { ++degrees[idx]; --remainder; }
+    }
+    return degrees;
+}
+\end{lstlisting}
+
+\textbf{Шаг~3: построение графа (\texttt{generateByDegreesTemplate}).}
+
+\textbf{Вход:} $n$, вектор \texttt{degrees}, лямбды \texttt{addEdge}
+и \texttt{genWeight}, флаг ориентированности.
+
+\textbf{Выход:} \texttt{unique\_ptr<GraphT>}.
+
+\textbf{Описание:} Первый проход строит остовное дерево: для вершины $i$
+предок выбирается из вершин с ненулевым бюджетом степени; если таких нет~---
+случайно. Второй проход добирает рёбра согласно оставшемуся бюджету.
+Ациклические свойства гарантируются тем, что рёбра в обоих проходах
+добавляются только от $u$ к $v$ при $u < v$.
+
+\begin{lstlisting}[style=cppstyle, caption={Построение графа по целевым степеням (Generator.tpp)}]
+template <typename GraphT,
+          typename AddEdgeFunc,
+          typename WeightGenFunc>
+std::unique_ptr<GraphT> Generator::generateByDegreesTemplate(
+                                    int numVertices,
+                                    std::vector<int> degrees,
+                                    AddEdgeFunc addEdge,
+                                    WeightGenFunc genWeight,
+                                    bool isDirected)
+{
+    auto graph = std::make_unique<GraphT>(isDirected);
+    for (int i = 0; i < numVertices; ++i) graph->addVertex(i);
+
+    for (int i = 1; i < numVertices; ++i) {
+        std::vector<int> with_budget;
+        for (int j = 0; j < i; ++j)
+            if (degrees[j] > 0) with_budget.push_back(j);
+        int from = with_budget.empty()
+            ? randomInt(0, i - 1)
+            : with_budget[randomInt(0, (int)with_budget.size() - 1)];
+        addEdge(*graph, from, i, genWeight());
+        if (degrees[from] > 0) --degrees[from];
+    }
+
+    for (int i = 0; i < numVertices - 1; ++i) {
+        if (degrees[i] <= 0) continue;
+        std::vector<int> available;
+        for (int j = i + 1; j < numVertices; ++j)
+            if (!graph->hasEdge(i, j)) available.push_back(j);
+        std::shuffle(available.begin(), available.end(), rng_);
+        int toAdd = std::min(degrees[i], (int)available.size());
+        for (int k = 0; k < toAdd; ++k)
+            addEdge(*graph, i, available[k], genWeight());
+    }
+    return graph;
+}
+\end{lstlisting}
+
+Точка входа степенной генерации:
+
+\begin{lstlisting}[style=cppstyle, caption={generateRiceGraphByDegrees (Generator.cc)}]
+std::unique_ptr<Graph> Generator::generateRiceGraphByDegrees(
+                                    int numVertices,
+                                    bool isDirected,
+                                    double a,
+                                    double h,
+                                    EdgeCountDist dist,
+                                    WeightSign sign)
+{
+    auto gen_weight = [this, a, h, sign]() {
+        return applySign(riceWeight(a, h), sign);
+    };
+    auto add_edge = [](Graph& g, int from, int to, double w) {
+        g.addEdge(from, to, w);
+    };
+    return buildByRice<Graph>( numVertices, isDirected,
+                               a, h, dist,
+                               gen_weight, add_edge);
+}
+\end{lstlisting}
+
+\subsubsection{CollectionUtils: шаблонные утилиты}
+
+Статический класс с шаблонными методами для матриц и коллекций.
+
+\texttt{makeMatrix<T>(rows, cols, getter)} строит матрицу любого типа,
+заполняя её вызовами \texttt{getter(i, j)}. На его основе
+\texttt{makeSquareMatrix} строит квадратную матрицу по списку вершин~---
+используется в \texttt{FileHandler} для сохранения матриц смежности и весов.
+
+\texttt{multiplyOptionalMatrix} выполняет матричное умножение над элементами типа \texttt{optional<double>}: \texttt{nullopt} означает отсутствие пути
+и не участвует в агрегации. Компаратор передаётся параметром~---
+одна функция работает как для $(\min,+)$, так и для $(\max,+)$
+в методе Шимбелла.
+
+\begin{lstlisting}[style=cppstyle, caption={Обобщённое матричное умножение (CollectionUtils.h)}]
+template <typename CompareFunc>
+static Matrix<std::optional<double>> multiplyOptionalMatrix(
+    Matrix<std::optional<double>> const& a,
+    Matrix<std::optional<double>> const& b,
+    CompareFunc compare)
+{
+    int size = static_cast<int>(a.size());
+    Matrix<optional<double>> result(
+        size, vector<optional<double>>(size, nullopt)
+    );
+    for (int i = 0; i < size; ++i)
+        for (int j = 0; j < size; ++j)
+            for (int k = 0; k < size; ++k)
+                if (a[i][k].has_value() && b[k][j].has_value()) {
+                    double d = a[i][k].value() + b[k][j].value();
+                    if (!result[i][j].has_value() ||
+                        compare(d, result[i][j].value()))
+                        result[i][j] = d;
+                }
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{FileHandler: сохранение данных}
+
+Статический класс. Все методы принимают имя файла и объект для сохранения.
+\texttt{saveGraph} сохраняет список рёбер в формате \texttt{u v weight} по
+одному ребру на строку~--- именно этот формат читает \texttt{GraphLoader}
+в Python. \texttt{savePaths} пишет число путей первой строкой, затем
+каждый путь как разделённую последовательность вершин.
+Приватный шаблонный метод, предназначенный для чтение матрицы \texttt{saveSquareMatrix} используется публичными методами
+\texttt{saveAdjacencyMatrix}, \texttt{saveWeightMatrix},
+\texttt{saveCapacityMatrix} и \texttt{saveCostMatrix}~--- все они
+отличаются только геттером, который передаётся как лямбда.
+
+\subsubsection{Visualizer: вызов Python}
+
+Статический класс. Каждый метод формирует список строковых аргументов
+и вызывает нужный скрипт через \texttt{runPythonScript}. Вызов идёт через \texttt{system()} с построенной
+командной строкой.
+
+\texttt{draw} вызывает \texttt{plot\_network.py} с флагом \texttt{--type graph}
+или \texttt{--type flow}. \texttt{drawPaths}~--- \texttt{plot\_paths.py}
+с дополнительным файлом путей. \texttt{drawMatrix}~--- \texttt{plot\_matrix.py}.
+\texttt{drawColoredGraph}~--- \texttt{plot\_colored\_graph.py} с файлом
+раскраски вершин.
+
+\texttt{DrawDataConfig} хранит конфигурацию путей и заголовков для каждого
+пункта меню в \texttt{map<int, DrawData>}. Все пути к файлам
+собраны в одном месте, что упрощает добавление нового пункта меню.

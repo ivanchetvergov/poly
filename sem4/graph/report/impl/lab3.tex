@@ -1,0 +1,171 @@
+
+
+
+
+
+\subsection{Модуль lab3}
+
+\subsubsection{FlowNetwork: сеть потоков}
+
+\textbf{Вход:} флаг ориентированности (конструктор, по умолчанию
+\texttt{true}).
+
+\textbf{Выход:} \texttt{unique\_ptr<FlowNetwork>}.
+
+\textbf{Описание:} \texttt{FlowNetwork} наследует
+\texttt{GraphBase<FlowVertex, FlowEdge>}. Структура \texttt{FlowEdge}
+хранит \texttt{from}, \texttt{to}, \texttt{capacity}, \texttt{cost}
+и \texttt{flow}. При добавлении ребра через \texttt{addEdge}
+автоматически создаётся обратное ребро с нулевой пропускной
+способностью и отрицательной стоимостью~--- это стандартное
+требование алгоритмов на остаточных сетях.
+Остаточная пропускная способность вычисляется как
+$\mathit{res}(u,v) = \mathit{capacity}(u,v) - \mathit{flow}(u,v)$.
+Метод \texttt{addFlow} обновляет поток симметрично: увеличивает
+прямое ребро и уменьшает обратное.
+
+\begin{lstlisting}[style=cppstyle, caption={Добавление ребра и обратного ребра (FlowNetwork.cc)}]
+bool FlowNetwork::addEdge(int from, int to,
+                          double capacity, double cost)
+{
+    FlowEdge forward_edge(from, to, capacity, cost, 0.0);
+    FlowEdge backward_edge(to, from, 0.0, -cost, 0.0);
+
+    bool added = GraphBase::addEdge(from, to, forward_edge);
+    if (added) {
+        GraphBase::addEdge(to, from, backward_edge);
+        m_vertices_[to]->addNeighbor(from);
+    }
+    return added;
+}
+
+void FlowNetwork::addFlow(int from, int to, double flow) {
+    auto* edge_forward  = getEdgeMutable(from, to);
+    auto* edge_backward = getEdgeMutable(to, from);
+    if (edge_forward)  edge_forward->flow  += flow;
+    if (edge_backward) edge_backward->flow -= flow;
+}
+\end{lstlisting}
+
+\subsubsection{MaxFlow: алгоритм Форда--Фалкерсона}
+
+\textbf{Вход:} \texttt{FlowNetwork\&} (конструктор), \texttt{int source},
+\texttt{int sink}, \\ \texttt{bool enableLogging}.
+
+\textbf{Выход:} \texttt{double}~--- значение максимального потока.
+Побочный эффект~--- вектор \texttt{m\_snapshots\_} для анимации.
+
+\textbf{Описание:} Реализован метод Форда--Фалкерсона с BFS
+для поиска увеличивающего пути.
+На каждой итерации BFS ищет путь в остаточной сети~---
+ребро рассматривается только если
+$\mathit{res}(u,v) > 0$. Пропускная способность пути~---
+минимум остаточных пропускных способностей по всем рёбрам~---
+вычисляется через \texttt{PathUtils::getMinPathValue}.
+Поток увеличивается через \texttt{PathUtils::forEachEdgeInPath}.
+При включённом логировании после каждой итерации фиксируется
+снимок состояния сети \texttt{FlowSnapshot}~--- он используется
+для построения GIF-анимации роста потока.
+Сложность: $O(V \cdot E^2)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Алгоритм Форда--Фалкерсона (MaxFlow.cc)}]
+double MaxFlow::fordFulkerson(int source, int sink,
+                              bool enableLogging)
+{
+    double max_flow = 0.0;
+    std::unordered_map<int, int> parent;
+    int step = 0;
+
+    resetFlows(m_network_);
+    m_snapshots_.clear();
+    if (enableLogging) captureSnapshot(step++, max_flow);
+
+    while (bfs(source, sink, parent)) {
+        auto calc_residual = [this](int u, int v) {
+            return m_network_.getResidualCapacity(u, v);
+        };
+        double path_flow = PathUtils<double>::getMinPathValue(
+            source, sink, parent, calc_residual);
+
+        PathUtils<double>::forEachEdgeInPath(
+            source, sink, parent,
+            [this, path_flow](int u, int v) {
+                m_network_.addFlow(u, v, path_flow);
+            });
+
+        max_flow += path_flow;
+        if (enableLogging) captureSnapshot(step++, max_flow);
+    }
+    return max_flow;
+}
+\end{lstlisting}
+
+\subsubsection{MinCostFlow: поток минимальной стоимости}
+
+\textbf{Вход:} \texttt{FlowNetwork\&} (конструктор), \texttt{int source},
+\texttt{int sink}, \texttt{double targetFlow}.
+
+\textbf{Выход:} \texttt{Result}~--- структура с полями \texttt{flow},
+\texttt{cost}, \texttt{success} и \texttt{path} последнего найденного пути.
+
+\textbf{Описание:} Алгоритм последовательно ищет кратчайший путь
+в остаточной сети по стоимости через алгоритм Беллмана--Форда
+и направляет по нему максимально возможный поток, не превышающий
+$\mathit{targetFlow} - \mathit{currentFlow}$. Беллман--Форд
+корректно обрабатывает отрицательные стоимости обратных рёбер.
+По условию задания целевой поток берётся как $\lfloor 2/3 \cdot
+\mathit{maxFlow} \rfloor$. Сложность одной итерации: $O(V \cdot E)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Поток минимальной стоимости (MinCostFlow.cc)}]
+MinCostFlow::Result MinCostFlow::findMinCostFlow(
+    int source, int sink, int targetFlow)
+{
+    Result result;
+    resetFlows(m_network_);
+    double current_flow = 0.0, total_cost = 0.0;
+    std::unordered_map<int, double> dist;
+    std::unordered_map<int, int>    parent;
+
+    while (current_flow < targetFlow
+           && bellmanFord(source, sink, dist, parent))
+    {
+        auto calc_residual = [this](int u, int v) {
+            return m_network_.getResidualCapacity(u, v);
+        };
+        double path_flow = std::min(
+            targetFlow - current_flow,
+            PathUtils<double>::getMinPathValue(
+                source, sink, parent, calc_residual));
+
+        result.path = PathUtils<double>::reconstructPath(
+            source, sink, parent);
+
+        PathUtils<double>::forEachEdgeInPath(
+            source, sink, parent,
+            [this, &total_cost, path_flow](int u, int v) {
+                m_network_.addFlow(u, v, path_flow);
+                total_cost += path_flow
+                            * m_network_.getCost(u, v);
+            });
+
+        current_flow += path_flow;
+    }
+    result.flow    = current_flow;
+    result.cost    = total_cost;
+    result.success = (current_flow == targetFlow);
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{PathUtils: вспомогательные операции на путях}
+
+\texttt{PathUtils<T>}~--- шаблонный статический класс для работы
+с путями, заданными массивом предшественников
+\texttt{unordered\_map<int,int> parent}. Используется как в
+\texttt{MaxFlow}, так и в \texttt{MinCostFlow}, а также в
+\texttt{Dijkstra} из лабораторной~2.
+
+\texttt{getMinPathValue} вычисляет минимальное значение геттера
+по всем рёбрам пути~--- используется для нахождения
+пропускной способности пути. \texttt{forEachEdgeInPath} применяет
+произвольный функтор к каждому ребру пути~--- использует

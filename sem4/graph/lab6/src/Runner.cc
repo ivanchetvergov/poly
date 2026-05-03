@@ -2,11 +2,14 @@
 #include "HashTable.h"
 #include "RBTree.h"
 #include "TextGenerator.h"
+#include "Tokenizer.h"
 #include <iostream>
 #include <vector>
 #include <string>
 #include <random>
 #include <algorithm>
+#include <sstream>
+#include <filesystem>
 
 #include "../../common/include/Visualizer.h"
 #include "../../common/include/FileHandler.h"
@@ -100,6 +103,27 @@ void Runner::runHashTableInteractive() {
         std::cout << "Enter command (insert <word>, remove <word>, search <word>, draw, exit): ";
         std::getline(std::cin >> std::ws, command);
         if (command == "exit") break;
+        if (command == "clear") {
+            ht.clear();
+            std::cout << "Cleared table\n";
+            continue;
+        }
+        if (command.size() >= 4 && command.substr(0, 4) == "load") {
+            std::istringstream lss(command);
+            std::string cmd, filename;
+            int n = 1;
+            lss >> cmd >> filename;
+            if (lss >> n) {
+            }
+            if (filename.empty()) {
+                std::cout << "Usage: load <filename> [n]\n";
+            } else if (ht.loadFromFile(filename, true, n)) {
+                std::cout << "Loaded from: " << filename << " (n=" << n << ")\n";
+            } else {
+                std::cout << "Failed to load: " << filename << "\n";
+            }
+            continue;
+        }
         if (command.substr(0, 6) == "insert") {
             std::string word = command.substr(7);
             ht.insert(word);
@@ -146,6 +170,42 @@ void Runner::runRBTreeInteractive() {
         std::cout << "Enter command (insert <word>, remove <word>, search <word>, validate, draw, gif, exit): ";
         std::getline(std::cin >> std::ws, command);
         if (command == "exit") break;
+        if (command == "clear") {
+            tree.clear();
+            std::cout << "Cleared tree\n";
+            auto data = tree.serialize();
+            std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
+            FileHandler::appendToFile(snapshotsFile, snapshot);
+            step++;
+            continue;
+        }
+        if (command.size() >= 4 && command.substr(0, 4) == "load") {
+            std::istringstream lss(command);
+            std::string cmd, filename;
+            int n = 1;
+            lss >> cmd >> filename;
+            if (lss >> n) {
+            }
+            if (filename.empty()) {
+                std::cout << "Usage: load <filename> [n]\n";
+            } else {
+                std::vector<std::string> ngrams;
+                if (!Tokenizer::ngramsFromFile(filename, n, ngrams)) {
+                    std::cout << "Failed to load: " << filename << "\n";
+                    continue;
+                }
+
+                for (auto const& token : ngrams) {
+                    tree.insert(token);
+                    auto data = tree.serialize();
+                    std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
+                    FileHandler::appendToFile(snapshotsFile, snapshot);
+                    step++;
+                }
+                std::cout << "Loaded from: " << filename << " (n=" << n << ", tokens=" << ngrams.size() << ")\n";
+            }
+            continue;
+        }
         if (command.substr(0, 6) == "insert") {
             std::string word = command.substr(7);
             tree.insert(word);
@@ -188,6 +248,9 @@ void Runner::runRBTreeInteractive() {
         } else if (command == "gif") {
             if (step > 1) {
                 auto data = DrawDataConfig::getConfigs().at(65);
+                // Remove previous gif so stale animation is never shown if render fails.
+                std::error_code ec;
+                std::filesystem::remove(data.gifFile, ec);
                 graph::Visualizer::drawRBTree(data, graph::VisualizationType::Animation);
             } else {
                 std::cout << "No snapshots to animate\n";
