@@ -171,11 +171,11 @@ class GraphLabApp:
                     data = base64.b64encode(f.read()).decode()
                 st.markdown(
                     f'<img src="data:image/gif;base64,{data}" '
-                    f'style="width:100%; background-color: white;" loop="infinite" autoplay>',
+                    f'style="width:100%; display:block; background-color: white;" loop="infinite" autoplay>',
                     unsafe_allow_html=True,
                 )
             else:
-                st.image(str(img_path))
+                st.image(str(img_path), width='stretch')
         except Exception:
             pass
 
@@ -214,6 +214,30 @@ class GraphLabApp:
             unsafe_allow_html=True,
         )
 
+    def _read_text_report(self, report_path: str | None) -> str:
+        if not report_path:
+            return ""
+        path = ASSETS_DIR / 'txt' / report_path
+        if not path.exists():
+            return ""
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return f.read().strip()
+        except Exception:
+            return ""
+
+    def _display_text_report(self, images: list[str] | None) -> None:
+        report_path = self._s.get('current_report_file')
+        if not report_path:
+            return
+        report_text = self._read_text_report(report_path)
+        if not report_text:
+            return
+        if not images:
+            st.code(report_text, language="text")
+            return
+        st.code(report_text, language="text")
+
     def _display_visualizations(self) -> None:
         images = self._s.current_visualization
         dist_type = self._get('dist_type')
@@ -223,7 +247,7 @@ class GraphLabApp:
             return
 
         if show_dist:
-            col_img, col_dist = st.columns(2)
+            col_img, col_dist = st.columns([3, 2])
             with col_img:
                 paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in (images or [])]
                 for p in paths:
@@ -233,16 +257,17 @@ class GraphLabApp:
         elif images:
             paths = [ASSETS_DIR / ("gif" if img.endswith('.gif') else "png") / img for img in images]
             if len(paths) == 2:
-                col1, col2 = st.columns(2)
-                with col1:
+                image_cols = st.columns(2, gap="large")
+                with image_cols[0]:
                     self.display_image(paths[0])
-                with col2:
+                with image_cols[1]:
                     self.display_image(paths[1])
             else:
                 for p in paths:
                     self.display_image(p)
 
         self._display_euler_path_badge(images)
+        self._display_text_report(images)
 
     # ------------------------------------------------------------------
     # Main menu
@@ -320,6 +345,8 @@ class GraphLabApp:
             st.selectbox("Operation", ["insert", "delete", "search"], key=key)
         elif param == "word":
             st.text_input("Word", key=key)
+        elif param == "cut_indices":
+            st.text_input("Номера разрезов (через пробел или запятую)", key=key)
 
     # ------------------------------------------------------------------
     # Build params string for stdin
@@ -344,6 +371,7 @@ class GraphLabApp:
                                 self._get_param(lab, action, "cost_sign", DEFAULT_PARAMS.cost_sign))),
             "operation":    lambda: str(self._get_param(lab, action, "operation", "insert")),
             "word":         lambda: str(self._get_param(lab, action, "word", "")),
+            "cut_indices":  lambda: str(self._get_param(lab, action, "cut_indices", "")),
         }
         for p in params:
             if p not in handlers:
@@ -435,6 +463,11 @@ class GraphLabApp:
                 has_local_graph = self._get(f'{lab}_graph_generated', False)
                 has_global_graph = self._get('global_graph_generated', False)
                 graph_ready = has_local_graph or has_global_graph
+                report_file = None
+                if action_name == "Fundamental Cuts (all)":
+                    report_file = "52_fundamental_cuts.txt"
+                elif action_name == "Fundamental Cuts (subset)":
+                    report_file = "53_fundamental_cuts_subset.txt"
                 disabled = (
                     not is_gen and not graph_ready
                 ) or (
@@ -449,6 +482,7 @@ class GraphLabApp:
                             cmd = action_config.execute_cmd
                             full_cmd = f"{cmd}\n{params_str}" if params_str else cmd
                             self.send_command(lab, full_cmd)
+                            self._set('current_report_file', report_file)
                             if is_gen:
                                 self._set(f'{lab}_graph_generated', True)
                                 self._set(f'{lab}_maxflow_done', False)
@@ -467,6 +501,7 @@ class GraphLabApp:
                                 self._set(f'{lab}_maxflow_done', True)
                 with col2:
                     if st.button("Visualize", disabled=disabled, key=f"{lab}_{action_name}_visualize"):
+                        self._set('current_report_file', report_file)
                         self._s.current_visualization = action_config.images
 
     # ------------------------------------------------------------------

@@ -1,0 +1,100 @@
+\subsection{Модуль lab5}
+
+\subsubsection{EulerianCycle: проверка, достройка и нахождение эйлерова цикла}
+
+\textbf{Вход (конструктор):} \texttt{Graph\&}~--- неориентированный граф.
+
+\textbf{Выход (\texttt{findCycle}):} \texttt{std::optional<vector<int>>}~---
+последовательность вершин эйлерова цикла или пути;
+\texttt{std::nullopt} если граф не является ни эйлеровым, ни полуэйлеровым.
+
+\textbf{Описание:} Метод \texttt{isEulerian} проверяет отсутствие
+вершин нечётной степени и связность графа; \texttt{isSemiEulerian}~---
+ровно две вершины нечётной степени при том же условии связности.
+Связность определяется BFS-обходом по ненулевым вершинам через
+\texttt{hasSingleNonZeroComponent}.
+
+Метод \texttt{makeEulerian} выполняет достройку: сначала соединяет
+несвязные компоненты цепочкой рёбер, затем итеративно устраняет
+вершины нечётной степени попарным добавлением рёбер. При выборе пар
+предпочтение отдаётся вершинам, между которыми ещё нет ребра. Все
+добавленные рёбра фиксируются в \texttt{m\_added\_edges\_}.
+
+Метод \texttt{hierholzer} реализует алгоритм Иерхольцера итеративно
+на стеке с вектором \texttt{usedEdge} и указателями \texttt{ptr[u]}
+для пропуска использованных рёбер без повторного перебора.
+Сложность: $O(V + E)$, пространственная: $O(V + E)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Достройка и алгоритм Иерхольцера (EulerianCycle.cc)}]
+bool EulerianCycle::isEulerian() const;
+bool EulerianCycle::isSemiEulerian() const;
+void EulerianCycle::makeEulerian();
+std::optional<std::vector<int>> EulerianCycle::hierholzer(
+    int start, int totalEdges) const;
+
+stk.push(id2idx[start]);
+while (!stk.empty()) {
+    int u = stk.top();
+    bool found = false;
+    while (ptr[u] < static_cast<int>(g[u].size())) {
+        auto [v, eid] = g[u][ptr[u]++];
+        if (usedEdge[eid]) continue;
+        usedEdge[eid] = true;
+        stk.push(v);
+        found = true;
+        break;
+    }
+    if (!found) {
+        circuit.push_back(vertices[u]);
+        stk.pop();
+    }
+}
+std::reverse(circuit.begin(), circuit.end());
+\end{lstlisting}
+
+\subsubsection{CutSystem: фундаментальная система разрезов и симметрическая разность}
+
+\textbf{Вход (конструктор):} \texttt{Graph const\& originalGraph},
+\texttt{Graph const\& mst}~--- исходный граф и его минимальный остов.
+
+\textbf{Выход (\texttt{buildFundamentalCuts}):}
+\texttt{vector<FundamentalCut>}~--- вектор из $|V|-1$ структур с
+полями \texttt{treeEdge}, \texttt{leftComponent},
+\texttt{rightComponent} и \texttt{cutEdges}.
+
+\textbf{Описание:} Для каждого ребра $e \in T$ метод
+\texttt{componentWithoutTreeEdge} BFS-обходом по остову без ребра $e$
+находит компоненту $A$; дополнение $B = V \setminus A$ строится
+перебором всех вершин. Рёбра исходного графа, пересекающие границу
+$A \mid B$, собираются в \texttt{cutEdges}, нормализуются и
+дедуплицируются. Сложность: $O(|V| \cdot (|V| + |E|))$.
+
+Метод \texttt{symmetricDifference} кодирует каждое ребро как
+\texttt{uint64} и поддерживает множество \texttt{active} по принципу
+XOR: при повторном вхождении код удаляется, при первом~--- добавляется.
+Сложность: $O(k \cdot |\mathrm{Cut}|)$.
+
+\begin{lstlisting}[style=cppstyle, caption={Построение ФСР и симметрическая разность (CutSystem.cc)}]
+std::vector<CutSystem::FundamentalCut>
+    CutSystem::buildFundamentalCuts() const;
+std::vector<std::pair<int, int>> CutSystem::symmetricDifference(
+    std::vector<FundamentalCut> const& cuts,
+    std::vector<int> const& selectedIndices) const;
+
+for (auto const& edge : mst_.edges()) {
+    auto treeEdge = normalizeEdge(edge.from, edge.to);
+    auto left = componentWithoutTreeEdge(treeEdge.first, treeEdge);
+    for (auto const& e : originalGraph_.edges()) {
+        auto ge = normalizeEdge(e.from, e.to);
+        if (left.contains(ge.first) != left.contains(ge.second))
+            cut.cutEdges.push_back(ge);
+    }
+}
+
+for (int idx : selectedIndices)
+    for (auto const& edge : cuts[idx].cutEdges) {
+        auto code = encode(edge);
+        if (active.contains(code)) active.erase(code);
+        else                       active.insert(code);
+    }
+\end{lstlisting}

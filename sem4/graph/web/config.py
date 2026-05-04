@@ -65,7 +65,8 @@ LAB_CONFIGS = {
             "Generate Graph (Acyclic)": ActionConfig(execute_cmd="1", params=["directed", "vertices", "edges", "weight_sign"], images=["01_graph.png"]),
             "Generate Graph (Rice)": ActionConfig(execute_cmd="4", params=["directed", "vertices", "rayleigh_a", "rayleigh_h", "weight_sign"], images=["01_graph.png"]),
             "Eulerian Check + Cycle": ActionConfig(execute_cmd="51", images=["51_graph_original.png", "51_euler_cycle.png"]),
-            "Fundamental Cuts": ActionConfig(execute_cmd="52", images=["52_mst.png", "52_cuts.png"]),
+            "Fundamental Cuts (all)": ActionConfig(execute_cmd="52", images=["52_mst.png", "52_cuts.png"]),
+            "Fundamental Cuts (subset)": ActionConfig(execute_cmd="53", params=["cut_indices"], images=["52_mst.png", "52_cuts.png"]),
         }
     ),
     "Lab 6": LabConfig(

@@ -7,7 +7,9 @@
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
+#include <unordered_map>
 #include <sstream>
+#include <cctype>
 
 #include <FileHandler.h>
 #include <DrawDataConfig.h>
@@ -177,8 +179,6 @@ void Runner::runFundamentalCuts(Graph const& graph) {
         return;
     }
 
-    std::ostringstream report;
-    report << "Минимальный остов (Борувка):\n";
     std::cout << "\n=== Минимальный остов (Борувка) ===\n";
     double mstTotalWeight = 0.0;
     auto mstEdges = mst->edges();
@@ -190,10 +190,8 @@ void Runner::runFundamentalCuts(Graph const& graph) {
     for (auto const& e : mstEdges) {
         mstTotalWeight += e.weight;
         std::cout << "  " << e.from << " -- " << e.to << " (w=" << e.weight << ")\n";
-        report << "  " << e.from << " -- " << e.to << " (w=" << e.weight << ")\n";
     }
     std::cout << "[INFO] Вес остова: " << mstTotalWeight << "\n";
-    report << "[INFO] Вес остова: " << mstTotalWeight << "\n\n";
 
     // Снапшот MST для web: первая картинка слева.
     DrawData mstData{
@@ -214,7 +212,9 @@ void Runner::runFundamentalCuts(Graph const& graph) {
 
     CutSystem cutSystem(graph, *mst);
     auto fundamentalCuts = cutSystem.buildFundamentalCuts();
-    report << "Фундаментальная система разрезов (по рёбрам MST):\n";
+
+    std::ostringstream report;
+    report << "Фундаментальная система разрезов:\n";
 
     std::cout << "\n=== Фундаментальная система разрезов ===\n";
     for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
@@ -293,11 +293,21 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
     }
 
     std::cout << "\nВыберите подмножество разрезов для XOR:\n";
-    int k = readInt("Сколько разрезов использовать? ");
+    std::cout << "Введите номера разрезов в одной строке через пробел или запятую: ";
 
+    std::string line;
+    std::getline(std::cin >> std::ws, line);
+
+    for (char& ch : line) {
+        if (ch == ',') {
+            ch = ' ';
+        }
+    }
+
+    std::istringstream input(line);
     std::vector<int> selected;
-    for (int i = 0; i < k; ++i) {
-        int idx = readInt("Введите индекс разреза: ");
+    int idx = 0;
+    while (input >> idx) {
         selected.push_back(idx);
     }
 
@@ -350,6 +360,30 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
     std::cout << "\n[RESULT] Симметрическая разность (индексы: ";
     for (int idx : validSelected) std::cout << idx << " ";
     std::cout << "): { " << cutEdgesToText(symDiff) << " }\n";
+
+    std::ostringstream report;
+    report << "Фундаментальная система разрезов:\n";
+    for (size_t i = 0; i < fundamentalCuts.size(); ++i) {
+        auto const& c = fundamentalCuts[i];
+        report << i << ") Удаляем ребро остова " << edgeToString(c.treeEdge)
+               << ". Остов распадается на две части:\n";
+        report << "    A = " << verticesToText(c.leftComponent)
+               << ", B = " << verticesToText(c.rightComponent) << "\n";
+        report << "    Рёбра исходного графа, которые пересекают границу A|B: { "
+               << cutEdgesToText(c.cutEdges) << " }\n";
+    }
+    report << "\nВыбранные индексы: ";
+    for (int idx : validSelected) report << idx << " ";
+    report << "\nСимметрическая разность: { " << cutEdgesToText(symDiff) << " }\n";
+
+    auto data = DrawDataConfig::getConfigs().at(52);
+    data.addedEdges = symDiff;
+
+    FileHandler::saveGraph(data.txtFile, graph);
+    FileHandler::saveAddedEdges(data.txtGraphFile, data.addedEdges);
+    FileHandler::saveToFile("assets/txt/53_fundamental_cuts_subset.txt", report.str());
+    Visualizer::draw(data, false, VisualizationType::Graph);
+    std::cout << "[OK] Подмножество разрезов построено и визуализировано\n";
 }
 
 }  // namespace lab5
