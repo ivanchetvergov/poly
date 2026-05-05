@@ -108,16 +108,13 @@ std::string HashTable::serialize() const {
     return content;
 }
 
-bool HashTable::loadFromFile(std::string const& filename, bool append, int ngramSize) {
-    std::string content;
-    if (!FileHandler::loadFromFile(filename, content)) return false;
+bool HashTable::loadFromFile(std::string const& filename, bool append) {
     if (!append) clear();
 
-        // Use Tokenizer to obtain n-grams
-        std::vector<std::string> ngrams;
-        if (!dict::Tokenizer::ngramsFromFile(filename, ngramSize, ngrams)) return false;
-        for (auto const& ng : ngrams) insert(ng);
-        return true;
+    std::vector<std::string> tokens;
+    if (!Tokenizer::tokensFromFile(filename, tokens)) return false;
+    for (auto const& token : tokens) insert(token);
+    return true;
 }
 
 }  // namespace dict

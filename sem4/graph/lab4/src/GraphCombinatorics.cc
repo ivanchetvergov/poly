@@ -8,7 +8,8 @@ using VerticesSet = std::vector<int>;
 
 namespace graph {
 
-VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph) {
+VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph)
+{
     auto vertices = graph.vertexIds();
     std::sort(vertices.begin(), vertices.end());
     size_t n = vertices.size();
@@ -34,7 +35,8 @@ VerticesSet GraphCombinatorics::findMinColoring(Graph const& graph) {
 bool GraphCombinatorics::backtrackColoring(Graph const& graph, int index,
                                            VerticesSet const& vertices, VerticesSet& colors,
                                            int num_colors,
-                                           std::unordered_map<int, int> const& vertex_to_index) {
+                                           std::unordered_map<int, int> const& vertex_to_index)
+{
     if (index == static_cast<int>(vertices.size())) {
         return isValidColoring(graph, colors, vertices, vertex_to_index);
     }
@@ -62,7 +64,8 @@ bool GraphCombinatorics::backtrackColoring(Graph const& graph, int index,
 
 bool GraphCombinatorics::isValidColoring(Graph const& graph, VerticesSet const& colors,
                                          VerticesSet const& vertices,
-                                         std::unordered_map<int, int> const& vertex_to_index) const {
+                                         std::unordered_map<int, int> const& vertex_to_index) const
+{
     for (size_t i = 0; i < vertices.size(); ++i) {
         int v = vertices[i];
         for (auto const& [neighbor, weight] : graph.neighbors(v)) {

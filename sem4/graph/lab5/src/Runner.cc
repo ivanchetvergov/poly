@@ -353,8 +353,8 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
         int u = static_cast<int>(code >> 32U);
         int v = static_cast<int>(code & 0xFFFFFFFFU);
         std::cout << "  (" << u << ", " << v << "): " << count
-                  << " раз" << (count == 1 ? "а" : "")
-                  << " → " << (count % 2 == 1 ? "ОСТАВИТЬ" : "УДАЛИТЬ") << "\n";
+                  << " раз" << (count == 1 ? "а" : "");
+
     }
 
     std::cout << "\n[RESULT] Симметрическая разность (индексы: ";

@@ -83,38 +83,24 @@ std::vector<CutSystem::FundamentalCut> CutSystem::buildFundamentalCuts() const {
 
 std::vector<std::pair<int, int>> CutSystem::symmetricDifference(
     std::vector<FundamentalCut> const& cuts,
-    std::vector<int> const& selectedIndices) const {
-
-    std::unordered_set<unsigned long long> active;
-    auto encode = [](std::pair<int, int> e) {
-        return (static_cast<unsigned long long>(e.first) << 32U) |
-               static_cast<unsigned int>(e.second);
-    };
+    std::vector<int> const& selectedIndices) const
+{
+    std::set<std::pair<int, int>> active;
 
     for (int idx : selectedIndices) {
         if (idx < 0 || idx >= static_cast<int>(cuts.size())) {
             continue;
         }
+
         for (auto const& edge : cuts[idx].cutEdges) {
-            auto code = encode(edge);
-            if (active.contains(code)) {
-                active.erase(code);
-            } else {
-                active.insert(code);
+            auto [it, inserted] = active.insert(edge);
+            if (!inserted) {
+                active.erase(it);
             }
         }
     }
 
-    std::vector<std::pair<int, int>> out;
-    out.reserve(active.size());
-    for (auto code : active) {
-        int u = static_cast<int>(code >> 32U);
-        int v = static_cast<int>(code & 0xFFFFFFFFU);
-        out.emplace_back(u, v);
-    }
-
-    std::sort(out.begin(), out.end());
-    return out;
+    return {active.begin(), active.end()};
 }
 
 }  // namespace graph

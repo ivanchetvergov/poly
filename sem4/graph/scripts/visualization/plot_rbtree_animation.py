@@ -2,12 +2,10 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import networkx as nx
-from matplotlib.lines import Line2D
-import os
 
 from scripts.core.renderer import Renderer
 from scripts.core.config import plot_cfg, node_cfg, edge_cfg, label_cfg
-from .plot_rbtree import hierarchy_pos
+from .plot_rbtree import build_rbtree_graph_from_text, hierarchy_pos, is_nil_node
 
 def read_snapshots(filename):
     snapshots = []
@@ -24,37 +22,15 @@ def read_snapshots(filename):
     return snapshots
 
 def create_graph_from_data(data):
-    G = nx.DiGraph()
-    node_colors = {}
-    for line in data.split('\n'):
-        raw = line.strip()
-        if not raw:
-            continue
-        # Preferred format: node<TAB>parent<TAB>color.
-        if '\t' in raw:
-            fields = raw.split('\t')
-            if len(fields) != 3:
-                continue
-            node, parent, color = fields
-        else:
-            # Backward-compat fallback for old format.
-            parts = raw.split()
-            if len(parts) < 3:
-                continue
-            parent = parts[-2]
-            color = parts[-1]
-            node = ' '.join(parts[:-2])
-
-        G.add_node(node)
-        node_colors[node] = 'red' if color == 'RED' else 'black'
-        if parent != 'null':
-            G.add_edge(parent, node)
-    return G, node_colors
+    return build_rbtree_graph_from_text(data)
 
 def animate_rbtree_growth(snapshots, output_file='assets/gif/rbtree_growth.gif'):
     if not snapshots:
-        print("No snapshots")
+        print("No snapshots to animate")
         return
+
+    if len(snapshots) < 2:
+        print(f"Warning: Only {len(snapshots)} snapshot(s), animation may not be useful")
 
     fig = plt.figure(figsize=(plot_cfg.figsize))
     ax = fig.add_axes([0, 0, 1, 1])
@@ -62,11 +38,12 @@ def animate_rbtree_growth(snapshots, output_file='assets/gif/rbtree_growth.gif')
     def update(frame):
         ax.clear()
         step, data = snapshots[frame]
-        G, node_colors = create_graph_from_data(data)
+        G, node_colors, parents = create_graph_from_data(data)
         if not G.nodes():
+            ax.set_title(f'RBTree Growth - Step {step} (empty)')
             return
 
-        roots = [n for n in G.nodes() if G.in_degree(n) == 0]
+        roots = [node for node, parent in parents.items() if parent == 'null']
         if not roots:
             roots = [next(iter(G.nodes()))]
 
@@ -82,20 +59,36 @@ def animate_rbtree_growth(snapshots, output_file='assets/gif/rbtree_growth.gif')
         for i, node in enumerate(missing):
             pos[node] = (len(roots) * (span + 1.0) + 1.0, 1 - i * 0.5)
 
-        node_color_list = [node_colors.get(node, 'black') for node in G.nodes()]
-        max_len = max(len(node) for node in G.nodes()) if G.nodes() else 10
         node_size = node_cfg.rb_node_size
 
-        nx.draw_networkx_nodes(G, pos, node_color=node_color_list, node_size=node_size, ax=ax)
-        nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='->', connectionstyle='arc3,rad=0.0', ax=ax)
-        labels = {node: node for node in G.nodes()}
-        nx.draw_networkx_labels(G, pos, labels, font_color='white', font_size=label_cfg.label_font_size, font_weight=label_cfg.label_font_weight, ax=ax)
-        ax.set_title(f'RBTree Growth - Step {step}')
+        actual_nodes = [node for node in G.nodes() if not is_nil_node(node)]
+        nil_nodes = [node for node in G.nodes() if is_nil_node(node)]
 
-    ani = animation.FuncAnimation(fig, update, frames=len(snapshots), interval=2000, repeat=False)
-    ani.save(output_file, writer='pillow')
+        actual_node_colors = [node_colors.get(node, 'black') for node in actual_nodes]
+        if actual_nodes:
+            nx.draw_networkx_nodes(G, pos, nodelist=actual_nodes, node_color=actual_node_colors, node_size=node_size, ax=ax)
+
+        if nil_nodes:
+            nil_size = max(80, int(node_size * 0.18))
+            nx.draw_networkx_nodes(G, pos, nodelist=nil_nodes, node_color='black', node_size=nil_size, linewidths=0.5, edgecolors='gray', ax=ax)
+
+        nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='->', connectionstyle='arc3,rad=0.0', ax=ax)
+        labels = {node: node for node in actual_nodes}
+        nx.draw_networkx_labels(G, pos, labels, font_color='white', font_size=label_cfg.label_font_size, font_weight=label_cfg.label_font_weight, ax=ax)
+        ax.set_title(f'RBTree Growth - Step {step}', fontsize=14, fontweight='bold')
+        ax.axis('off')
+
+    # Use faster interval (500ms = 0.5 sec per frame, faster than 2000ms)
+    ani = animation.FuncAnimation(fig, update, frames=len(snapshots), interval=500, repeat=True)
+
+    try:
+        ani.save(output_file, writer='pillow')
+        print(f"Animation saved to {output_file}")
+    except Exception as e:
+        print(f"Error saving animation: {e}")
+
     plt.close()
-    print(f"Animation saved to {output_file}")
+
 
 if __name__ == "__main__":
     snapshots_file = sys.argv[1]

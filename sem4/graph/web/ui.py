@@ -413,26 +413,82 @@ class GraphLabApp:
         if not self._get(entered_key, False):
             self.send_command(lab, str(action_config.execute_cmd))
             self._set(entered_key, True)
+
+        # Section for file loading
+        with st.expander("Load from File", expanded=False):
+            uploaded_file = st.file_uploader("Choose a text file", type=['txt'], key=f"{lab}_{action_name}_file")
+
+            if st.button("Load File", key=f"{lab}_{action_name}_load_file"):
+                if uploaded_file is not None:
+                    try:
+                        # Save uploaded file temporarily
+                        safe_action_name = action_name.replace(" ", "_")
+                        temp_path = str(PROJECT_ROOT / f"temp_{safe_action_name}.txt")
+                        with open(temp_path, 'w', encoding='utf-8') as f:
+                            f.write(uploaded_file.getvalue().decode('utf-8'))
+
+                        # Send load command to C++ process (always uses unigrams)
+                        self.send_command(lab, f"load {temp_path}")
+                        st.success("File loaded successfully! Tree properties are maintained via lexicographic ordering of words (n-grams).")
+                    except Exception as e:
+                        st.error(f"Error loading file: {str(e)}")
+                else:
+                    st.warning("Please select a file first")
+
         with st.container():
             with st.form(key=f"{lab}_{action_name}_form"):
-                operation = st.selectbox("Operation", ["insert", "remove", "search"])
-                word = st.text_input("Word")
-                if st.form_submit_button("Submit Command"):
-                    self.send_command(lab, f"{operation} {word}")
+                operation = st.selectbox("Operation", ["insert", "remove", "search", "clear"], key=f"{lab}_{action_name}_op")
+                word = st.text_input("Word", key=f"{lab}_{action_name}_word")
+
+                if st.form_submit_button("Submit", use_container_width=True):
+                    if operation == "clear":
+                        self.send_command(lab, "clear")
+                    elif word:
+                        self.send_command(lab, f"{operation} {word}")
+                    else:
+                        st.warning("Please enter a word")
+
             if st.button("Exit from interactive loop", key=f"{lab}_{action_name}_exit"):
                 self.send_command(lab, "exit")
                 self._set(open_key, False)
                 self._set(entered_key, False)
                 st.rerun()
+
             col1, col2 = st.columns(2, gap="small")
             with col1:
                 if st.button("Visualize", key=f"{lab}_{action_name}_draw"):
-                    self.send_command(lab, "draw")
-                    self._s.current_visualization = action_config.images
+                    with st.spinner("Rendering visualization..."):
+                        self.send_command(lab, "draw")
+                        import time
+                        time.sleep(0.5)
+                        png_path = ASSETS_DIR / "png" / "64_rbtree_interactive.png"
+                        wait_count = 0
+                        # Try wait to ensure the file updates
+                        while wait_count < 10:
+                            time.sleep(0.2)
+                            wait_count += 1
+                        self._s.current_visualization = action_config.images
             with col2:
                 if "RBTree" in action_name and st.button("GIF", key=f"{lab}_{action_name}_gif"):
-                    self.send_command(lab, "gif")
-                    self._s.current_visualization = ["65_rbtree_growth.gif"]
+                    with st.spinner("Generating animation... This might take a few seconds."):
+                        self.send_command(lab, "gif")
+                        import time
+                        time.sleep(0.5)  # Wait for C++ to start and delete the old GIF
+                        gif_path = ASSETS_DIR / "gif" / "65_rbtree_growth.gif"
+
+                        # Wait up to 15 seconds for the new GIF to be created
+                        wait_count = 0
+                        while not gif_path.exists() and wait_count < 30:
+                            time.sleep(0.5)
+                            wait_count += 1
+
+                        if gif_path.exists():
+                            # Give a little extra time for the file to be fully written
+                            time.sleep(0.5)
+                            if "65_rbtree_growth.gif" in action_config.images:
+                                self._s.current_visualization = ["65_rbtree_growth.gif"]
+                        else:
+                            st.warning("Failed to generate animation. Make sure you have snapshots.")
 
     def _render_lab6_simple_action(self, lab: str, action_name: str, action_config, is_any_open: bool) -> None:
         if is_any_open:

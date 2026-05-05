@@ -149,7 +149,7 @@ public:
 \texttt{neighbors(id)} возвращает список смежных вершин с весами
 \texttt{vector<pair<int,double>>}, объединяя данные из списка соседей
 и хэш-таблицы рёбер за один проход.
-\texttt{getNeighbors(id)} делегирует в \texttt{GraphBase::neighbors}
+\texttt{getNeighbors(id)} делегирует в  \\ \texttt{GraphBase::neighbors}
 и возвращает только идентификаторы~--- используется там, где вес не нужен.
 
 \subsubsection{Generator: генерация графов}
@@ -382,7 +382,7 @@ static Matrix<std::optional<double>> multiplyOptionalMatrix(
 в Python. \texttt{savePaths} пишет число путей первой строкой, затем
 каждый путь как разделённую последовательность вершин.
 Приватный шаблонный метод, предназначенный для чтение матрицы \texttt{saveSquareMatrix} используется публичными методами
-\texttt{saveAdjacencyMatrix}, \texttt{saveWeightMatrix},
+\\ \texttt{saveAdjacencyMatrix}, \texttt{saveWeightMatrix},
 \texttt{saveCapacityMatrix} и \texttt{saveCostMatrix}~--- все они
 отличаются только геттером, который передаётся как лямбда.
 

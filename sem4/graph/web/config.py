@@ -75,7 +75,7 @@ LAB_CONFIGS = {
             "HashTable Demo": ActionConfig(execute_cmd="61", images=["61_hashtable_demo.png"]),
             "RBTree Demo": ActionConfig(execute_cmd="62", images=["62_rbtree_demo.png", "65_rbtree_growth.gif"]),
             "HashTable Interactive": ActionConfig(execute_cmd="63", params=["operation", "word"], images=["63_hashtable_interactive.png"]),
-            "RBTree Interactive": ActionConfig(execute_cmd="64", params=["operation", "word"], images=["64_rbtree_interactive.png"]),
+            "RBTree Interactive": ActionConfig(execute_cmd="64", params=["operation", "word"], images=["64_rbtree_interactive.png", "65_rbtree_growth.gif"]),
         }
     ),
 }

@@ -112,9 +112,6 @@ std::optional<std::vector<int>> EulerianCycle::findCycle() {
     return std::nullopt;
 }
 
-// ---------------------------------------------------------------------------
-// Приватные методы
-// ---------------------------------------------------------------------------
 
 void EulerianCycle::logDebug(std::string const& message) const {
     std::cout << "[EULER][DEBUG] " << message << "\n";

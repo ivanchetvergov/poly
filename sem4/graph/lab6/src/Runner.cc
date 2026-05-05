@@ -111,14 +111,11 @@ void Runner::runHashTableInteractive() {
         if (command.size() >= 4 && command.substr(0, 4) == "load") {
             std::istringstream lss(command);
             std::string cmd, filename;
-            int n = 1;
             lss >> cmd >> filename;
-            if (lss >> n) {
-            }
             if (filename.empty()) {
-                std::cout << "Usage: load <filename> [n]\n";
-            } else if (ht.loadFromFile(filename, true, n)) {
-                std::cout << "Loaded from: " << filename << " (n=" << n << ")\n";
+                std::cout << "Usage: load <filename>\n";
+            } else if (ht.loadFromFile(filename, true)) {
+                std::cout << "Loaded from: " << filename << "\n";
             } else {
                 std::cout << "Failed to load: " << filename << "\n";
             }
@@ -173,6 +170,8 @@ void Runner::runRBTreeInteractive() {
         if (command == "clear") {
             tree.clear();
             std::cout << "Cleared tree\n";
+            step = 1;
+            FileHandler::saveToFile(snapshotsFile, "");
             auto data = tree.serialize();
             std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
             FileHandler::appendToFile(snapshotsFile, snapshot);
@@ -182,27 +181,24 @@ void Runner::runRBTreeInteractive() {
         if (command.size() >= 4 && command.substr(0, 4) == "load") {
             std::istringstream lss(command);
             std::string cmd, filename;
-            int n = 1;
             lss >> cmd >> filename;
-            if (lss >> n) {
-            }
             if (filename.empty()) {
-                std::cout << "Usage: load <filename> [n]\n";
+                std::cout << "Usage: load <filename>\n";
             } else {
-                std::vector<std::string> ngrams;
-                if (!Tokenizer::ngramsFromFile(filename, n, ngrams)) {
+                std::vector<std::string> tokens;
+                if (!Tokenizer::tokensFromFile(filename, tokens)) {
                     std::cout << "Failed to load: " << filename << "\n";
                     continue;
                 }
 
-                for (auto const& token : ngrams) {
+                for (auto const& token : tokens) {
                     tree.insert(token);
                     auto data = tree.serialize();
                     std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
                     FileHandler::appendToFile(snapshotsFile, snapshot);
                     step++;
                 }
-                std::cout << "Loaded from: " << filename << " (n=" << n << ", tokens=" << ngrams.size() << ")\n";
+                std::cout << "Loaded from: " << filename << " (tokens=" << tokens.size() << ")\n";
             }
             continue;
         }
@@ -210,6 +206,11 @@ void Runner::runRBTreeInteractive() {
             std::string word = command.substr(7);
             tree.insert(word);
             std::cout << "Inserted: " << word << "\n";
+
+            // Validate tree after operation
+            if (!tree.validate()) {
+                std::cout << "[WARNING] Tree is invalid after insert!\n";
+            }
 
             auto data = tree.serialize();
             std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
@@ -219,6 +220,16 @@ void Runner::runRBTreeInteractive() {
             std::string word = command.substr(7);
             if (tree.remove(word)) {
                 std::cout << "Removed: " << word << "\n";
+
+                // Validate tree after operation
+                if (!tree.validate()) {
+                    std::cout << "[WARNING] Tree is invalid after remove!\n";
+                }
+
+                auto data = tree.serialize();
+                std::string snapshot = std::to_string(step) + "\n" + data + "\n---\n";
+                FileHandler::appendToFile(snapshotsFile, snapshot);
+                step++;
             } else {
                 std::cout << "Not found: " << word << "\n";
             }
@@ -252,8 +263,9 @@ void Runner::runRBTreeInteractive() {
                 std::error_code ec;
                 std::filesystem::remove(data.gifFile, ec);
                 graph::Visualizer::drawRBTree(data, graph::VisualizationType::Animation);
+                std::cout << "Animation created and saved to " << data.gifFile << "\n";
             } else {
-                std::cout << "No snapshots to animate\n";
+                std::cout << "[ERROR] No snapshots to animate. Perform some insert/remove operations first.\n";
             }
         } else {
             std::cout << "Unknown command\n";

@@ -30,7 +30,7 @@ public:
 
     [[nodiscard]] std::string serialize() const;
 
-    bool loadFromFile(std::string const& filename, bool append = true, int ngramSize = 1);
+    bool loadFromFile(std::string const& filename, bool append = true);
 
 private:
     std::vector<std::unique_ptr<HashNode>> m_table;

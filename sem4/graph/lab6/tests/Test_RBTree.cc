@@ -66,6 +66,18 @@ TEST(RBTreeTest, RemoveRoot) {
     EXPECT_FALSE(tree.search("root"));
 }
 
+TEST(RBTreeTest, RemoveDecrementsDuplicateCount) {
+    RBTree tree;
+    tree.insert("dup");
+    tree.insert("dup");
+
+    EXPECT_TRUE(tree.search("dup"));
+    EXPECT_TRUE(tree.remove("dup"));
+    EXPECT_TRUE(tree.search("dup"));
+    EXPECT_TRUE(tree.remove("dup"));
+    EXPECT_FALSE(tree.search("dup"));
+}
+
 TEST(RBTreeTest, FileOperations) {
     RBTree tree;
     tree.insert("apple");

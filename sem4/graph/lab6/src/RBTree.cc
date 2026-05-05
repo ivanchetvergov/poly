@@ -111,6 +111,12 @@ bool RBTree::remove(std::string const& word) {
     if (!node)
         return false;
 
+    if (node->count > 1) {
+        --node->count;
+        DEBUG("Decremented count for: " + word);
+        return true;
+    }
+
     RBNode* y = node;
     RBNode* x;
     Color originalColor = y->color;
@@ -165,10 +171,15 @@ std::string RBTree::serialize() const {
     std::string content;
     std::function<void(RBNode const*)> collect = [&](RBNode const* node) {
         if (!node) return;
+        // Use in-order traversal to collect all nodes
+        collect(node->left);
+
         std::string parent = node->parent ? node->parent->key : "null";
         std::string color = node->color == RED ? "RED" : "BLACK";
+        // Format: key\tparent\tcolor
+        // Tab-separated for reliable parsing, supports n-grams
         content += node->key + "\t" + parent + "\t" + color + "\n";
-        collect(node->left);
+
         collect(node->right);
     };
     collect(m_root);
@@ -192,10 +203,10 @@ bool RBTree::saveToFile(std::string const& filename) const {
     return FileHandler::saveToFile(filename, content);
 }
 
-bool RBTree::loadFromFile(std::string const& filename, int ngramSize) {
-    std::vector<std::string> ngrams;
-    if (!Tokenizer::ngramsFromFile(filename, ngramSize, ngrams)) return false;
-    for (auto const& ng : ngrams) insert(ng);
+bool RBTree::loadFromFile(std::string const& filename) {
+    std::vector<std::string> tokens;
+    if (!Tokenizer::tokensFromFile(filename, tokens)) return false;
+    for (auto const& token : tokens) insert(token);
     return true;
 }
 
@@ -207,11 +218,20 @@ void RBTree::deleteFixup(RBNode* pt) {
         if (pt == pt->parent->left) {
             RBNode* sibling = pt->parent->right;
 
+            if (!sibling) {
+                pt = pt->parent;
+                continue;
+            }
+
             if (getColor(sibling) == RED) {
                 sibling->color = BLACK;
                 pt->parent->color = RED;
                 rotateLeft(pt->parent);
                 sibling = pt->parent->right;
+                if (!sibling) {  // Safety check after rotation
+                    pt = pt->parent;
+                    continue;
+                }
             }
 
             if (getColor(sibling->left) == BLACK && getColor(sibling->right) == BLACK) {
@@ -225,41 +245,66 @@ void RBTree::deleteFixup(RBNode* pt) {
                     sibling->color = RED;
                     rotateRight(sibling);
                     sibling = pt->parent->right;
+                    if (!sibling) {  // Safety check after rotation
+                        pt = pt->parent;
+                        continue;
+                    }
                 }
-                sibling->color = pt->parent->color;
-                pt->parent->color = BLACK;
-                if (sibling->right)
-                    sibling->right->color = BLACK;
-                rotateLeft(pt->parent);
+                if (sibling) {  // Null check before using sibling
+                    sibling->color = pt->parent->color;
+                    pt->parent->color = BLACK;
+                    if (sibling->right)
+                        sibling->right->color = BLACK;
+                    rotateLeft(pt->parent);
+                }
                 pt = m_root;
             }
         } else {
             RBNode* sibling = pt->parent->left;
 
+            if (!sibling) {
+                pt = pt->parent;
+                continue;
+            }
+
+            // Case 1: sibling is RED
             if (getColor(sibling) == RED) {
                 sibling->color = BLACK;
                 pt->parent->color = RED;
                 rotateRight(pt->parent);
                 sibling = pt->parent->left;
+                if (!sibling) {  // Safety check after rotation
+                    pt = pt->parent;
+                    continue;
+                }
             }
 
+            // Case 2: sibling is BLACK and both children are BLACK
             if (getColor(sibling->right) == BLACK && getColor(sibling->left) == BLACK) {
                 if (sibling)
                     sibling->color = RED;
                 pt = pt->parent;
             } else {
+                // Case 3: sibling's left child is BLACK
                 if (getColor(sibling->left) == BLACK) {
                     if (sibling->right)
                         sibling->right->color = BLACK;
                     sibling->color = RED;
                     rotateLeft(sibling);
                     sibling = pt->parent->left;
+                    if (!sibling) {  // Safety check after rotation
+                        pt = pt->parent;
+                        continue;
+                    }
                 }
-                sibling->color = pt->parent->color;
-                pt->parent->color = BLACK;
-                if (sibling->left)
-                    sibling->left->color = BLACK;
-                rotateRight(pt->parent);
+                // Case 4: sibling's left child is RED
+                if (sibling) {  // Null check before using sibling
+                    sibling->color = pt->parent->color;
+                    pt->parent->color = BLACK;
+                    if (sibling->left)
+                        sibling->left->color = BLACK;
+                    rotateRight(pt->parent);
+                }
                 pt = m_root;
             }
         }
@@ -369,18 +414,58 @@ void RBTree::rotateRight(RBNode* x) {
 
 bool RBTree::validate() const {
     if (!m_root) return true;
-    if (m_root->color != BLACK) return false;
-    std::function<int(RBNode const*)> check = [&](RBNode const* node) -> int {
+    if (m_root->color != BLACK) {
+        DEBUG("Root is not BLACK");
+        return false;
+    }
+
+    // Validate RB properties and BST property
+    std::function<int(RBNode const*, std::string const&, std::string const&)> check =
+        [&](RBNode const* node, std::string const& minKey, std::string const& maxKey) -> int {
         if (!node) return 1;
-        if (node->color == RED) {
-            if ((node->left && node->left->color == RED) || (node->right && node->right->color == RED)) return -1;
+
+        // Check BST property
+        if (!minKey.empty() && node->key <= minKey) {
+            DEBUG("BST violation: " + node->key + " <= " + minKey);
+            return -1;
         }
-        int lh = check(node->left);
-        int rh = check(node->right);
-        if (lh == -1 || rh == -1 || lh != rh) return -1;
+        if (!maxKey.empty() && node->key >= maxKey) {
+            DEBUG("BST violation: " + node->key + " >= " + maxKey);
+            return -1;
+        }
+
+        // Check parent-child relationship
+        if (node->left && node->left->parent != node) {
+            DEBUG("Parent-child link broken for left child of " + node->key);
+            return -1;
+        }
+        if (node->right && node->right->parent != node) {
+            DEBUG("Parent-child link broken for right child of " + node->key);
+            return -1;
+        }
+
+        // Check no two consecutive RED nodes
+        if (node->color == RED) {
+            if ((node->left && node->left->color == RED) ||
+                (node->right && node->right->color == RED)) {
+                DEBUG("Red violation: two consecutive RED nodes at " + node->key);
+                return -1;
+            }
+        }
+
+        int lh = check(node->left, minKey, node->key);
+        int rh = check(node->right, node->key, maxKey);
+
+        if (lh == -1 || rh == -1 || lh != rh) {
+            if (lh != rh) {
+                DEBUG("Black height violation at " + node->key + ": left=" + std::to_string(lh) +
+                      " right=" + std::to_string(rh));
+            }
+            return -1;
+        }
         return lh + (node->color == BLACK ? 1 : 0);
     };
-    return check(m_root) != -1;
+    return check(m_root, "", "") != -1;
 }
 
 }  // namespace dict

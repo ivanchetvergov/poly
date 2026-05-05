@@ -48,41 +48,55 @@ std::string normalizeToken(std::string token) {
         }
     }
 
-    for (char& c : token) {
-        unsigned char uc = static_cast<unsigned char>(c);
-        if (uc < 128) c = static_cast<char>(std::tolower(uc));
+    std::string lowered;
+    for (size_t i = 0; i < token.size(); ++i) {
+        unsigned char uc = static_cast<unsigned char>(token[i]);
+        if (uc < 128) {
+            lowered += static_cast<char>(std::tolower(uc));
+        } else if (uc == 0xD0 && i + 1 < token.size()) {
+            unsigned char next = static_cast<unsigned char>(token[i + 1]);
+            if (next >= 0x90 && next <= 0x9F) { // А-П
+                lowered += static_cast<char>(0xD0);
+                lowered += static_cast<char>(next + 0x20);
+                i++;
+            } else if (next >= 0xA0 && next <= 0xAF) { // Р-Я
+                lowered += static_cast<char>(0xD1);
+                lowered += static_cast<char>(next - 0x20);
+                i++;
+            } else if (next == 0x81) { // Ё
+                lowered += static_cast<char>(0xD1);
+                lowered += static_cast<char>(0x91);
+                i++;
+            } else {
+                lowered += static_cast<char>(uc);
+            }
+        } else {
+            lowered += static_cast<char>(uc);
+        }
     }
-    return token;
+    return lowered;
 }
 
 } // namespace
 
-bool Tokenizer::ngramsFromFile(std::string const& filename, int ngramSize, std::vector<std::string>& out) {
+bool Tokenizer::tokensFromFile(std::string const& filename, std::vector<std::string>& out) {
     std::string content;
     if (!FileHandler::loadFromFile(filename, content)) return false;
-    out = ngramsFromContent(content, ngramSize);
+    out = tokensFromContent(content);
     return true;
 }
 
-std::vector<std::string> Tokenizer::ngramsFromContent(std::string const& content, int ngramSize) {
-    std::vector<std::string> words;
+std::vector<std::string> Tokenizer::tokensFromContent(std::string const& content) {
+    std::vector<std::string> tokens;
     std::istringstream iss(content);
     std::string raw;
     while (iss >> raw) {
         auto token = normalizeToken(raw);
-        if (!token.empty()) words.push_back(token);
-    }
-
-    if (ngramSize < 1) ngramSize = 1;
-    std::vector<std::string> out;
-    for (size_t i = 0; i + ngramSize <= words.size(); ++i) {
-        std::string ngram = words[i];
-        for (int j = 1; j < ngramSize; ++j) {
-            ngram += " " + words[i + j];
+        if (!token.empty()) {
+            tokens.push_back(token);
         }
-        out.push_back(ngram);
     }
-    return out;
+    return tokens;
 }
 
 } // namespace dict

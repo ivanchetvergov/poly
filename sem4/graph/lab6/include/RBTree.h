@@ -33,7 +33,7 @@ public:
 
     bool saveToFile(std::string const& filename) const;
 
-    bool loadFromFile(std::string const& filename, int ngramSize = 1);
+    bool loadFromFile(std::string const& filename);
 
     bool validate() const;
 
