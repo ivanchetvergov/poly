@@ -13,21 +13,12 @@ def build_q05_2d(rows: list[dict], output_path: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    ax.plot(
+    ax.bar(
         x, y,
+        width=0.6,
         color="#2C6E49",
-        linewidth=2,
-        alpha=0.9,
-        label="распределение пользователей",
-    )
-    ax.scatter(
-        x, y,
-        s=55,
-        color="#D68C45",
-        edgecolors="white",
-        linewidth=0.8,
-        zorder=3,
-        label="точки (tm_count, user_count)",
+        alpha=0.85,
+        label="число пользователей",
     )
 
     for xi, yi in zip(x, y):
@@ -35,7 +26,7 @@ def build_q05_2d(rows: list[dict], output_path: Path) -> None:
             f"{int(yi):,}",
             (xi, yi),
             textcoords="offset points",
-            xytext=(0, 8),
+            xytext=(0, 5),
             ha="center",
             fontsize=8,
             color="#444441",
@@ -44,8 +35,9 @@ def build_q05_2d(rows: list[dict], output_path: Path) -> None:
     ax.set_title("q05: пользователи по числу командных участий", fontsize=13, pad=12)
     ax.set_xlabel("число участий в командах (tm_count)", fontsize=11)
     ax.set_ylabel("число пользователей (user_count)", fontsize=11)
-    ax.grid(alpha=0.3, linestyle="--")
     ax.set_xticks(x)
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
     ax.legend(loc="upper right", framealpha=0.9)
 
     plt.tight_layout()

@@ -1,11 +1,34 @@
 QUERIES = [
     {
-        "name": "q01",
+        "name": "q01_01",
         "description": (
             "Соревнования где пользователь A в роли B "
             "сделал попытку и соревнование содержит датасет C"
         ),
-        "sql_file": "q01.sql",
+        "sql_file": "q01_01.sql",
+        "param_queries":  """
+            SELECT u.username, r.name, d.name
+            FROM participation p
+            JOIN team_member tm         ON tm.team_id         = p.team_id
+            JOIN "user" u               ON u.user_id          = tm.user_id
+            JOIN role r                 ON r.role_id          = u.role_id
+            JOIN submission s           ON s.participation_id = p.participation_id
+            JOIN competition_dataset cd ON cd.competition_id  = p.competition_id
+            JOIN dataset d              ON d.dataset_id       = cd.dataset_id
+            ORDER BY RANDOM()
+            LIMIT 1
+        """,
+        "retries": 10,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
+        "name": "q01_02",
+        "description": (
+            "Соревнования где пользователь A в роли B "
+            "сделал не менее трех попыток и соревнование содержит датасет C"
+        ),
+        "sql_file": "q01_02.sql",
         "param_queries":  """
             SELECT u.username, r.name, d.name
             FROM participation p
@@ -53,6 +76,24 @@ QUERIES = [
         "on_empty": "warn",
         "plot": "q03",
     },
+        {
+        "name": "q03_val_01",
+        "description": "Валидация 3 запроса 1",
+        "sql_file": "q03_val_01.sql",
+        "param_queries": [],
+        "retries": 1,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
+        "name": "q03_val_02",
+        "description": "Валидация 2",
+        "sql_file": "q03_val_02.sql",
+        "param_queries": [],
+        "retries": 1,
+        "on_empty": "warn",
+        "plot": None,
+    },
     {
         "name": "q04_01",
         "description": "Пользователи с максимальным числом участий",
@@ -81,6 +122,15 @@ QUERIES = [
         "plot": "q05",
     },
     {
+        "name": "q05_val",
+        "description": "Валидация пятого запроса",
+        "sql_file": "q05_val.sql",
+        "param_queries": [],
+        "retries": 1,
+        "on_empty": "warn",
+        "plot": None,
+    },
+    {
         "name": "q06",
         "description": "Команды, у которых число участий больше, чем у другой команды",
         "sql_file": "q06.sql",
@@ -103,32 +153,15 @@ QUERIES = [
         "description": "Роли команд и число участников",
         "sql_file": "q08.sql",
         "param_queries": [],
-        "retries": 1,
+        "retries": 3,
         "on_empty": "warn",
         "plot": "q08",
     },
     {
         "name": "q09",
-        "type": "update",
         "description": "Обновить метрику попытки для команды A в соревновании B",
         "sql_file": "q09.sql",
-        "param_queries": """
-            SELECT
-                s.submission_id,
-                ROUND(s.metric_value * 1.1, 6),
-                s.metric_value,
-                t.name,
-                c.title,
-                s.attempt_number
-            FROM submission s
-                JOIN participation p  ON p.participation_id = s.participation_id
-                JOIN team t           ON t.team_id          = p.team_id
-                JOIN competition c    ON c.competition_id   = p.competition_id
-            WHERE s.metric_value IS NOT NULL
-            AND p.team_id IS NOT NULL
-            ORDER BY RANDOM()
-            LIMIT 1
-        """,
+        "param_queries": [],
         "retries": 5,
         "on_empty": "warn",
         "plot": None,

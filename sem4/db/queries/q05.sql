@@ -6,7 +6,7 @@ FROM (
         u.user_id,
         COUNT(tm.member_id) AS tm_count
     FROM "user" u
-        JOIN team_member tm ON tm.user_id = u.user_id
+    LEFT JOIN team_member tm ON tm.user_id = u.user_id -- был баг, поменял JOIN на LEFT JOIN
     GROUP BY
         u.user_id
 ) counts

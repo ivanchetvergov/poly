@@ -18,3 +18,6 @@ WHERE
     AND d.name = $3 -- файл датасета "C"
 ORDER BY
     c.title;
+
+
+--- 'luna1048', 'admin', 'graphs_41'

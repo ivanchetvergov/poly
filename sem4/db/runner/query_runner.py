@@ -66,28 +66,11 @@ class QueryRunner:
 
             print(f"[попытка {attempt}/{retries}] параметры: {params}")
 
-            if type == "update":
-                submission_id = params[0]
-                new_value     = params[1]
-                old_value     = params[2]
-                team_name     = params[3]
-                competition   = params[4]
-                attempt_num   = params[5]
-
-                await self.conn.execute(query, submission_id, new_value)
-
-                print(f"  команда     : {team_name}")
-                print(f"  соревнование: {competition}")
-                print(f"  попытка     : {attempt_num}")
-                print(f"  было        : {old_value}")
-                print(f"  стало       : {new_value}")
-                return None
-            else:
-                rows = await self.conn.fetch(query, *params)
-                if rows:
-                    self._print_result(rows)
-                    self._maybe_plot(plot, rows)
-                    return rows
+            rows = await self.conn.fetch(query, *params)
+            if rows:
+                self._print_result(rows)
+                self._maybe_plot(plot, rows)
+                return rows
 
             print(" -> пустой результат, повтор...")
 
