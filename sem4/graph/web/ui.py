@@ -314,7 +314,7 @@ class GraphLabApp:
         if param == "directed":
             st.checkbox("Directed", value=DEFAULT_PARAMS.directed, key=key)
         elif param == "vertices":
-            st.number_input("Vertices", 2, 50, DEFAULT_PARAMS.vertices, key=key)
+            st.number_input("Vertices", 2, 1000, DEFAULT_PARAMS.vertices, key=key)
         elif param == "edges":
             st.number_input("Edges", 5, 100, DEFAULT_PARAMS.edges, key=key)
         elif param == "start_vertex":
@@ -371,7 +371,7 @@ class GraphLabApp:
                                 self._get_param(lab, action, "cost_sign", DEFAULT_PARAMS.cost_sign))),
             "operation":    lambda: str(self._get_param(lab, action, "operation", "insert")),
             "word":         lambda: str(self._get_param(lab, action, "word", "")),
-            "cut_indices":  lambda: str(self._get_param(lab, action, "cut_indices", "")),
+            "cut_indices":  lambda: str(self._get_param(lab, action, "cut_indices", "")).strip() or "empty",
         }
         for p in params:
             if p not in handlers:
@@ -457,38 +457,25 @@ class GraphLabApp:
             col1, col2 = st.columns(2, gap="small")
             with col1:
                 if st.button("Visualize", key=f"{lab}_{action_name}_draw"):
-                    with st.spinner("Rendering visualization..."):
-                        self.send_command(lab, "draw")
-                        import time
-                        time.sleep(0.5)
-                        png_path = ASSETS_DIR / "png" / "64_rbtree_interactive.png"
-                        wait_count = 0
-                        # Try wait to ensure the file updates
-                        while wait_count < 10:
-                            time.sleep(0.2)
-                            wait_count += 1
-                        self._s.current_visualization = action_config.images
+                    self.send_command(lab, "draw")
+                    self._s.current_visualization = action_config.images
             with col2:
                 if "RBTree" in action_name and st.button("GIF", key=f"{lab}_{action_name}_gif"):
-                    with st.spinner("Generating animation... This might take a few seconds."):
-                        self.send_command(lab, "gif")
-                        import time
-                        time.sleep(0.5)  # Wait for C++ to start and delete the old GIF
-                        gif_path = ASSETS_DIR / "gif" / "65_rbtree_growth.gif"
+                    self.send_command(lab, "gif")
+                    # GIF file might not exist if no operations were performed
+                    if "65_rbtree_growth.gif" in action_config.images:
+                        self._s.current_visualization = ["65_rbtree_growth.gif"]
+                    else:
+                        st.warning("No animation available. Perform some operations first.")
 
-                        # Wait up to 15 seconds for the new GIF to be created
-                        wait_count = 0
-                        while not gif_path.exists() and wait_count < 30:
-                            time.sleep(0.5)
-                            wait_count += 1
-
-                        if gif_path.exists():
-                            # Give a little extra time for the file to be fully written
-                            time.sleep(0.5)
-                            if "65_rbtree_growth.gif" in action_config.images:
-                                self._s.current_visualization = ["65_rbtree_growth.gif"]
-                        else:
-                            st.warning("Failed to generate animation. Make sure you have snapshots.")
+            if "RBTree" in action_name:
+                # Показываем лексикографический порядок
+                st.markdown(
+                    "<div style='margin-top: 1rem; padding: 0.75rem; border-radius: 8px; background-color: black; color: white; font-family: monospace; text-align: center; font-size: 1.1rem; letter-spacing: 2px;'>"
+                    "а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ъ ы ь э ю я ё"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
 
     def _render_lab6_simple_action(self, lab: str, action_name: str, action_config, is_any_open: bool) -> None:
         if is_any_open:

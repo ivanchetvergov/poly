@@ -200,7 +200,9 @@ void Runner::runPruferDecode(Graph const& /*graph*/) {
     std::cout << "Общий вес: " << std::fixed << std::setprecision(2) << total_weight << "\n";
 
     auto data = DrawDataConfig::getConfigs().at(44);
-    data.title = "Декодированное дерево (вес: " + std::to_string(static_cast<int>(total_weight)) + ")";
+    std::ostringstream weight_stream;
+    weight_stream << std::fixed << std::setprecision(2) << total_weight;
+    data.title = "Декодированное дерево (вес: " + weight_stream.str() + ")";
     FileHandler::saveGraph(data.txtFile, *decoded_tree);
     FileHandler::saveToFile("assets/txt/44_prufer_sequence.txt", buildPruferSequenceText(last_encoding_));
     Visualizer::draw(data, false, graph::VisualizationType::Graph);

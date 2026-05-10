@@ -25,6 +25,7 @@ public:
 
     [[nodiscard]] int id() const noexcept { return m_id_; }
     void addNeighbor(int neighborId);
+    void removeNeighbor(int neighborId);
     [[nodiscard]] std::vector<int> neighbors() const;
 
 private:
@@ -37,6 +38,7 @@ public:
     explicit Graph(bool isDirected = false) : GraphBase(isDirected) {}
 
     bool addEdge(int from, int to, double weight);
+    bool removeEdge(int from, int to);
 
     [[nodiscard]] std::optional<double> getEdgeWeight(int from, int to) const;
     [[nodiscard]] std::vector<std::pair<int, double>> neighbors(int id) const;

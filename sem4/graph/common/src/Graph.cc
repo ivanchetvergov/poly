@@ -8,6 +8,13 @@ void Vertex::addNeighbor(int neighborId) {
     m_neighbors_.push_back(neighborId);
 }
 
+void Vertex::removeNeighbor(int neighborId) {
+    auto it = std::find(m_neighbors_.begin(), m_neighbors_.end(), neighborId);
+    if (it != m_neighbors_.end()) {
+        m_neighbors_.erase(it);
+    }
+}
+
 std::vector<int> Vertex::neighbors() const {
     return m_neighbors_;
 }
@@ -21,6 +28,16 @@ bool Graph::addEdge(int from, int to, double weight) {
     }
 
     return added;
+}
+
+bool Graph::removeEdge(int from, int to) {
+    bool removed = GraphBase::removeEdge(from, to);
+
+    if (removed && !is_directed_ && hasVertex(to)) {
+        this->m_vertices_[to]->removeNeighbor(from);
+    }
+
+    return removed;
 }
 
 std::optional<double> Graph::getEdgeWeight(int from, int to) const {

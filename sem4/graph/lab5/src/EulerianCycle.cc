@@ -29,8 +29,9 @@ std::vector<int> EulerianCycle::getOddDegreeVertices() const {
     return odd;
 }
 
-void EulerianCycle::makeEulerian() {
+    void EulerianCycle::makeEulerian() {
     m_added_edges_.clear();
+    m_removed_edges_.clear();
     logDebug("makeEulerian: start");
 
     auto comps = nonZeroComponents();
@@ -54,10 +55,17 @@ void EulerianCycle::makeEulerian() {
 
         if (odd.size() == 2) {
             bool closed = addEdgeTracked(odd[0], odd[1]);
-            logDebug("attempt close semi-eulerian with edge " +
-                     std::to_string(odd[0]) + "--" + std::to_string(odd[1]) +
-                     (closed ? " [added, graph becomes eulerian]"
-                             : " [exists, keep semi-eulerian]"));
+            if (closed) {
+                logDebug("attempt close semi-eulerian with edge " +
+                         std::to_string(odd[0]) + "--" + std::to_string(odd[1]) +
+                         " [added, graph becomes eulerian]");
+            } else {
+                m_graph_.removeEdge(odd[0], odd[1]);
+                m_removed_edges_.emplace_back(std::min(odd[0], odd[1]), std::max(odd[0], odd[1]));
+                logDebug("attempt close semi-eulerian with edge " +
+                         std::to_string(odd[0]) + "--" + std::to_string(odd[1]) +
+                         " [exists, removed edge, graph becomes eulerian]");
+            }
             break;
         }
 

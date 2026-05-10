@@ -32,6 +32,7 @@ public:
     [[nodiscard]] std::vector<int> vertexIds() const;
 
     bool addEdge(int from, int to, EdgeT const& edge);
+    bool removeEdge(int from, int to);
     [[nodiscard]] bool hasEdge(int from, int to) const;
     [[nodiscard]] std::optional<EdgeT> getEdge(int from, int to) const;
     [[nodiscard]] size_t edgeCount() const noexcept;

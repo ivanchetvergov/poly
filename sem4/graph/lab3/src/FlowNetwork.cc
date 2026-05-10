@@ -10,6 +10,13 @@ void FlowVertex::addNeighbor(int neighborId) {
     m_neighbors_.push_back(neighborId);
 }
 
+void FlowVertex::removeNeighbor(int neighborId) {
+    auto it = std::find(m_neighbors_.begin(), m_neighbors_.end(), neighborId);
+    if (it != m_neighbors_.end()) {
+        m_neighbors_.erase(it);
+    }
+}
+
 std::vector<int> FlowVertex::neighbors() const {
     return m_neighbors_;
 }

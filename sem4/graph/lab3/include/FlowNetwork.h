@@ -28,6 +28,7 @@ public:
 
     [[nodiscard]] int id() const noexcept { return m_id_; }
     void addNeighbor(int neighborId);
+    void removeNeighbor(int neighborId);
     [[nodiscard]] std::vector<int> neighbors() const;
 
 private:

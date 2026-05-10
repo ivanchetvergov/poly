@@ -65,13 +65,6 @@ std::string pathToArrowText(std::vector<int> const& path) {
     return out.str();
 }
 
-bool isWebMode() {
-    if (char const* env = std::getenv("GRAPH_WEB_MODE"); env != nullptr) {
-        return std::string(env) == "1";
-    }
-    return false;
-}
-
 std::unique_ptr<Graph> cloneGraph(Graph const& src) {
     auto copy = std::make_unique<Graph>(src.isDirected());
     for (int v : src.vertexIds()) {
@@ -125,6 +118,14 @@ void Runner::runCheckEulerian(Graph& graph) {
         std::cout << "[INFO] Добавлено рёбер: " << added.size() << "\n";
         for (auto const& [u, v] : added) {
             std::cout << "  + " << u << " -- " << v << "\n";
+        }
+    }
+
+    auto const& removed = euler.getRemovedEdges();
+    if (!removed.empty()) {
+        std::cout << "[INFO] Удалено рёбер: " << removed.size() << "\n";
+        for (auto const& [u, v] : removed) {
+            std::cout << "  - " << u << " -- " << v << "\n";
         }
     }
 
@@ -296,7 +297,9 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
     std::cout << "Введите номера разрезов в одной строке через пробел или запятую: ";
 
     std::string line;
-    std::getline(std::cin >> std::ws, line);
+    std::cin >> std::ws;
+    std::getline(std::cin, line);
+    if (line == "empty") line = "";
 
     for (char& ch : line) {
         if (ch == ',') {
@@ -321,7 +324,11 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
         validSelected.push_back(idx);
     }
 
-    if (validSelected.empty()) {
+    if (selected.empty()) {
+        std::cout << "[INFO] Введен пустой набор (пустое множество разрезов).\n";
+        std::cout << "[INFO] Симметрическая разность пустого набора разрезов — это пустое множество рёбер.\n";
+        std::cout << "[INFO] Алгебраически, пустое множество является корректным разрезом (соответствует нулевому вектору в пространстве разрезов, порождённом ФСР).\n";
+    } else if (validSelected.empty()) {
         std::cout << "[FAIL] Нет корректных индексов разрезов\n";
         return;
     }

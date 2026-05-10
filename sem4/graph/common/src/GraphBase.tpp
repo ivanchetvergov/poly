@@ -28,6 +28,20 @@ bool GraphBase<VertexT, EdgeT>::addEdge(int from, int to, EdgeT const& edge) {
 }
 
 template <VertexType VertexT, EdgeType EdgeT>
+bool GraphBase<VertexT, EdgeT>::removeEdge(int from, int to) {
+    auto key = makeKey(from, to);
+    auto it = m_edges_.find(key);
+    if (it == m_edges_.end()) return false;
+
+    m_edges_.erase(it);
+
+    if (m_vertices_.count(from)) {
+        m_vertices_[from]->removeNeighbor(to);
+    }
+    return true;
+}
+
+template <VertexType VertexT, EdgeType EdgeT>
 size_t GraphBase<VertexT, EdgeT>::vertexCount() const noexcept {
     return m_vertices_.size();
 }
