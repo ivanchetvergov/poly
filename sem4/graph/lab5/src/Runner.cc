@@ -326,8 +326,8 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
 
     if (selected.empty()) {
         std::cout << "[INFO] Введен пустой набор (пустое множество разрезов).\n";
-        std::cout << "[INFO] Симметрическая разность пустого набора разрезов — это пустое множество рёбер.\n";
-        std::cout << "[INFO] Алгебраически, пустое множество является корректным разрезом (соответствует нулевому вектору в пространстве разрезов, порождённом ФСР).\n";
+        std::cout << "[INFO] При передаче пустого множества формируется исходная фундаментальная система разрезов (ФСР).\n";
+        std::cout << "[INFO] Алгебраически она соответствует структуре графа по алгоритму Борувки.\n";
     } else if (validSelected.empty()) {
         std::cout << "[FAIL] Нет корректных индексов разрезов\n";
         return;
@@ -340,7 +340,15 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
                   << " | Рёбра разреза: { " << cutEdgesToText(c.cutEdges) << " }\n";
     }
 
-    auto symDiff = cutSystem.symmetricDifference(fundamentalCuts, validSelected);
+    std::vector<std::pair<int, int>> symDiff;
+    if (selected.empty()) {
+        // Return original FSR representing Boruvka's MST tree edges
+        for (auto const& c : fundamentalCuts) {
+            symDiff.push_back(c.treeEdge);
+        }
+    } else {
+        symDiff = cutSystem.symmetricDifference(fundamentalCuts, validSelected);
+    }
 
     std::cout << "\nПроцесс XOR:\n";
     std::unordered_map<unsigned long long, int> edgeCount;
@@ -349,19 +357,22 @@ void Runner::runSymmetricDifferenceSubset(Graph const& graph) {
                static_cast<unsigned int>(e.second);
     };
 
-    for (int idx : validSelected) {
-        for (auto const& edge : fundamentalCuts[idx].cutEdges) {
-            edgeCount[encode(edge)]++;
+    if (!selected.empty()) {
+        for (int idx : validSelected) {
+            for (auto const& edge : fundamentalCuts[idx].cutEdges) {
+                edgeCount[encode(edge)]++;
+            }
         }
-    }
 
-    std::cout << "Вхождения рёбер в выбранные разрезы:\n";
-    for (auto const& [code, count] : edgeCount) {
-        int u = static_cast<int>(code >> 32U);
-        int v = static_cast<int>(code & 0xFFFFFFFFU);
-        std::cout << "  (" << u << ", " << v << "): " << count
-                  << " раз" << (count == 1 ? "а" : "");
-
+        std::cout << "Вхождения рёбер в выбранные разрезы:\n";
+        for (auto const& [code, count] : edgeCount) {
+            int u = static_cast<int>(code >> 32U);
+            int v = static_cast<int>(code & 0xFFFFFFFFU);
+            std::cout << "  (" << u << ", " << v << "): " << count
+                      << " раз" << (count == 1 ? "а" : "") << "\n";
+        }
+    } else {
+        std::cout << "Вхождения рёбер: (генерация остова без вычисления XOR)\n";
     }
 
     std::cout << "\n[RESULT] Симметрическая разность (индексы: ";

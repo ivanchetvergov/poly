@@ -118,22 +118,27 @@ bool RBTree::remove(std::string const& word) {
     }
 
     RBNode* y = node;
-    RBNode* x;
+    RBNode* x = nullptr;
+    RBNode* xParent = nullptr;
     Color originalColor = y->color;
 
     if (!node->left) {
         x = node->right;
+        xParent = node->parent;
         transplant(node, node->right);
     } else if (!node->right) {
         x = node->left;
+        xParent = node->parent;
         transplant(node, node->left);
     } else {
         y = minimum(node->right);
         originalColor = y->color;
         x = y->right;
         if (y->parent == node) {
+            xParent = y;
             if (x) x->parent = y;
         } else {
+            xParent = y->parent;
             transplant(y, y->right);
             y->right = node->right;
             y->right->parent = y;
@@ -145,7 +150,32 @@ bool RBTree::remove(std::string const& word) {
     }
 
     if (originalColor == BLACK) {
+        RBNode dummy("");
+        dummy.color = BLACK;
+        bool usedDummy = false;
+
+        if (!x) {
+            usedDummy = true;
+            x = &dummy;
+            x->parent = xParent;
+            if (xParent) {
+                if (!xParent->left) xParent->left = x;
+                else xParent->right = x;
+            } else {
+                m_root = x;
+            }
+        }
+
         deleteFixup(x);
+
+        if (usedDummy) {
+            if (x->parent) {
+                if (x->parent->left == x) x->parent->left = nullptr;
+                else x->parent->right = nullptr;
+            } else {
+                m_root = nullptr;
+            }
+        }
     }
 
     delete node;
@@ -292,10 +322,6 @@ void RBTree::deleteFixup(RBNode* pt) {
                     sibling->color = RED;
                     rotateLeft(sibling);
                     sibling = pt->parent->left;
-                    if (!sibling) {  // Safety check after rotation
-                        pt = pt->parent;
-                        continue;
-                    }
                 }
                 // Case 4: sibling's left child is RED
                 if (sibling) {  // Null check before using sibling

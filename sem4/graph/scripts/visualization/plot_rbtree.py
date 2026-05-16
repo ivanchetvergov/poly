@@ -41,44 +41,46 @@ def parse_rbtree_lines(lines):
     return nodes, parents, children
 
 
-def attach_nil_children(G, node_colors, nodes, children):
-    """Attach NIL (black) children to leaf nodes.
+def attach_nil_children_and_edges(G, node_colors, nodes, children):
+    """Attach NIL (black) children to leaf nodes and add all edges.
 
-    A node needs NIL children only if it has fewer than 2 real children.
-    We must check the actual children structure, not use value comparison.
+    Ensures that edges are added in the strictly left-first, right-second order,
+    so that hierarchy_pos layout places left children on the left and right on the right.
     """
     for node in nodes:
         child_list = children.get(node, [])
+        left_child = None
+        right_child = None
 
-        # Count actual children
-        if len(child_list) < 2:
-            # Node has 0 or 1 children, needs NIL nodes
-            if len(child_list) == 0:
-                # No children: add both left and right NIL
-                nil_left = f'{NIL_PREFIX}{node}_L'
-                nil_right = f'{NIL_PREFIX}{node}_R'
-                G.add_node(nil_left)
-                G.add_node(nil_right)
-                node_colors[nil_left] = 'black'
-                node_colors[nil_right] = 'black'
-                G.add_edge(node, nil_left)
-                G.add_edge(node, nil_right)
-            elif len(child_list) == 1:
-                # One child: determine if it's left or right based on value
-                # This is a simplification - ideally we'd track left/right in serialize()
-                child = child_list[0]
-                if child < node:
-                    # child is left child, add right NIL
-                    nil_right = f'{NIL_PREFIX}{node}_R'
-                    G.add_node(nil_right)
-                    node_colors[nil_right] = 'black'
-                    G.add_edge(node, nil_right)
-                else:
-                    # child is right child, add left NIL
-                    nil_left = f'{NIL_PREFIX}{node}_L'
-                    G.add_node(nil_left)
-                    node_colors[nil_left] = 'black'
-                    G.add_edge(node, nil_left)
+        if len(child_list) == 2:
+            left_child, right_child = child_list[0], child_list[1]
+        elif len(child_list) == 1:
+            child = child_list[0]
+            # Since strings are compared identically in Python and C++ UTF-8 byte order
+            # for basic characters, this safely identifies left vs right child.
+            if child < node:
+                left_child = child
+                right_child = f'{NIL_PREFIX}{node}_R'
+                G.add_node(right_child)
+                node_colors[right_child] = 'black'
+            else:
+                left_child = f'{NIL_PREFIX}{node}_L'
+                G.add_node(left_child)
+                node_colors[left_child] = 'black'
+                right_child = child
+        else:
+            left_child = f'{NIL_PREFIX}{node}_L'
+            right_child = f'{NIL_PREFIX}{node}_R'
+            G.add_node(left_child)
+            node_colors[left_child] = 'black'
+            G.add_node(right_child)
+            node_colors[right_child] = 'black'
+
+        # MUST add left edge first, right edge second!
+        if left_child:
+            G.add_edge(node, left_child)
+        if right_child:
+            G.add_edge(node, right_child)
 
 
 def build_rbtree_graph_from_text(text):
@@ -91,11 +93,7 @@ def build_rbtree_graph_from_text(text):
         G.add_node(node)
         node_colors[node] = 'red' if color == 'RED' else 'black'
 
-    for parent, child_list in children.items():
-        for child in child_list:
-            G.add_edge(parent, child)
-
-    attach_nil_children(G, node_colors, nodes.keys(), children)
+    attach_nil_children_and_edges(G, node_colors, nodes.keys(), children)
 
     return G, node_colors, parents
 
