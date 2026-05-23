@@ -414,6 +414,13 @@ class GraphLabApp:
             self.send_command(lab, str(action_config.execute_cmd))
             self._set(entered_key, True)
 
+        if "HashTable" in action_name:
+            with st.expander("Configuration", expanded=False):
+                with st.form(key=f"{lab}_{action_name}_cap_form"):
+                    cap = st.number_input("Capacity (resets table)", min_value=1, max_value=100000, value=20, key=f"{lab}_{action_name}_cap")
+                    if st.form_submit_button("Set Capacity"):
+                        self.send_command(lab, f"capacity {cap}")
+
         # Section for file loading
         with st.expander("Load from File", expanded=False):
             uploaded_file = st.file_uploader("Choose a text file", type=['txt'], key=f"{lab}_{action_name}_file")

@@ -97,15 +97,29 @@ void Runner::runRBTreeDemo() {
 
 void Runner::runHashTableInteractive() {
     std::cout << "=== HashTable Interactive Mode ===\n";
-    HashTable ht(20);
+    auto ht = std::make_unique<HashTable>(20);
     std::string command;
     while (true) {
         std::cout << "Enter command (insert <word>, remove <word>, search <word>, draw, exit): ";
         std::getline(std::cin >> std::ws, command);
         if (command == "exit") break;
         if (command == "clear") {
-            ht.clear();
+            ht->clear();
             std::cout << "Cleared table\n";
+            continue;
+        }
+        if (command.size() >= 8 && command.substr(0, 8) == "capacity") {
+            try {
+                int cap = std::stoi(command.substr(9));
+                if (cap > 0) {
+                    ht = std::make_unique<HashTable>(cap);
+                    std::cout << "Reinitialized HashTable with capacity " << cap << "\n";
+                } else {
+                    std::cout << "Capacity must be positive\n";
+                }
+            } catch (std::exception const& e) {
+                std::cout << "Invalid capacity value\n";
+            }
             continue;
         }
         if (command.size() >= 4 && command.substr(0, 4) == "load") {
@@ -114,7 +128,7 @@ void Runner::runHashTableInteractive() {
             lss >> cmd >> filename;
             if (filename.empty()) {
                 std::cout << "Usage: load <filename>\n";
-            } else if (ht.loadFromFile(filename, true)) {
+            } else if (ht->loadFromFile(filename, true)) {
                 std::cout << "Loaded from: " << filename << "\n";
             } else {
                 std::cout << "Failed to load: " << filename << "\n";
@@ -123,24 +137,24 @@ void Runner::runHashTableInteractive() {
         }
         if (command.substr(0, 6) == "insert") {
             std::string word = command.substr(7);
-            ht.insert(word);
+            ht->insert(word);
             std::cout << "Inserted: " << word << "\n";
         } else if (command.substr(0, 6) == "remove") {
             std::string word = command.substr(7);
-            if (ht.remove(word)) {
+            if (ht->remove(word)) {
                 std::cout << "Removed: " << word << "\n";
             } else {
                 std::cout << "Not found: " << word << "\n";
             }
         } else if (command.substr(0, 6) == "search") {
             std::string word = command.substr(7);
-            if (ht.search(word)) {
+            if (ht->search(word)) {
                 std::cout << "Found: " << word << "\n";
             } else {
                 std::cout << "Not found: " << word << "\n";
             }
         } else if (command == "draw") {
-            std::string content = ht.serialize();
+            std::string content = ht->serialize();
             auto data = DrawDataConfig::getConfigs().at(63);
             if (FileHandler::saveHashTableData(content, data.txtFile)) {
                 std::cout << "Exported to " << data.txtFile << "\n";
