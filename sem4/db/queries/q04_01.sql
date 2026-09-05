@@ -22,20 +22,20 @@ HAVING COUNT(p.participation_id) = (
 -- в максимуме был один, дописав инсерт
 -- переписать с лимитом вложенный хевингш
 
--- SELECT
---     u.user_id,
---     u.username,
---     COUNT(p.participation_id) AS p_count
--- FROM "user" u
---     JOIN team_member tm  ON tm.user_id  = u.user_id
---     JOIN participation p ON p.team_id   = tm.team_id
--- GROUP BY
---     u.user_id,
---     u.username
--- HAVING COUNT(p.participation_id) >= ALL (
---     SELECT COUNT(p2.participation_id)
---     FROM team_member tm2
---         JOIN participation p2 ON p2.team_id = tm2.team_id
---     GROUP BY tm2.user_id
--- )
--- ORDER BY p_count DESC;
+SELECT
+    u.user_id,
+    u.username,
+    COUNT(p.participation_id) AS p_count
+FROM "user" u
+    JOIN team_member tm  ON tm.user_id  = u.user_id
+    JOIN participation p ON p.team_id   = tm.team_id
+GROUP BY
+    u.user_id,
+    u.username
+HAVING COUNT(p.participation_id) >= ALL (
+    SELECT COUNT(p2.participation_id)
+    FROM team_member tm2
+        JOIN participation p2 ON p2.team_id = tm2.team_id
+    GROUP BY tm2.user_id
+)
+ORDER BY p_count DESC;

@@ -13,3 +13,5 @@ WHERE u.user_id NOT IN (
 GROUP BY
     u.user_id,
     u.username;
+
+-- 'valid.csv'

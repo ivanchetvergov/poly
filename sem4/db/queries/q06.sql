@@ -29,13 +29,13 @@ ORDER BY
 -- написать в having с джойном селект и проверить что шустрее
 
 -- SELECT
---     $1                        AS team_a,
+--     'Vector Racers 473351'                        AS team_a,
 --     (
 --         SELECT COUNT(p2.participation_id)
 --         FROM team t2
 --             JOIN participation p2 ON p2.team_id = t2.team_id
 --         WHERE
---             t2.name = $1
+--             t2.name = 'Vector Racers 473351'
 --         GROUP BY
 --             t2.team_id
 --     )                         AS score_a,
@@ -51,9 +51,11 @@ ORDER BY
 --     FROM team t2
 --         JOIN participation p2 ON p2.team_id = t2.team_id
 --     WHERE
---         t2.name = $1
+--         t2.name = 'Vector Racers 473351'
 --     GROUP BY
 --         t2.team_id
 -- )
 -- ORDER BY
 --     score_b DESC;
+
+-- 'Vector Racers 473351'
